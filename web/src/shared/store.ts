@@ -1,5 +1,5 @@
 /**
- * Magasin partagé (Zustand), gelé avec contrats-v1 (taches-agents.md §8).
+ * Magasin partagé (Zustand), gelé avec contrats-v2 (taches-agents.md §8).
  * Toute modification passe par tasks/change-requests/.
  *
  * L'état d'interface partagé entre fonctionnalités vit ici ; les données serveur passent
@@ -7,7 +7,8 @@
  */
 import { create } from "zustand";
 
-export type Mode = "habitat" | "tablet" | "hud" | "3d";
+/** Vue courante de l'interface web : la carte (`/`) ou la vue 3D (`/3d`). */
+export type Mode = "map" | "3d";
 export type PickMode = "none" | "query" | "addTarget";
 
 export interface LayerView {
@@ -47,7 +48,7 @@ export const DEFAULT_SITE_ID = "fictif";
 
 export const useShared = create<SharedState>()((set) => ({
   siteId: DEFAULT_SITE_ID,
-  mode: "habitat",
+  mode: "map",
   layers: {},
   preset: "safety",
   selectedTargetId: null,

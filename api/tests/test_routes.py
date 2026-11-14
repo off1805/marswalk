@@ -70,7 +70,7 @@ def test_other_routes() -> None:
     ack = client.post("/api/alerts/alert-1/ack").json()
     assert ack["acknowledged"] is True
     health = client.get("/api/health").json()
-    assert health["contracts"] == "contrats-v1" and "fictif" in health["sites"]
+    assert health["contracts"] == "contrats-v2" and "fictif" in health["sites"]
     assert client.get("/api/presets").status_code == 200
     vec = client.get("/api/sites/fictif/vector/rover_traverse").json()
     assert vec["type"] == "FeatureCollection"

@@ -33,7 +33,7 @@ Le projet est découpé en tâches parallèles décrites dans [`taches-agents.md
 
 - Une tâche = une branche `task/<ID>-<slug>` et une PR `[<ID>] <titre>`.
 - Une tâche ne modifie que ses chemins (`tasks/ownership.yaml`). Le contrôle `tools/check_ownership.py` le vérifie dans la CI.
-- Les contrats sont gelés après la fusion de T00 (étiquette `contrats-v1`) : `contracts/`, `packages/core/marswalk_core/schemas.py`, `web/src/shared/store.ts`, `web/src/app/registry.ts`, `web/src/app/feature.ts` et la migration. Un besoin de changement passe par [`tasks/change-requests/`](tasks/change-requests/README.md).
+- Les contrats sont gelés après la fusion de T00 (étiquette `contrats-v1`, puis `contrats-v2` pour l'interface web unique) : `contracts/`, `packages/core/marswalk_core/schemas.py`, `web/src/shared/store.ts`, `web/src/app/registry.ts`, `web/src/app/feature.ts` et la migration. Un besoin de changement passe par [`tasks/change-requests/`](tasks/change-requests/README.md).
 - Le scénario de démo, critère d'acceptation commun : [`docs/scenario-demo.md`](docs/scenario-demo.md).
 
 ## Structure
@@ -73,5 +73,5 @@ Ces points précisent les contrats là où `taches-agents.md` laissait un choix 
 - **Paramètre `preset` des zones dangereuses** : il choisit un préréglage de sécurité de `config/safety.yaml` (`standard`, `prudent`), distinct des préréglages d'affichage de `config/presets.yaml`.
 - **Base de données** : en plus des six tables prévues, `site_settings` (réglages persistés par `PUT /settings`) et `obstacles` (obstacles signalés pendant une sortie).
 - **Bibliothèques** : `marswalk_conditions.list_scenarios()` sert `GET /api/scenarios`. `RouteOptions` porte la combinaison, les conditions et le point d'arrivée pour `plan_variants`. Les grilles NumPy partagées sont dans `marswalk_core/grids.py`.
-- **Front** : une fonctionnalité peut fournir `mapSources` comme liste ou comme fonction du contexte, un `setup()` appelé au démarrage (service worker de F7) et des éléments de HUD avec une priorité ; la coquille n'en affiche jamais plus de cinq. F7 branche Workbox dans `web/src/features/offline/vite.ts`.
+- **Front** : une fonctionnalité peut fournir `mapSources` comme liste ou comme fonction du contexte, et un `setup()` appelé au démarrage (service worker de F7). Il n'y a qu'une interface web, avec deux vues : la carte (`/`) et la 3D (`/3d`) ; ni tablette, ni HUD. F7 branche Workbox dans `web/src/features/offline/vite.ts`.
 - **Temps** : `GET /api/time` prend `site_id` en paramètre (par défaut `fictif`).

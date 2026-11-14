@@ -8,7 +8,7 @@ const styles: Record<Variant, string> = {
   danger: "bg-[var(--color-danger)] text-white",
 };
 
-/** Bouton de base. En mode tablette, tokens.css impose 76 px minimum. */
+/** Bouton de base. */
 export function Button({
   variant = "secondary",
   className = "",

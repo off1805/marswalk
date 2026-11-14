@@ -1,6 +1,6 @@
 # API Marswalk (FastAPI). Contexte de construction : racine du dépôt.
 FROM python:3.12-slim
-COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /uvx /bin/
+RUN pip install --no-cache-dir "uv>=0.11,<0.12"
 ENV UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1 MARSWALK_ROOT=/app PATH="/app/.venv/bin:$PATH"
 WORKDIR /app
 COPY pyproject.toml uv.lock .python-version ./

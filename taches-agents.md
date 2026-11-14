@@ -116,7 +116,9 @@ La chaîne exacte est dans `site.yaml` (`analysis_crs`). La grille d'analyse est
 
 **R3. Affichage en pseudo-Mercator.** Les tuiles d'affichage sont découpées selon la grille WebMercatorQuad appliquée aux longitudes et latitudes martiennes, comme le font Mars Trek et OpenPlanetary : MapLibre et deck.gl affichent ainsi les bonnes coordonnées martiennes. En contrepartie, toute distance, toute surface et l'échelle doivent être calculées avec le rayon martien (3 389,5 km en moyenne, ou 3 396,19 km pour la sphère Mars 2000) grâce aux fonctions de `geodesy` (C1), jamais avec celles de MapLibre ou de Turf. La barre d'échelle native de MapLibre est désactivée.
 
-**Niveaux de zoom.** À l'équateur, la taille d'un pixel au zoom z vaut `360 × 59 274 / (256 × 2^z)` mètres martiens. D'où : HiRISE (0,25 m) zoom maximal 19, couches à 1 m zoom 17, CTX (6 m) zoom 14, MOLA zoom 10. Le zoom minimal de toutes les couches du site est 12.
+**Niveaux de zoom.** À l'équateur, la taille d'un pixel au zoom z vaut `360 × 59 274 / (256 × 2^z)` mètres martiens. D'où : HiRISE (0,25 m) zoom maximal 19, couches à 1 m zoom 17, CTX (6 m) zoom 14, MOLA zoom 10. Le zoom minimal de toutes les couches du site est 12. À la latitude de Jezero (18,4° N), un pixel de tuile mesure 0,30 m au zoom 18 et 0,15 m au zoom 19 : le zoom 19 restitue tout le détail de HiRISE. La carte autorise un zoom de plus que la couche la plus fine (agrandissement sans données nouvelles), jamais davantage.
+
+**Netteté de l'imagerie.** Les tuiles d'imagerie (`hirise_vis`, `ctx_vis`, `hillshade`) sont en WebP de qualité 90 au moins ; les couches catégorielles et les masques sont en WebP sans perte. Les niveaux de zoom inférieurs sont rééchantillonnés en Lanczos pour l'imagerie et au plus proche voisin pour les catégories. Le contraste de HiRISE est étiré sur les centiles 0,5 à 99,5 de l'emprise.
 
 ## 5. Paquet de site et catalogue des couches
 
@@ -345,7 +347,7 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 - **Objectif :** des rasters réels alignés sur la grille d'analyse de Jezero.
 - **Entrées :** les produits bruts téléchargés par D0 dans `data/raw/jezero/`, décrits dans `config/sites/jezero/sources.yaml` et `data/raw/jezero/sources.lock.yaml` : image et MNT HiRISE (jeu Mars 2020 de l'atterrissage), CTX, MOLA, THEMIS, CRISM.
 - **Livrables :** commande `marswalk ingest jezero` qui découpe 5 x 5 km autour du site, reprojette selon R1, recale THEMIS et CRISM sur HiRISE par points d'appui, puis écrit `data/work/jezero/aligned/<layer_id>.tif` et `coreg_report.md` (décalage résiduel mesuré par couche). Un projet QGIS `qgis/jezero.qgz` permet la vérification visuelle. Si le MNT HiRISE ne couvre pas toute l'emprise, le repli CTX ou MOLA est appliqué et noté `degraded`.
-- **Acceptation :** les rasters ont tous la même grille ; le décalage résiduel est indiqué pour chaque couche et reste sous 1 pixel de la couche la plus grossière ; la personne valide la superposition dans QGIS.
+- **Acceptation :** le centre du site est choisi pour que l'emprise de 5 × 5 km soit couverte entièrement par l'orthomosaïque HiRISE à 25 cm et par le MNT HiRISE à 1 m, sinon les zones non couvertes sont signalées et notées `degraded` ; les rasters ont tous la même grille ; le décalage résiduel est indiqué pour chaque couche et reste sous 1 pixel de la couche la plus grossière ; la personne valide la superposition dans QGIS.
 - **Couvre :** EF-01 (données), ENF-03, ENF-04 (incertitude de recalage), ENF-07.
 
 ### D2. Couches dérivées
@@ -361,7 +363,7 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 - **Vague :** 1. **Dépend de :** T00. **Possède :** `pipeline/package/`.
 - **Objectif :** transformer les rasters alignés et dérivés en paquet de site conforme à la section 5.
 - **Livrables :** commande `marswalk package <site_id>` qui écrit les COG, les tuiles d'affichage WebP avec la palette de la légende, les tuiles terrain-RGB et le manifeste avec la provenance, puis lance le validateur ; une cible `make site SITE=jezero` enchaîne `ingest`, `derive` et `package`.
-- **Acceptation :** le paquet régénéré à partir des sources du site fictif passe le validateur et ressemble au paquet de T00 ; les tuiles s'alignent dans MapLibre avec les COG (une valeur interrogée correspond au pixel affiché) ; la taille est contrôlée et refusée au-delà de 2 Go ; la commande est reproductible.
+- **Acceptation :** le paquet régénéré à partir des sources du site fictif passe le validateur et ressemble au paquet de T00 ; sur Jezero, `hirise_vis` a des tuiles jusqu'au zoom 19 et les couches à 1 m jusqu'au zoom 17, avec la qualité et le rééchantillonnage de la section 4 ; une tuile HiRISE au zoom 19 comparée à la source au même endroit ne perd pas de détail visible (capture dans la PR) ; les tuiles s'alignent dans MapLibre avec les COG (une valeur interrogée correspond au pixel affiché) ; la taille est contrôlée et refusée au-delà de 2 Go ; la commande est reproductible.
 - **Couvre :** EF-01, EF-02 (données), ENF-01, ENF-03, ENF-04, ENF-09, ENF-10.
 
 ### P1. Moteur de risque et grille de coût
@@ -429,7 +431,7 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 
 - **Vague :** 1. **Dépend de :** T00. **Possède :** `web/src/features/map/`, valeurs de `config/presets.yaml`.
 - **Livrables :** carte MapLibre avec deck.gl superposé ; panneau de couches (activer, désactiver, opacité, légende, unité, résolution, date, source) ; préréglages « sécurité », « science », « navigation » ; mode interrogation qui affiche toutes les valeurs du point avec leur source ; barre d'échelle martienne de C1 ; avertissement visible quand une couche est dégradée.
-- **Acceptation :** au moins quatre couches réglables indépendamment ; affichage d'une couche en moins de 1 s ; zoom jusqu'à l'échelle d'un rocher sur l'imagerie.
+- **Acceptation :** au moins quatre couches réglables indépendamment ; affichage d'une couche en moins de 1 s ; zoom jusqu'à l'échelle d'un rocher sur l'imagerie (zoom 19, un bloc de 1 m couvre environ 4 pixels HiRISE) ; zoom maximal de la carte égal au zoom maximal de la couche la plus fine plus un ; l'imagerie reste nette sur un écran haute densité, sans flou au-delà de cet agrandissement.
 - **Couvre :** EF-01, EF-02, EF-03 (affichage), EF-07, ENF-02, ENF-03, ENF-04, ENF-06.
 
 ### F2. Cibles et itinéraire

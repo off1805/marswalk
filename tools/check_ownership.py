@@ -9,7 +9,8 @@ Usage ::
 
     uv run python tools/check_ownership.py                    # branche courante contre origin/main
     uv run python tools/check_ownership.py --base main
-    uv run python tools/check_ownership.py --branch task/P1-risque --files planner/marswalk_planner/route.py
+    uv run python tools/check_ownership.py --branch task/P1-risque \
+        --files planner/marswalk_planner/route.py
 """
 
 from __future__ import annotations

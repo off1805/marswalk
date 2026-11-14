@@ -14,7 +14,7 @@ web/coverage/
 *.tsbuildinfo
 
 # Données réelles : DVC, jamais dans Git (sauf le site fictif de fixtures/)
-data/
+data/*
 !data/.gitkeep
 *.dvc.lock
 

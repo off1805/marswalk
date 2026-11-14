@@ -8,6 +8,7 @@ Signatures gelées :
 
 from __future__ import annotations
 
+import itertools
 import math
 
 from marswalk_core.geodesy import distance_m
@@ -46,7 +47,7 @@ def estimate_route(
         seg_d = 0.0
         ascent = descent = max_slope = 0.0
         prev_elev: float | None = None
-        for a, b in zip(seg_pts, seg_pts[1:], strict=False):
+        for a, b in itertools.pairwise(seg_pts):
             leg = distance_m(a, b)
             n = max(1, math.ceil(leg / PROFILE_STEP_M))
             for k in range(n + (1 if b == seg_pts[-1] else 0)):

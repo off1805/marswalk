@@ -82,8 +82,11 @@ def upgrade() -> None:
         "routes",
         sa.Column("id", sa.String(64), primary_key=True),
         sa.Column(
-            "plan_id", sa.String(64), sa.ForeignKey("plans.id", ondelete="CASCADE"),
-            nullable=False, index=True,
+            "plan_id",
+            sa.String(64),
+            sa.ForeignKey("plans.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
         ),
         sa.Column("variant", sa.String(16), nullable=False),
         sa.Column("geom", Geometry("LINESTRING", srid=SRID, spatial_index=False), nullable=False),
@@ -94,11 +97,16 @@ def upgrade() -> None:
         sa.Column("id", sa.String(64), primary_key=True),
         sa.Column("site_id", sa.String(64), nullable=False, index=True),
         sa.Column(
-            "plan_id", sa.String(64), sa.ForeignKey("plans.id", ondelete="CASCADE"),
-            nullable=False, index=True,
+            "plan_id",
+            sa.String(64),
+            sa.ForeignKey("plans.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
         ),
         sa.Column(
-            "route_id", sa.String(64), sa.ForeignKey("routes.id", ondelete="CASCADE"),
+            "route_id",
+            sa.String(64),
+            sa.ForeignKey("routes.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("crew", JSONB, nullable=False),
@@ -112,8 +120,11 @@ def upgrade() -> None:
         "observations",
         sa.Column("id", sa.String(64), primary_key=True),
         sa.Column(
-            "eva_id", sa.String(64), sa.ForeignKey("evas.id", ondelete="CASCADE"),
-            nullable=False, index=True,
+            "eva_id",
+            sa.String(64),
+            sa.ForeignKey("evas.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
         ),
         sa.Column("utc", _tz(), nullable=False),
         sa.Column("sol", sa.Integer, nullable=False),
@@ -127,8 +138,11 @@ def upgrade() -> None:
         "obstacles",
         sa.Column("id", sa.String(64), primary_key=True),
         sa.Column(
-            "eva_id", sa.String(64), sa.ForeignKey("evas.id", ondelete="CASCADE"),
-            nullable=False, index=True,
+            "eva_id",
+            sa.String(64),
+            sa.ForeignKey("evas.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
         ),
         sa.Column("utc", _tz(), nullable=False),
         sa.Column("radius_m", sa.Float, nullable=False),
@@ -168,7 +182,15 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    for table in ("alerts", "obstacles", "observations", "evas", "routes", "plans", "targets",
-                  "site_settings"):
+    for table in (
+        "alerts",
+        "obstacles",
+        "observations",
+        "evas",
+        "routes",
+        "plans",
+        "targets",
+        "site_settings",
+    ):
         op.drop_table(table)
     op.execute(sa.text("DELETE FROM spatial_ref_sys WHERE srid = :srid").bindparams(srid=SRID))

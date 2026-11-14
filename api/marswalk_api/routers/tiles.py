@@ -23,4 +23,6 @@ def get_tile(site: SiteDep, layer_id: str, z: int, x: int, y: int, ext: str) -> 
     path = site.root / "tiles" / layer_id / str(z) / str(x) / f"{y}.{ext}"
     if not path.is_file():
         raise HTTPException(404, "Tuile absente")
-    return FileResponse(path, media_type=MEDIA[ext], headers={"Cache-Control": "public, max-age=86400"})
+    return FileResponse(
+        path, media_type=MEDIA[ext], headers={"Cache-Control": "public, max-age=86400"}
+    )

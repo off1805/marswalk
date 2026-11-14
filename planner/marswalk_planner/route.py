@@ -9,7 +9,9 @@ from marswalk_core.grids import CostGrid, RouteGeometry, RouteOptions
 from marswalk_core.schemas import LonLat
 
 
-def plan_route(cost_grid: CostGrid, waypoints: list[LonLat], options: RouteOptions) -> RouteGeometry:
+def plan_route(
+    cost_grid: CostGrid, waypoints: list[LonLat], options: RouteOptions
+) -> RouteGeometry:
     if len(waypoints) < 2:
         raise ValueError("Il faut au moins deux points de passage")
     coordinates = [LonLat(*w) for w in waypoints]

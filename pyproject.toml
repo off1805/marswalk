@@ -46,11 +46,23 @@ extend-exclude = ["web", "node_modules", "data"]
 select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF"]
 ignore = ["RUF001", "RUF002", "RUF003"]
 
+[tool.ruff.lint.isort]
+known-first-party = [
+    "marswalk_core",
+    "marswalk_pipeline",
+    "marswalk_planner",
+    "marswalk_conditions",
+    "marswalk_api",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/versions/*.py" = ["E501"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-mypy_path = "packages/core:pipeline:planner:conditions:api"
+mypy_path = "packages/core:pipeline:planner:conditions:api:tools"
 explicit_package_bases = true
 exclude = ["(^|/)migrations/versions/", "(^|/)web/", "(^|/)node_modules/"]
 
@@ -61,6 +73,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["packages/core/tests", "pipeline/tests", "planner/tests", "conditions/tests", "api/tests", "tools/tests"]
 addopts = "-q --import-mode=importlib"
+asyncio_default_fixture_loop_scope = "function"
 markers = [
     "db: tests qui demandent PostGIS (MARSWALK_DATABASE_URL)",
 ]

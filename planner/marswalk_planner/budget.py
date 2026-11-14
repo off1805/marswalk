@@ -11,7 +11,9 @@ from marswalk_core.schemas import ReturnCheck, ReturnStatus, SuitModel
 MIN_RESERVE_PCT = 30.0
 
 
-def return_check(estimate: RouteEstimate, return_field: ReturnField, suit: SuitModel) -> ReturnCheck:
+def return_check(
+    estimate: RouteEstimate, return_field: ReturnField, suit: SuitModel
+) -> ReturnCheck:
     oxygen = sum(s.oxygen_kg for s in estimate.segments)
     reserve = 100.0 * (1.0 - oxygen / suit.oxygen_capacity_kg)
     if reserve >= MIN_RESERVE_PCT + 10:

@@ -1,9 +1,10 @@
 """Génère le paquet du site fictif dans ``fixtures/sites/fictif/`` (T00).
 
 Le site fait 2 x 2 km à 2 m, centré sur Jezero. Il contient un plateau limité par une
-falaise (comme le front du delta), un petit cratère au bord abrupt, un champ de dunes à faible inertie thermique,
-un chaos de blocs, deux unités minéralogiques, un habitat et quatre cibles. Toutes les
-couches de la section 5.3 y existent, avec ``source.instrument = "SYNTHETIC"``.
+falaise (comme le front du delta), un petit cratère au bord abrupt, un champ de dunes à
+faible inertie thermique, un chaos de blocs, deux unités minéralogiques, un habitat et
+quatre cibles. Toutes les couches de la section 5.3 y existent, avec
+``source.instrument = "SYNTHETIC"``.
 
 Les couches dérivées sont calculées ici de façon simple : D2 et D3 les recalculent
 proprement. La commande est déterministe (graine dans ``config/sites/fictif/site.yaml``).
@@ -113,8 +114,10 @@ def make_terrain(u: Arr, v: Arr, rng: np.random.Generator) -> Terrain:
     for _ in range(6):
         k = rng.uniform(1 / 900, 1 / 250, 2)
         ph = rng.uniform(0, 2 * math.pi, 2)
-        dem += rng.uniform(0.3, 0.8) * np.sin(2 * math.pi * k[0] * u + ph[0]) * np.cos(
-            2 * math.pi * k[1] * v + ph[1]
+        dem += (
+            rng.uniform(0.3, 0.8)
+            * np.sin(2 * math.pi * k[0] * u + ph[0])
+            * np.cos(2 * math.pi * k[1] * v + ph[1])
         )
 
     # Plateau au nord, limité par une falaise d'environ 22 m.
@@ -132,8 +135,10 @@ def make_terrain(u: Arr, v: Arr, rng: np.random.Generator) -> Terrain:
     crater_floor = r < 0.8 * radius
 
     # Champ de dunes à l'ouest.
-    du = smoothstep((-350.0 - u) / 80.0) * smoothstep((250.0 - v) / 80.0) * smoothstep(
-        (v + 700.0) / 80.0
+    du = (
+        smoothstep((-350.0 - u) / 80.0)
+        * smoothstep((250.0 - v) / 80.0)
+        * smoothstep((v + 700.0) / 80.0)
     )
     phase = 2 * math.pi * (u * math.cos(math.radians(30)) + v * math.sin(math.radians(30))) / 45.0
     dem += du * 2.5 * (0.5 + 0.5 * np.sin(phase))
@@ -239,9 +244,7 @@ def continuous_rgba(values: Arr, legend: Legend) -> NDArray[np.uint8]:
     return out
 
 
-def categorical_rgba(
-    values: Arr, legend: Legend, transparent: set[float]
-) -> NDArray[np.uint8]:
+def categorical_rgba(values: Arr, legend: Legend, transparent: set[float]) -> NDArray[np.uint8]:
     out = np.zeros((*values.shape, 4), dtype=np.uint8)
     for stop in legend.stops:
         if stop.value in transparent:
@@ -369,49 +372,209 @@ class LayerSpec:
 
 
 def layer_specs() -> list[LayerSpec]:
-    def u(value: float | None = None, unit: str | None = None,
-          coreg_m: float | None = None) -> Uncertainty:
+    def u(
+        value: float | None = None, unit: str | None = None, coreg_m: float | None = None
+    ) -> Uncertainty:
         return Uncertainty(value=value, unit=unit, coreg_m=coreg_m)
 
     return [
-        LayerSpec("hirise_vis", "Imagerie (type HiRISE)", LayerKind.imagery, "DN", (0, 255), 2.0,
-                  ramp(0, 255, GRAY), "image synthétique", u(coreg_m=0.0), 1.0),
-        LayerSpec("ctx_vis", "Contexte (type CTX)", LayerKind.imagery, "DN", (0, 255), 6.0,
-                  ramp(0, 255, GRAY), "image floutée", u(coreg_m=0.0), 1.0),
-        LayerSpec("dem", "Altitude (MNT)", LayerKind.dem, "m", (-2630, -2550), 2.0,
-                  ramp(-2630, -2550, CIVIDIS), "MNT synthétique", u(0.3, "m", 0.0), 0.01),
-        LayerSpec("dem_mola", "Altitude (type MOLA)", LayerKind.dem, "m", (-2630, -2550), 463.0,
-                  ramp(-2630, -2550, CIVIDIS), "MNT lissé", u(3.0, "m", 0.0), 0.1),
-        LayerSpec("slope", "Pente", LayerKind.derived, "deg", (0, 60), 2.0,
-                  ramp(0, 60, VIRIDIS), "dérivée du MNT", u(0.5, "deg", 0.0), 0.01),
-        LayerSpec("roughness", "Rugosité", LayerKind.derived, "m", (0, 1), 2.0,
-                  ramp(0, 1, VIRIDIS), "écart type local sur 10 m", u(0.05, "m", 0.0), 0.001),
-        LayerSpec("hillshade", "Ombrage", LayerKind.derived, None, (0, 255), 2.0,
-                  ramp(0, 255, GRAY), "azimut 315°, hauteur 45°", u(), 1.0),
-        LayerSpec("obstacles", "Obstacles (avec tampon)", LayerKind.derived, None, (0, 1), 2.0,
-                  cat([(0, "#000000", "libre"), (1, "#cc79a7", "obstacle")]),
-                  "blocs de plus de 0,4 m, tampon 2 m", u(), 1.0, (0,)),
-        LayerSpec("scarps", "Ruptures de pente", LayerKind.derived, None, (0, 1), 2.0,
-                  cat([(0, "#000000", "aucune"), (1, "#e69f00", "falaise ou bord")]),
-                  "pente supérieure à 30°", u(), 1.0, (0,)),
-        LayerSpec("thermal_inertia", "Inertie thermique", LayerKind.thermal, "J m-2 K-1 s-1/2",
-                  (100, 800), 100.0, ramp(100, 800, VIRIDIS), "type THEMIS",
-                  u(50.0, "J m-2 K-1 s-1/2", 0.0), 1.0),
-        LayerSpec("loose_soil", "Classe de sol", LayerKind.derived, None, (0, 3), 2.0,
-                  cat([(0, "#7f7f7f", "roche"), (1, "#c9a66b", "mixte"),
-                       (2, "#e8c77a", "meuble"), (3, "#f5e6a8", "dune")]),
-                  "classes synthétiques", u(), 1.0),
-        LayerSpec("crism_minerals", "Minéralogie", LayerKind.spectral, None, (0, 2), 18.0,
-                  cat([(0, "#000000", "non détecté"), (1, "#56b4e9", "argiles et carbonates"),
-                       (2, "#009e73", "olivine")]),
-                  "type CRISM", u(coreg_m=0.0), 1.0, (0,)),
-        LayerSpec("radio_coverage", "Couverture radio", LayerKind.derived, None, (0, 1), 2.0,
-                  cat([(0, "#0072b2", "hors couverture"), (1, "#000000", "couvert")]),
-                  "visibilité depuis l'antenne de l'habitat (3 m)", u(), 1.0, (1,)),
-        LayerSpec("illumination", "Éclairement", LayerKind.derived, None, (0, 1), 2.0,
-                  ramp(0, 1, GRAY), "Soleil à l'est, 20° de hauteur", u(), 0.01),
-        LayerSpec("return_time", "Temps de retour", LayerKind.derived, "s", (0, 2000), 2.0,
-                  ramp(0, 2000, VIRIDIS), "ligne droite à 1 m/s (bouchon P3)", u(), 1.0),
+        LayerSpec(
+            "hirise_vis",
+            "Imagerie (type HiRISE)",
+            LayerKind.imagery,
+            "DN",
+            (0, 255),
+            2.0,
+            ramp(0, 255, GRAY),
+            "image synthétique",
+            u(coreg_m=0.0),
+            1.0,
+        ),
+        LayerSpec(
+            "ctx_vis",
+            "Contexte (type CTX)",
+            LayerKind.imagery,
+            "DN",
+            (0, 255),
+            6.0,
+            ramp(0, 255, GRAY),
+            "image floutée",
+            u(coreg_m=0.0),
+            1.0,
+        ),
+        LayerSpec(
+            "dem",
+            "Altitude (MNT)",
+            LayerKind.dem,
+            "m",
+            (-2630, -2550),
+            2.0,
+            ramp(-2630, -2550, CIVIDIS),
+            "MNT synthétique",
+            u(0.3, "m", 0.0),
+            0.01,
+        ),
+        LayerSpec(
+            "dem_mola",
+            "Altitude (type MOLA)",
+            LayerKind.dem,
+            "m",
+            (-2630, -2550),
+            463.0,
+            ramp(-2630, -2550, CIVIDIS),
+            "MNT lissé",
+            u(3.0, "m", 0.0),
+            0.1,
+        ),
+        LayerSpec(
+            "slope",
+            "Pente",
+            LayerKind.derived,
+            "deg",
+            (0, 60),
+            2.0,
+            ramp(0, 60, VIRIDIS),
+            "dérivée du MNT",
+            u(0.5, "deg", 0.0),
+            0.01,
+        ),
+        LayerSpec(
+            "roughness",
+            "Rugosité",
+            LayerKind.derived,
+            "m",
+            (0, 1),
+            2.0,
+            ramp(0, 1, VIRIDIS),
+            "écart type local sur 10 m",
+            u(0.05, "m", 0.0),
+            0.001,
+        ),
+        LayerSpec(
+            "hillshade",
+            "Ombrage",
+            LayerKind.derived,
+            None,
+            (0, 255),
+            2.0,
+            ramp(0, 255, GRAY),
+            "azimut 315°, hauteur 45°",
+            u(),
+            1.0,
+        ),
+        LayerSpec(
+            "obstacles",
+            "Obstacles (avec tampon)",
+            LayerKind.derived,
+            None,
+            (0, 1),
+            2.0,
+            cat([(0, "#000000", "libre"), (1, "#cc79a7", "obstacle")]),
+            "blocs de plus de 0,4 m, tampon 2 m",
+            u(),
+            1.0,
+            (0,),
+        ),
+        LayerSpec(
+            "scarps",
+            "Ruptures de pente",
+            LayerKind.derived,
+            None,
+            (0, 1),
+            2.0,
+            cat([(0, "#000000", "aucune"), (1, "#e69f00", "falaise ou bord")]),
+            "pente supérieure à 30°",
+            u(),
+            1.0,
+            (0,),
+        ),
+        LayerSpec(
+            "thermal_inertia",
+            "Inertie thermique",
+            LayerKind.thermal,
+            "J m-2 K-1 s-1/2",
+            (100, 800),
+            100.0,
+            ramp(100, 800, VIRIDIS),
+            "type THEMIS",
+            u(50.0, "J m-2 K-1 s-1/2", 0.0),
+            1.0,
+        ),
+        LayerSpec(
+            "loose_soil",
+            "Classe de sol",
+            LayerKind.derived,
+            None,
+            (0, 3),
+            2.0,
+            cat(
+                [
+                    (0, "#7f7f7f", "roche"),
+                    (1, "#c9a66b", "mixte"),
+                    (2, "#e8c77a", "meuble"),
+                    (3, "#f5e6a8", "dune"),
+                ]
+            ),
+            "classes synthétiques",
+            u(),
+            1.0,
+        ),
+        LayerSpec(
+            "crism_minerals",
+            "Minéralogie",
+            LayerKind.spectral,
+            None,
+            (0, 2),
+            18.0,
+            cat(
+                [
+                    (0, "#000000", "non détecté"),
+                    (1, "#56b4e9", "argiles et carbonates"),
+                    (2, "#009e73", "olivine"),
+                ]
+            ),
+            "type CRISM",
+            u(coreg_m=0.0),
+            1.0,
+            (0,),
+        ),
+        LayerSpec(
+            "radio_coverage",
+            "Couverture radio",
+            LayerKind.derived,
+            None,
+            (0, 1),
+            2.0,
+            cat([(0, "#0072b2", "hors couverture"), (1, "#000000", "couvert")]),
+            "visibilité depuis l'antenne de l'habitat (3 m)",
+            u(),
+            1.0,
+            (1,),
+        ),
+        LayerSpec(
+            "illumination",
+            "Éclairement",
+            LayerKind.derived,
+            None,
+            (0, 1),
+            2.0,
+            ramp(0, 1, GRAY),
+            "Soleil à l'est, 20° de hauteur",
+            u(),
+            0.01,
+        ),
+        LayerSpec(
+            "return_time",
+            "Temps de retour",
+            LayerKind.derived,
+            "s",
+            (0, 2000),
+            2.0,
+            ramp(0, 2000, VIRIDIS),
+            "ligne droite à 1 m/s (bouchon P3)",
+            u(),
+            1.0,
+        ),
     ]
 
 
@@ -505,10 +668,21 @@ def generate(out: Path) -> SiteManifest:
     mola = box_mean(dem, 101)
 
     values: dict[str, Arr] = {
-        "hirise_vis": vis, "ctx_vis": ctx, "dem": dem, "dem_mola": mola, "slope": slope,
-        "roughness": roughness, "hillshade": shade, "obstacles": obstacles, "scarps": scarps,
-        "thermal_inertia": ti, "loose_soil": soil, "crism_minerals": minerals,
-        "radio_coverage": radio, "illumination": illum, "return_time": ret,
+        "hirise_vis": vis,
+        "ctx_vis": ctx,
+        "dem": dem,
+        "dem_mola": mola,
+        "slope": slope,
+        "roughness": roughness,
+        "hillshade": shade,
+        "obstacles": obstacles,
+        "scarps": scarps,
+        "thermal_inertia": ti,
+        "loose_soil": soil,
+        "crism_minerals": minerals,
+        "radio_coverage": radio,
+        "illumination": illum,
+        "return_time": ret,
     }
 
     if out.exists():
@@ -527,59 +701,126 @@ def generate(out: Path) -> SiteManifest:
         transparent = set(spec.transparent)
         render: Callable[[Arr], NDArray[np.uint8]]
         if legend.type == "continuous":
+
             def render(a: Arr, lg: Legend = legend) -> NDArray[np.uint8]:
                 return continuous_rgba(a, lg)
         else:
-            def render(a: Arr, lg: Legend = legend, tr: set[float] = transparent) -> NDArray[np.uint8]:
+
+            def render(
+                a: Arr, lg: Legend = legend, tr: set[float] = transparent
+            ) -> NDArray[np.uint8]:
                 return categorical_rgba(a, lg, tr)
-        write_tiles(out / "tiles" / spec.id, arr, grid, lon0, lat_c, bbox, zooms, render, "webp",
-                    lossless=legend.type == "categorical")
+
+        write_tiles(
+            out / "tiles" / spec.id,
+            arr,
+            grid,
+            lon0,
+            lat_c,
+            bbox,
+            zooms,
+            render,
+            "webp",
+            lossless=legend.type == "categorical",
+        )
         layers.append(
             LayerInfo(
-                id=spec.id, title=spec.title, kind=spec.kind, unit=spec.unit,
-                value_range=spec.value_range, resolution_m=spec.resolution_m, acquired=ACQUIRED,
-                source=LayerSource(instrument="SYNTHETIC", mission="Marswalk",
-                                   product_id=f"FICTIF_{spec.id.upper()}", url=None,
-                                   note=spec.instrument_note),
-                uncertainty=spec.uncertainty, legend=legend, cog=f"cog/{spec.id}.tif",
-                tiles=TileInfo(path=f"tiles/{spec.id}/{{z}}/{{x}}/{{y}}.webp",
-                               minzoom=zooms.start, maxzoom=zooms.stop - 1, format="webp"),
+                id=spec.id,
+                title=spec.title,
+                kind=spec.kind,
+                unit=spec.unit,
+                value_range=spec.value_range,
+                resolution_m=spec.resolution_m,
+                acquired=ACQUIRED,
+                source=LayerSource(
+                    instrument="SYNTHETIC",
+                    mission="Marswalk",
+                    product_id=f"FICTIF_{spec.id.upper()}",
+                    url=None,
+                    note=spec.instrument_note,
+                ),
+                uncertainty=spec.uncertainty,
+                legend=legend,
+                cog=f"cog/{spec.id}.tif",
+                tiles=TileInfo(
+                    path=f"tiles/{spec.id}/{{z}}/{{x}}/{{y}}.webp",
+                    minzoom=zooms.start,
+                    maxzoom=zooms.stop - 1,
+                    format="webp",
+                ),
             )
         )
 
-    write_tiles(out / "tiles" / "terrain_rgb", dem, grid, lon0, lat_c, bbox, zooms, terrain_rgb,
-                "png", lossless=True)
+    write_tiles(
+        out / "tiles" / "terrain_rgb",
+        dem,
+        grid,
+        lon0,
+        lat_c,
+        bbox,
+        zooms,
+        terrain_rgb,
+        "png",
+        lossless=True,
+    )
 
     # Couches vectorielles.
     vector_dir = out / "vector"
     vector_dir.mkdir()
     rover_u, rover_v = float(cfg["rover"]["x"]), float(cfg["rover"]["y"])
     traverse_pts = [(-900, -300), (-600, -250), (-300, -120), (rover_u, rover_v)]
-    traverse = FeatureCollection(features=[Feature(
-        id="traverse-1",
-        geometry=LineStringGeometry(coordinates=[lonlat(a, b) for a, b in traverse_pts]),
-        properties={"name": "Trajet de Perseverance (synthétique)", "sol_start": 1, "sol_end": 12},
-    )])
-    images = FeatureCollection(features=[
-        Feature(id=f"img-{i}", geometry=PointGeometry(coordinates=lonlat(a, b)),
-                properties={"image_id": f"FICTIF_IMG_{i:03d}", "sol": 2 + i,
-                            "instrument": "SYNTHETIC", "camera": "Mastcam-Z (fictif)",
-                            "thumb": None, "azimuth_deg": (40 * i) % 360})
-        for i, (a, b) in enumerate([(-850, -290), (-620, -240), (-450, -180), (-310, -110),
-                                    (-150, -40), (40, 30)])
-    ])
+    traverse = FeatureCollection(
+        features=[
+            Feature(
+                id="traverse-1",
+                geometry=LineStringGeometry(coordinates=[lonlat(a, b) for a, b in traverse_pts]),
+                properties={
+                    "name": "Trajet de Perseverance (synthétique)",
+                    "sol_start": 1,
+                    "sol_end": 12,
+                },
+            )
+        ]
+    )
+    images = FeatureCollection(
+        features=[
+            Feature(
+                id=f"img-{i}",
+                geometry=PointGeometry(coordinates=lonlat(a, b)),
+                properties={
+                    "image_id": f"FICTIF_IMG_{i:03d}",
+                    "sol": 2 + i,
+                    "instrument": "SYNTHETIC",
+                    "camera": "Mastcam-Z (fictif)",
+                    "thumb": None,
+                    "azimuth_deg": (40 * i) % 360,
+                },
+            )
+            for i, (a, b) in enumerate(
+                [(-850, -290), (-620, -240), (-450, -180), (-310, -110), (-150, -40), (40, 30)]
+            )
+        ]
+    )
     (vector_dir / "rover_traverse.geojson").write_text(traverse.model_dump_json(indent=1))
     (vector_dir / "ground_images.geojson").write_text(images.model_dump_json(indent=1))
     (out / "thumbs").mkdir()
     (out / "thumbs" / ".gitkeep").write_text("")
-    for lid, title, path in (("rover_traverse", "Trajet du rover", "rover_traverse"),
-                             ("ground_images", "Images au sol", "ground_images")):
-        layers.append(LayerInfo(
-            id=lid, title=title, kind=LayerKind.vector if lid == "rover_traverse" else LayerKind.ground,
-            source=LayerSource(instrument="SYNTHETIC", mission="Marswalk",
-                               product_id=f"FICTIF_{lid.upper()}"),
-            acquired=ACQUIRED, vector=f"vector/{path}.geojson",
-        ))
+    for lid, title, path in (
+        ("rover_traverse", "Trajet du rover", "rover_traverse"),
+        ("ground_images", "Images au sol", "ground_images"),
+    ):
+        layers.append(
+            LayerInfo(
+                id=lid,
+                title=title,
+                kind=LayerKind.vector if lid == "rover_traverse" else LayerKind.ground,
+                source=LayerSource(
+                    instrument="SYNTHETIC", mission="Marswalk", product_id=f"FICTIF_{lid.upper()}"
+                ),
+                acquired=ACQUIRED,
+                vector=f"vector/{path}.geojson",
+            )
+        )
 
     manifest = SiteManifest(
         site_id="fictif",
@@ -592,8 +833,12 @@ def generate(out: Path) -> SiteManifest:
         mission_epoch_utc=datetime.fromisoformat(str(cfg["mission_epoch_utc"])),
         default_preset=str(cfg["default_preset"]),
         layers=layers,
-        terrain=TileInfo(path="tiles/terrain_rgb/{z}/{x}/{y}.png", minzoom=zooms.start,
-                         maxzoom=zooms.stop - 1, format="png"),
+        terrain=TileInfo(
+            path="tiles/terrain_rgb/{z}/{x}/{y}.png",
+            minzoom=zooms.start,
+            maxzoom=zooms.stop - 1,
+            format="png",
+        ),
         generated_at=datetime(2026, 11, 14, tzinfo=UTC),
         generator=GENERATOR,
     )
@@ -606,14 +851,42 @@ def generate(out: Path) -> SiteManifest:
 
 def write_targets_seed(lonlat: Callable[[float, float], LonLat]) -> None:
     seeds: list[tuple[str, str, tuple[float, float], str, str, float, int]] = [
-        ("T1", "Front du delta", (250, 720), "Argiles et carbonates du delta, au-dessus de la falaise",
-         "Imagerie rapprochée et prélèvement", 1200, 1),
-        ("T2", "Bord des dunes", (-420, -150), "Granulométrie du sable actif",
-         "Prélèvement de sable", 600, 2),
-        ("T3", "Unité à olivine", (300, 150), "Roches ignées à olivine altérée du plancher",
-         "Spectre et carottage", 1500, 1),
-        ("T4", "Chaos de blocs", (-60, -470), "Origine des blocs éjectés",
-         "Imagerie des blocs", 900, 3),
+        (
+            "T1",
+            "Front du delta",
+            (250, 720),
+            "Argiles et carbonates du delta, au-dessus de la falaise",
+            "Imagerie rapprochée et prélèvement",
+            1200,
+            1,
+        ),
+        (
+            "T2",
+            "Bord des dunes",
+            (-420, -150),
+            "Granulométrie du sable actif",
+            "Prélèvement de sable",
+            600,
+            2,
+        ),
+        (
+            "T3",
+            "Unité à olivine",
+            (300, 150),
+            "Roches ignées à olivine altérée du plancher",
+            "Spectre et carottage",
+            1500,
+            1,
+        ),
+        (
+            "T4",
+            "Chaos de blocs",
+            (-60, -470),
+            "Origine des blocs éjectés",
+            "Imagerie des blocs",
+            900,
+            3,
+        ),
     ]
     fc: dict[str, Any] = {
         "type": "FeatureCollection",
@@ -623,8 +896,14 @@ def write_targets_seed(lonlat: Callable[[float, float], LonLat]) -> None:
                 "type": "Feature",
                 "id": tid,
                 "geometry": {"type": "Point", "coordinates": list(lonlat(*xy))},
-                "properties": {"name": name, "kind": "science", "objective": obj,
-                               "measurement": meas, "work_time_s": work, "priority": prio},
+                "properties": {
+                    "name": name,
+                    "kind": "science",
+                    "objective": obj,
+                    "measurement": meas,
+                    "work_time_s": work,
+                    "priority": prio,
+                },
             }
             for tid, name, xy, obj, meas, work, prio in seeds
         ],

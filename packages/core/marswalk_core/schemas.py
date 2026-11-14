@@ -184,7 +184,9 @@ class LayerInfo(Model):
     source: LayerSource
     uncertainty: Uncertainty = Field(default_factory=Uncertainty)
     legend: Legend | None = None
-    cog: str | None = Field(default=None, description="Chemin relatif du COG, par ex. cog/slope.tif")
+    cog: str | None = Field(
+        default=None, description="Chemin relatif du COG, par ex. cog/slope.tif"
+    )
     tiles: TileInfo | None = None
     vector: str | None = Field(default=None, description="Chemin relatif du GeoJSON")
     status: LayerStatus = LayerStatus.ok
@@ -253,7 +255,9 @@ class PointValue(Model):
     title: str
     value: float | None
     unit: str | None = None
-    label: str | None = Field(default=None, description="Libellé de classe pour une couche catégorielle")
+    label: str | None = Field(
+        default=None, description="Libellé de classe pour une couche catégorielle"
+    )
     status: LayerStatus = LayerStatus.ok
     source: LayerSource
     uncertainty: Uncertainty = Field(default_factory=Uncertainty)
@@ -264,7 +268,9 @@ class PointValue(Model):
 class PointQuery(Model):
     site_id: str
     position: LonLat
-    analysis_xy: tuple[float, float] = Field(description="Coordonnées dans le système d'analyse, en m")
+    analysis_xy: tuple[float, float] = Field(
+        description="Coordonnées dans le système d'analyse, en m"
+    )
     values: list[PointValue]
     return_time_s: float | None = Field(default=None, description="Temps de retour vers l'habitat")
 
@@ -373,7 +379,9 @@ class Conditions(Model):
     dose_rate_usv_h: float | None = Field(default=None, description="Débit de dose, µSv/h")
     space_weather: SpaceWeather = Field(default_factory=SpaceWeather)
     source: str | None = None
-    cached_at: datetime | None = Field(default=None, description="Date de la valeur en cache (live)")
+    cached_at: datetime | None = Field(
+        default=None, description="Date de la valeur en cache (live)"
+    )
 
 
 class Forecast(Model):
@@ -662,7 +670,9 @@ class Eva(Model):
     dose_usv: float = 0.0
     next_target_id: str | None = None
     reserve_pct: float | None = None
-    time_to_pnr_s: float | None = Field(default=None, description="Temps avant le point de non-retour")
+    time_to_pnr_s: float | None = Field(
+        default=None, description="Temps avant le point de non-retour"
+    )
     return_time_s: float | None = None
     active_alert_ids: list[str] = Field(default_factory=list)
 
@@ -685,7 +695,7 @@ class ObservationCreate(Model):
 class Observation(ObservationCreate):
     id: str
     eva_id: str
-    utc: datetime  # type: ignore[assignment]
+    utc: datetime
     sol: int
     lmst: str
 

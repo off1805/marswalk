@@ -70,7 +70,7 @@ def create_app() -> FastAPI:
             status="ok" if db != "unavailable" else "degraded",
             version=__version__,
             contracts=CONTRACTS_VERSION,
-            database=db,  # type: ignore[arg-type]
+            database=db,
             sites=list_package_ids(),
         )
 

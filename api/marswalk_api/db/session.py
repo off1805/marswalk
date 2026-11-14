@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from functools import cache
+from typing import Literal
 
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
@@ -24,7 +25,7 @@ def get_sessionmaker() -> sessionmaker[Session] | None:
     return None if engine is None else sessionmaker(engine, expire_on_commit=False)
 
 
-def database_status() -> str:
+def database_status() -> Literal["ok", "unavailable", "disabled"]:
     engine = get_engine()
     if engine is None:
         return "disabled"

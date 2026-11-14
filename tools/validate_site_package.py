@@ -78,7 +78,8 @@ def validate(root: Path, max_bytes: int = MAX_BYTES) -> list[str]:
                         round(v, 6) for v in m.grid.transform
                     ):
                         errors.append(f"{where} : transformation différente de la grille")
-                    if ds.driver != "GTiff" or not ds.is_tiled:
+                    block_h, block_w = ds.block_shapes[0]
+                    if ds.driver != "GTiff" or block_h == 1 or block_w != block_h:
                         errors.append(f"{where} : le COG doit être un GeoTIFF tuilé")
         if layer.tiles:
             if layer.tiles.minzoom > layer.tiles.maxzoom:

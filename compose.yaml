@@ -1,0 +1,3 @@
+# Point d'entrée de `docker compose up` à la racine. La définition est dans infra/.
+include:
+  - infra/docker-compose.yml

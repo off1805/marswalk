@@ -1,0 +1,33 @@
+{
+ "id": "eva-demo",
+ "site_id": "fictif",
+ "plan_id": "plan-demo",
+ "route_id": "route-safest",
+ "crew": [
+  "EV1"
+ ],
+ "status": "active",
+ "started_at": "2026-11-14T10:00:00Z",
+ "ended_at": null,
+ "position": [
+  77.58366118601398,
+  18.39081438181818
+ ],
+ "heading_deg": 35.0,
+ "speed_mps": 0.9,
+ "distance_done_m": 622.35,
+ "elapsed_s": 900.0,
+ "consumables": {
+  "oxygen_pct": 82.0,
+  "battery_pct": 85.0,
+  "water_pct": 88.0
+ },
+ "dose_usv": 4.2,
+ "next_target_id": "T1",
+ "reserve_pct": 62.0,
+ "time_to_pnr_s": 5400.0,
+ "return_time_s": 600.0,
+ "active_alert_ids": [
+  "alert-1"
+ ]
+}

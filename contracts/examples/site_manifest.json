@@ -1,0 +1,966 @@
+{
+ "schema_version": "1.0",
+ "site_id": "fictif",
+ "name": "Site fictif (Jezero, synthétique)",
+ "bbox": [
+  77.5622225,
+  18.3631135,
+  77.5977775,
+  18.3968547
+ ],
+ "analysis_crs": "+proj=eqc +lat_ts=18.38 +lon_0=77.58 +R=3396190 +units=m +no_defs",
+ "grid": {
+  "resolution_m": 2.0,
+  "width": 1000,
+  "height": 1000,
+  "transform": [
+   2.0,
+   0.0,
+   -1000.0,
+   0.0,
+   -2.0,
+   1090468.0
+  ]
+ },
+ "habitat": [
+  77.5782222,
+  18.3816712
+ ],
+ "rover": [
+  77.5810667,
+  18.380659
+ ],
+ "mission_epoch_utc": "2026-11-01T00:00:00Z",
+ "default_preset": "safety",
+ "layers": [
+  {
+   "id": "hirise_vis",
+   "title": "Imagerie (type HiRISE)",
+   "kind": "imagery",
+   "unit": "DN",
+   "value_range": [
+    0.0,
+    255.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_HIRISE_VIS",
+    "url": null,
+    "note": "image synthétique"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": 0.0
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#000000",
+      "label": null
+     },
+     {
+      "value": 255.0,
+      "color": "#ffffff",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/hirise_vis.tif",
+   "tiles": {
+    "path": "tiles/hirise_vis/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "ctx_vis",
+   "title": "Contexte (type CTX)",
+   "kind": "imagery",
+   "unit": "DN",
+   "value_range": [
+    0.0,
+    255.0
+   ],
+   "resolution_m": 6.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_CTX_VIS",
+    "url": null,
+    "note": "image floutée"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": 0.0
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#000000",
+      "label": null
+     },
+     {
+      "value": 255.0,
+      "color": "#ffffff",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/ctx_vis.tif",
+   "tiles": {
+    "path": "tiles/ctx_vis/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "dem",
+   "title": "Altitude (MNT)",
+   "kind": "dem",
+   "unit": "m",
+   "value_range": [
+    -2630.0,
+    -2550.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_DEM",
+    "url": null,
+    "note": "MNT synthétique"
+   },
+   "uncertainty": {
+    "value": 0.3,
+    "unit": "m",
+    "coreg_m": 0.0
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": -2630.0,
+      "color": "#00224e",
+      "label": null
+     },
+     {
+      "value": -2614.0,
+      "color": "#35456c",
+      "label": null
+     },
+     {
+      "value": -2598.0,
+      "color": "#666970",
+      "label": null
+     },
+     {
+      "value": -2582.0,
+      "color": "#948e77",
+      "label": null
+     },
+     {
+      "value": -2566.0,
+      "color": "#c8b866",
+      "label": null
+     },
+     {
+      "value": -2550.0,
+      "color": "#fee838",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/dem.tif",
+   "tiles": {
+    "path": "tiles/dem/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "dem_mola",
+   "title": "Altitude (type MOLA)",
+   "kind": "dem",
+   "unit": "m",
+   "value_range": [
+    -2630.0,
+    -2550.0
+   ],
+   "resolution_m": 463.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_DEM_MOLA",
+    "url": null,
+    "note": "MNT lissé"
+   },
+   "uncertainty": {
+    "value": 3.0,
+    "unit": "m",
+    "coreg_m": 0.0
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": -2630.0,
+      "color": "#00224e",
+      "label": null
+     },
+     {
+      "value": -2614.0,
+      "color": "#35456c",
+      "label": null
+     },
+     {
+      "value": -2598.0,
+      "color": "#666970",
+      "label": null
+     },
+     {
+      "value": -2582.0,
+      "color": "#948e77",
+      "label": null
+     },
+     {
+      "value": -2566.0,
+      "color": "#c8b866",
+      "label": null
+     },
+     {
+      "value": -2550.0,
+      "color": "#fee838",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/dem_mola.tif",
+   "tiles": {
+    "path": "tiles/dem_mola/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "slope",
+   "title": "Pente",
+   "kind": "derived",
+   "unit": "deg",
+   "value_range": [
+    0.0,
+    60.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_SLOPE",
+    "url": null,
+    "note": "dérivée du MNT"
+   },
+   "uncertainty": {
+    "value": 0.5,
+    "unit": "deg",
+    "coreg_m": 0.0
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#440154",
+      "label": null
+     },
+     {
+      "value": 15.0,
+      "color": "#3b528b",
+      "label": null
+     },
+     {
+      "value": 30.0,
+      "color": "#21918c",
+      "label": null
+     },
+     {
+      "value": 45.0,
+      "color": "#5ec962",
+      "label": null
+     },
+     {
+      "value": 60.0,
+      "color": "#fde725",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/slope.tif",
+   "tiles": {
+    "path": "tiles/slope/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "roughness",
+   "title": "Rugosité",
+   "kind": "derived",
+   "unit": "m",
+   "value_range": [
+    0.0,
+    1.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_ROUGHNESS",
+    "url": null,
+    "note": "écart type local sur 10 m"
+   },
+   "uncertainty": {
+    "value": 0.05,
+    "unit": "m",
+    "coreg_m": 0.0
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#440154",
+      "label": null
+     },
+     {
+      "value": 0.25,
+      "color": "#3b528b",
+      "label": null
+     },
+     {
+      "value": 0.5,
+      "color": "#21918c",
+      "label": null
+     },
+     {
+      "value": 0.75,
+      "color": "#5ec962",
+      "label": null
+     },
+     {
+      "value": 1.0,
+      "color": "#fde725",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/roughness.tif",
+   "tiles": {
+    "path": "tiles/roughness/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "hillshade",
+   "title": "Ombrage",
+   "kind": "derived",
+   "unit": null,
+   "value_range": [
+    0.0,
+    255.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_HILLSHADE",
+    "url": null,
+    "note": "azimut 315°, hauteur 45°"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#000000",
+      "label": null
+     },
+     {
+      "value": 255.0,
+      "color": "#ffffff",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/hillshade.tif",
+   "tiles": {
+    "path": "tiles/hillshade/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "obstacles",
+   "title": "Obstacles (avec tampon)",
+   "kind": "derived",
+   "unit": null,
+   "value_range": [
+    0.0,
+    1.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_OBSTACLES",
+    "url": null,
+    "note": "blocs de plus de 0,4 m, tampon 2 m"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "legend": {
+    "type": "categorical",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#000000",
+      "label": "libre"
+     },
+     {
+      "value": 1.0,
+      "color": "#cc79a7",
+      "label": "obstacle"
+     }
+    ]
+   },
+   "cog": "cog/obstacles.tif",
+   "tiles": {
+    "path": "tiles/obstacles/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "scarps",
+   "title": "Ruptures de pente",
+   "kind": "derived",
+   "unit": null,
+   "value_range": [
+    0.0,
+    1.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_SCARPS",
+    "url": null,
+    "note": "pente supérieure à 30°"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "legend": {
+    "type": "categorical",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#000000",
+      "label": "aucune"
+     },
+     {
+      "value": 1.0,
+      "color": "#e69f00",
+      "label": "falaise ou bord"
+     }
+    ]
+   },
+   "cog": "cog/scarps.tif",
+   "tiles": {
+    "path": "tiles/scarps/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "thermal_inertia",
+   "title": "Inertie thermique",
+   "kind": "thermal",
+   "unit": "J m-2 K-1 s-1/2",
+   "value_range": [
+    100.0,
+    800.0
+   ],
+   "resolution_m": 100.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_THERMAL_INERTIA",
+    "url": null,
+    "note": "type THEMIS"
+   },
+   "uncertainty": {
+    "value": 50.0,
+    "unit": "J m-2 K-1 s-1/2",
+    "coreg_m": 0.0
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": 100.0,
+      "color": "#440154",
+      "label": null
+     },
+     {
+      "value": 275.0,
+      "color": "#3b528b",
+      "label": null
+     },
+     {
+      "value": 450.0,
+      "color": "#21918c",
+      "label": null
+     },
+     {
+      "value": 625.0,
+      "color": "#5ec962",
+      "label": null
+     },
+     {
+      "value": 800.0,
+      "color": "#fde725",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/thermal_inertia.tif",
+   "tiles": {
+    "path": "tiles/thermal_inertia/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "loose_soil",
+   "title": "Classe de sol",
+   "kind": "derived",
+   "unit": null,
+   "value_range": [
+    0.0,
+    3.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_LOOSE_SOIL",
+    "url": null,
+    "note": "classes synthétiques"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "legend": {
+    "type": "categorical",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#7f7f7f",
+      "label": "roche"
+     },
+     {
+      "value": 1.0,
+      "color": "#c9a66b",
+      "label": "mixte"
+     },
+     {
+      "value": 2.0,
+      "color": "#e8c77a",
+      "label": "meuble"
+     },
+     {
+      "value": 3.0,
+      "color": "#f5e6a8",
+      "label": "dune"
+     }
+    ]
+   },
+   "cog": "cog/loose_soil.tif",
+   "tiles": {
+    "path": "tiles/loose_soil/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "crism_minerals",
+   "title": "Minéralogie",
+   "kind": "spectral",
+   "unit": null,
+   "value_range": [
+    0.0,
+    2.0
+   ],
+   "resolution_m": 18.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_CRISM_MINERALS",
+    "url": null,
+    "note": "type CRISM"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": 0.0
+   },
+   "legend": {
+    "type": "categorical",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#000000",
+      "label": "non détecté"
+     },
+     {
+      "value": 1.0,
+      "color": "#56b4e9",
+      "label": "argiles et carbonates"
+     },
+     {
+      "value": 2.0,
+      "color": "#009e73",
+      "label": "olivine"
+     }
+    ]
+   },
+   "cog": "cog/crism_minerals.tif",
+   "tiles": {
+    "path": "tiles/crism_minerals/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "radio_coverage",
+   "title": "Couverture radio",
+   "kind": "derived",
+   "unit": null,
+   "value_range": [
+    0.0,
+    1.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_RADIO_COVERAGE",
+    "url": null,
+    "note": "visibilité depuis l'antenne de l'habitat (3 m)"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "legend": {
+    "type": "categorical",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#0072b2",
+      "label": "hors couverture"
+     },
+     {
+      "value": 1.0,
+      "color": "#000000",
+      "label": "couvert"
+     }
+    ]
+   },
+   "cog": "cog/radio_coverage.tif",
+   "tiles": {
+    "path": "tiles/radio_coverage/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "illumination",
+   "title": "Éclairement",
+   "kind": "derived",
+   "unit": null,
+   "value_range": [
+    0.0,
+    1.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_ILLUMINATION",
+    "url": null,
+    "note": "Soleil à l'est, 20° de hauteur"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#000000",
+      "label": null
+     },
+     {
+      "value": 1.0,
+      "color": "#ffffff",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/illumination.tif",
+   "tiles": {
+    "path": "tiles/illumination/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "return_time",
+   "title": "Temps de retour",
+   "kind": "derived",
+   "unit": "s",
+   "value_range": [
+    0.0,
+    2000.0
+   ],
+   "resolution_m": 2.0,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_RETURN_TIME",
+    "url": null,
+    "note": "ligne droite à 1 m/s (bouchon P3)"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "legend": {
+    "type": "continuous",
+    "stops": [
+     {
+      "value": 0.0,
+      "color": "#440154",
+      "label": null
+     },
+     {
+      "value": 500.0,
+      "color": "#3b528b",
+      "label": null
+     },
+     {
+      "value": 1000.0,
+      "color": "#21918c",
+      "label": null
+     },
+     {
+      "value": 1500.0,
+      "color": "#5ec962",
+      "label": null
+     },
+     {
+      "value": 2000.0,
+      "color": "#fde725",
+      "label": null
+     }
+    ]
+   },
+   "cog": "cog/return_time.tif",
+   "tiles": {
+    "path": "tiles/return_time/{z}/{x}/{y}.webp",
+    "minzoom": 12,
+    "maxzoom": 16,
+    "format": "webp",
+    "tile_size": 256
+   },
+   "vector": null,
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "rover_traverse",
+   "title": "Trajet du rover",
+   "kind": "vector",
+   "unit": null,
+   "value_range": null,
+   "resolution_m": null,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_ROVER_TRAVERSE",
+    "url": null,
+    "note": null
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "legend": null,
+   "cog": null,
+   "tiles": null,
+   "vector": "vector/rover_traverse.geojson",
+   "status": "ok",
+   "status_note": null
+  },
+  {
+   "id": "ground_images",
+   "title": "Images au sol",
+   "kind": "ground",
+   "unit": null,
+   "value_range": null,
+   "resolution_m": null,
+   "acquired": "2026-11-01",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_GROUND_IMAGES",
+    "url": null,
+    "note": null
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "legend": null,
+   "cog": null,
+   "tiles": null,
+   "vector": "vector/ground_images.geojson",
+   "status": "ok",
+   "status_note": null
+  }
+ ],
+ "terrain": {
+  "path": "tiles/terrain_rgb/{z}/{x}/{y}.png",
+  "minzoom": 12,
+  "maxzoom": 16,
+  "format": "png",
+  "tile_size": 256
+ },
+ "generated_at": "2026-11-14T00:00:00Z",
+ "generator": "tools/make_fictif.py (T00)",
+ "size_bytes": 16911097
+}

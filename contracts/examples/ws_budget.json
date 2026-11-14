@@ -1,0 +1,12 @@
+{
+ "utc": "2026-11-14T10:00:00Z",
+ "sol": 14,
+ "lmst": "13:16:16",
+ "type": "budget",
+ "payload": {
+  "reserve_pct": 62.0,
+  "time_to_pnr_s": 5400.0,
+  "return_time_s": 600.0,
+  "limiting_consumable": "oxygen"
+ }
+}

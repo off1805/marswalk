@@ -1,0 +1,60 @@
+# Environnement local de Marswalk (T00) : PostGIS 16, API, front.
+# Depuis la racine : `docker compose up --build` (compose.yaml inclut ce fichier) ou `make dev`.
+# Front : http://localhost:5173  ·  API : http://localhost:8000/docs
+name: marswalk
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: marswalk
+      POSTGRES_PASSWORD: marswalk
+      POSTGRES_DB: marswalk
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marswalk -d marswalk"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+      # Réseau de l'hôte pendant la construction : évite les pannes DNS des conteneurs
+      # de construction (fréquentes sous Ubuntu avec systemd-resolved).
+      network: host
+    environment:
+      MARSWALK_DATABASE_URL: postgresql+psycopg://marswalk:marswalk@db:5432/marswalk
+      MARSWALK_CORS_ORIGINS: '["http://localhost:5173"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/web.Dockerfile
+      # Réseau de l'hôte pendant la construction : évite les pannes DNS des conteneurs
+      # de construction (fréquentes sous Ubuntu avec systemd-resolved).
+      network: host
+    environment:
+      MARSWALK_API_URL: http://api:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:

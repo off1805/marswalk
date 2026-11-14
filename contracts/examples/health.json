@@ -1,0 +1,9 @@
+{
+ "status": "ok",
+ "version": "0.1.0",
+ "contracts": "contrats-v1",
+ "database": "ok",
+ "sites": [
+  "fictif"
+ ]
+}

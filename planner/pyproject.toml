@@ -1,0 +1,16 @@
+[project]
+name = "marswalk-planner"
+version = "0.1.0"
+description = "Planificateur (risque, coût, itinéraire, marche, budgets)"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "marswalk-core",
+    "marswalk-conditions",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["marswalk_planner"]

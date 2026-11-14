@@ -1,0 +1,33 @@
+# Site fictif synthétique (T00). Généré par tools/make_fictif.py, paquet versionné dans
+# fixtures/sites/fictif/. Placé au centre du cratère Jezero.
+site_id: fictif
+name: Site fictif (Jezero, synthétique)
+center: { lon: 77.58, lat: 18.38 }
+size_m: 2000
+resolution_m: 2.0
+analysis_crs: "+proj=eqc +lat_ts=18.38 +lon_0=77.58 +R=3396190 +units=m +no_defs"
+mission_epoch_utc: "2026-11-01T00:00:00Z"
+default_preset: safety
+seed: 1805
+tiles: { minzoom: 12, maxzoom: 16 }
+habitat: { x: -100, y: 100 }       # mètres depuis le centre
+rover: { x: 60, y: 40 }
+targets_seed: targets-seed.geojson
+layers:
+  - hirise_vis
+  - ctx_vis
+  - dem
+  - dem_mola
+  - slope
+  - roughness
+  - hillshade
+  - obstacles
+  - scarps
+  - thermal_inertia
+  - loose_soil
+  - crism_minerals
+  - radio_coverage
+  - illumination
+  - return_time
+  - rover_traverse
+  - ground_images

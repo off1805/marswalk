@@ -1,0 +1,595 @@
+{
+  "$defs": {
+    "GridInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "resolution_m": {
+          "exclusiveMinimum": 0,
+          "title": "Resolution M",
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "integer"
+        },
+        "transform": {
+          "description": "Transformation affine (a, b, c, d, e, f) au sens de rasterio, en mètres",
+          "maxItems": 6,
+          "minItems": 6,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Transform",
+          "type": "array"
+        }
+      },
+      "required": [
+        "resolution_m",
+        "width",
+        "height",
+        "transform"
+      ],
+      "title": "GridInfo",
+      "type": "object"
+    },
+    "LayerInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9_]{1,40}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/LayerKind"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value_range": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value Range"
+        },
+        "resolution_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolution M"
+        },
+        "acquired": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Acquired"
+        },
+        "source": {
+          "$ref": "#/$defs/LayerSource"
+        },
+        "uncertainty": {
+          "$ref": "#/$defs/Uncertainty"
+        },
+        "legend": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Legend"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cog": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Chemin relatif du COG, par ex. cog/slope.tif",
+          "title": "Cog"
+        },
+        "tiles": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TileInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "vector": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Chemin relatif du GeoJSON",
+          "title": "Vector"
+        },
+        "status": {
+          "$ref": "#/$defs/LayerStatus",
+          "default": "ok"
+        },
+        "status_note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Note"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "source"
+      ],
+      "title": "LayerInfo",
+      "type": "object"
+    },
+    "LayerKind": {
+      "enum": [
+        "imagery",
+        "dem",
+        "derived",
+        "thermal",
+        "spectral",
+        "vector",
+        "ground"
+      ],
+      "title": "LayerKind",
+      "type": "string"
+    },
+    "LayerSource": {
+      "additionalProperties": false,
+      "properties": {
+        "instrument": {
+          "description": "Instrument, ou SYNTHETIC pour le site fictif",
+          "title": "Instrument",
+          "type": "string"
+        },
+        "mission": {
+          "title": "Mission",
+          "type": "string"
+        },
+        "product_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Identifiant du produit PDS",
+          "title": "Product Id"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        }
+      },
+      "required": [
+        "instrument",
+        "mission"
+      ],
+      "title": "LayerSource",
+      "type": "object"
+    },
+    "LayerStatus": {
+      "enum": [
+        "ok",
+        "missing",
+        "degraded"
+      ],
+      "title": "LayerStatus",
+      "type": "string"
+    },
+    "Legend": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "continuous",
+            "categorical"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "stops": {
+          "items": {
+            "$ref": "#/$defs/LegendStop"
+          },
+          "title": "Stops",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "stops"
+      ],
+      "title": "Legend",
+      "type": "object"
+    },
+    "LegendStop": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "color": {
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        }
+      },
+      "required": [
+        "value",
+        "color"
+      ],
+      "title": "LegendStop",
+      "type": "object"
+    },
+    "LonLat": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+        {
+          "title": "Lon",
+          "type": "number"
+        },
+        {
+          "title": "Lat",
+          "type": "number"
+        }
+      ],
+      "type": "array"
+    },
+    "TileInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "description": "Gabarit relatif au paquet, par ex. tiles/slope/{z}/{x}/{y}.webp",
+          "title": "Path",
+          "type": "string"
+        },
+        "minzoom": {
+          "maximum": 24,
+          "minimum": 0,
+          "title": "Minzoom",
+          "type": "integer"
+        },
+        "maxzoom": {
+          "maximum": 24,
+          "minimum": 0,
+          "title": "Maxzoom",
+          "type": "integer"
+        },
+        "format": {
+          "enum": [
+            "webp",
+            "png"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "tile_size": {
+          "default": 256,
+          "title": "Tile Size",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "minzoom",
+        "maxzoom",
+        "format"
+      ],
+      "title": "TileInfo",
+      "type": "object"
+    },
+    "Uncertainty": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Incertitude de mesure",
+          "title": "Value"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "coreg_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Incertitude de recalage en mètres",
+          "title": "Coreg M"
+        }
+      },
+      "title": "Uncertainty",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Contenu de ``manifest.json`` (schéma exporté : contracts/site-manifest.schema.json).",
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "site_id": {
+      "pattern": "^[a-z][a-z0-9_-]{1,40}$",
+      "title": "Site Id",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "bbox": {
+      "description": "[ouest, sud, est, nord] en degrés",
+      "maxItems": 4,
+      "minItems": 4,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Bbox",
+      "type": "array"
+    },
+    "analysis_crs": {
+      "description": "Chaîne PROJ du système d'analyse (règle R1)",
+      "title": "Analysis Crs",
+      "type": "string"
+    },
+    "grid": {
+      "$ref": "#/$defs/GridInfo"
+    },
+    "habitat": {
+      "$ref": "#/$defs/LonLat"
+    },
+    "rover": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LonLat"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "mission_epoch_utc": {
+      "description": "Début du sol 1 de la mission simulée",
+      "format": "date-time",
+      "title": "Mission Epoch Utc",
+      "type": "string"
+    },
+    "default_preset": {
+      "default": "safety",
+      "title": "Default Preset",
+      "type": "string"
+    },
+    "layers": {
+      "items": {
+        "$ref": "#/$defs/LayerInfo"
+      },
+      "title": "Layers",
+      "type": "array"
+    },
+    "terrain": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TileInfo"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Tuiles terrain-RGB pour la 3D"
+    },
+    "generated_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Generated At"
+    },
+    "generator": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Generator"
+    },
+    "size_bytes": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Size Bytes"
+    }
+  },
+  "required": [
+    "site_id",
+    "name",
+    "bbox",
+    "analysis_crs",
+    "grid",
+    "habitat",
+    "mission_epoch_utc",
+    "layers"
+  ],
+  "title": "SiteManifest",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://marswalk.local/contracts/site-manifest.schema.json"
+}

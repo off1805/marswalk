@@ -1,0 +1,73 @@
+# Intégration continue de Marswalk (T00). Une PR n'est fusionnée que si tout est vert,
+# y compris le contrôle de propriété des dossiers.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ownership:
+    name: Propriété des dossiers
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run --no-project --with pyyaml python tools/check_ownership.py --branch "${{ github.head_ref }}" --base "origin/${{ github.base_ref }}"
+
+  python:
+    name: Python (lint, typage, tests, PostGIS)
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: marswalk
+          POSTGRES_PASSWORD: marswalk
+          POSTGRES_DB: marswalk
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U marswalk -d marswalk"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      MARSWALK_DATABASE_URL: postgresql+psycopg://marswalk:marswalk@localhost:5432/marswalk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen --all-packages
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy packages/core pipeline planner conditions api tools
+      - run: uv run pytest
+      - name: Contrats inchangés (OpenAPI et schémas)
+        run: uv run python tools/export_contracts.py --check
+      - name: Paquet du site fictif valide
+        run: uv run python tools/validate_site_package.py fixtures/sites/fictif --max-mb 30
+
+  web:
+    name: Front (lint, typage, tests, client généré)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Client TypeScript à jour
+        run: |
+          pnpm gen:api
+          git diff --exit-code -- web/src/shared/api/schema.d.ts
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build

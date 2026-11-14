@@ -1,0 +1,66 @@
+[
+ {
+  "name": "Front du delta",
+  "kind": "science",
+  "position": [
+   77.5844444,
+   18.392131
+  ],
+  "objective": "Argiles et carbonates du delta, au-dessus de la falaise",
+  "measurement": "Imagerie rapprochée et prélèvement",
+  "work_time_s": 1200.0,
+  "priority": 1,
+  "id": "T1",
+  "site_id": "fictif",
+  "created_at": "2026-11-14T10:00:00Z",
+  "updated_at": "2026-11-14T10:00:00Z"
+ },
+ {
+  "name": "Bord des dunes",
+  "kind": "science",
+  "position": [
+   77.5725334,
+   18.3774535
+  ],
+  "objective": "Granulométrie du sable actif",
+  "measurement": "Prélèvement de sable",
+  "work_time_s": 600.0,
+  "priority": 2,
+  "id": "T2",
+  "site_id": "fictif",
+  "created_at": "2026-11-14T10:00:00Z",
+  "updated_at": "2026-11-14T10:00:00Z"
+ },
+ {
+  "name": "Unité à olivine",
+  "kind": "science",
+  "position": [
+   77.5853333,
+   18.3825147
+  ],
+  "objective": "Roches ignées à olivine altérée du plancher",
+  "measurement": "Spectre et carottage",
+  "work_time_s": 1500.0,
+  "priority": 1,
+  "id": "T3",
+  "site_id": "fictif",
+  "created_at": "2026-11-14T10:00:00Z",
+  "updated_at": "2026-11-14T10:00:00Z"
+ },
+ {
+  "name": "Chaos de blocs",
+  "kind": "science",
+  "position": [
+   77.5789333,
+   18.3720549
+  ],
+  "objective": "Origine des blocs éjectés",
+  "measurement": "Imagerie des blocs",
+  "work_time_s": 900.0,
+  "priority": 3,
+  "id": "T4",
+  "site_id": "fictif",
+  "created_at": "2026-11-14T10:00:00Z",
+  "updated_at": "2026-11-14T10:00:00Z"
+ }
+]

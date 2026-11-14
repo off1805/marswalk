@@ -1,0 +1,22 @@
+{
+ "utc": "2026-11-14T10:00:00Z",
+ "sol": 14,
+ "lmst": "13:16:16",
+ "type": "telemetry",
+ "payload": {
+  "position": [
+   77.58366118601398,
+   18.39081438181818
+  ],
+  "heading_deg": 35.0,
+  "speed_mps": 0.9,
+  "consumables": {
+   "oxygen_pct": 82.0,
+   "battery_pct": 85.0,
+   "water_pct": 88.0
+  },
+  "dose_usv": 4.2,
+  "distance_done_m": 622.35,
+  "elapsed_s": 900.0
+ }
+}

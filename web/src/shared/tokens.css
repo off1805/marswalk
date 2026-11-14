@@ -1,0 +1,80 @@
+/*
+ * Jetons de design de Marswalk (T00). Palette sûre pour les daltoniens (Okabe-Ito) ;
+ * le rouge est réservé au danger (ENF-06) et toujours doublé d'une icône et d'un texte.
+ * Deux thèmes : « day » clair à fort contraste pour le plein soleil, « night » sombre
+ * pour la basse lumière. Le thème se choisit avec l'attribut data-theme sur <html>.
+ */
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --color-info: #0072b2;
+  --color-caution: #e69f00;
+  --color-danger: #d55e00;
+  --color-ok: #009e73;
+  --color-accent: #56b4e9;
+  --color-route-safest: #009e73;
+  --color-route-fastest: #0072b2;
+  --color-route-science: #cc79a7;
+  --spacing-touch: 76px; /* 2 cm à 96 dpi : cible tactile minimale en mode tablette */
+}
+
+:root,
+[data-theme="night"] {
+  --bg: #0b0d10;
+  --surface: #161a20;
+  --surface-2: #20262e;
+  --text: #f2f4f7;
+  --text-muted: #a9b1bc;
+  --border: #2f3742;
+  --focus: #56b4e9;
+  color-scheme: dark;
+}
+
+[data-theme="day"] {
+  --bg: #ffffff;
+  --surface: #f4f5f7;
+  --surface-2: #e6e8eb;
+  --text: #000000;
+  --text-muted: #2e3440;
+  --border: #000000;
+  --focus: #0072b2;
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Mode tablette : toutes les commandes font au moins 76 px (ENF-05). */
+[data-mode="tablet"] button,
+[data-mode="tablet"] [role="button"],
+[data-mode="tablet"] input,
+[data-mode="tablet"] select {
+  min-height: var(--spacing-touch);
+  min-width: var(--spacing-touch);
+  font-size: 1.25rem;
+}
+
+/* HUD : plein écran à fort contraste. */
+[data-mode="hud"] {
+  background: #000;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.maplibregl-map {
+  font-family: var(--font-sans);
+}

@@ -1,0 +1,82 @@
+{
+  "type": "FeatureCollection",
+  "crs_note": "IAU_2015:49900 (Mars 2000, planétocentrique, longitudes est)",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "T1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5844444,
+          18.392131
+        ]
+      },
+      "properties": {
+        "name": "Front du delta",
+        "kind": "science",
+        "objective": "Argiles et carbonates du delta, au-dessus de la falaise",
+        "measurement": "Imagerie rapprochée et prélèvement",
+        "work_time_s": 1200,
+        "priority": 1
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "T2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5725334,
+          18.3774535
+        ]
+      },
+      "properties": {
+        "name": "Bord des dunes",
+        "kind": "science",
+        "objective": "Granulométrie du sable actif",
+        "measurement": "Prélèvement de sable",
+        "work_time_s": 600,
+        "priority": 2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "T3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5853333,
+          18.3825147
+        ]
+      },
+      "properties": {
+        "name": "Unité à olivine",
+        "kind": "science",
+        "objective": "Roches ignées à olivine altérée du plancher",
+        "measurement": "Spectre et carottage",
+        "work_time_s": 1500,
+        "priority": 1
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "T4",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.5789333,
+          18.3720549
+        ]
+      },
+      "properties": {
+        "name": "Chaos de blocs",
+        "kind": "science",
+        "objective": "Origine des blocs éjectés",
+        "measurement": "Imagerie des blocs",
+        "work_time_s": 900,
+        "priority": 3
+      }
+    }
+  ]
+}

@@ -1,0 +1,366 @@
+{
+ "site_id": "fictif",
+ "position": [
+  77.5725334,
+  18.3774535
+ ],
+ "analysis_xy": [
+  -420.0,
+  1089318.0
+ ],
+ "values": [
+  {
+   "layer_id": "hirise_vis",
+   "title": "Imagerie (type HiRISE)",
+   "value": 138.0,
+   "unit": "DN",
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_HIRISE_VIS",
+    "url": null,
+    "note": "image synthétique"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": 0.0
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "ctx_vis",
+   "title": "Contexte (type CTX)",
+   "value": 142.0,
+   "unit": "DN",
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_CTX_VIS",
+    "url": null,
+    "note": "image floutée"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": 0.0
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 6.0
+  },
+  {
+   "layer_id": "dem",
+   "title": "Altitude (MNT)",
+   "value": -2598.280029296875,
+   "unit": "m",
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_DEM",
+    "url": null,
+    "note": "MNT synthétique"
+   },
+   "uncertainty": {
+    "value": 0.3,
+    "unit": "m",
+    "coreg_m": 0.0
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "dem_mola",
+   "title": "Altitude (type MOLA)",
+   "value": -2599.800048828125,
+   "unit": "m",
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_DEM_MOLA",
+    "url": null,
+    "note": "MNT lissé"
+   },
+   "uncertainty": {
+    "value": 3.0,
+    "unit": "m",
+    "coreg_m": 0.0
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 463.0
+  },
+  {
+   "layer_id": "slope",
+   "title": "Pente",
+   "value": 0.5699999928474426,
+   "unit": "deg",
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_SLOPE",
+    "url": null,
+    "note": "dérivée du MNT"
+   },
+   "uncertainty": {
+    "value": 0.5,
+    "unit": "deg",
+    "coreg_m": 0.0
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "roughness",
+   "title": "Rugosité",
+   "value": 0.09799999743700027,
+   "unit": "m",
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_ROUGHNESS",
+    "url": null,
+    "note": "écart type local sur 10 m"
+   },
+   "uncertainty": {
+    "value": 0.05,
+    "unit": "m",
+    "coreg_m": 0.0
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "hillshade",
+   "title": "Ombrage",
+   "value": 179.0,
+   "unit": null,
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_HILLSHADE",
+    "url": null,
+    "note": "azimut 315°, hauteur 45°"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "obstacles",
+   "title": "Obstacles (avec tampon)",
+   "value": 0.0,
+   "unit": null,
+   "label": "libre",
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_OBSTACLES",
+    "url": null,
+    "note": "blocs de plus de 0,4 m, tampon 2 m"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "scarps",
+   "title": "Ruptures de pente",
+   "value": 0.0,
+   "unit": null,
+   "label": "aucune",
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_SCARPS",
+    "url": null,
+    "note": "pente supérieure à 30°"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "thermal_inertia",
+   "title": "Inertie thermique",
+   "value": 157.0,
+   "unit": "J m-2 K-1 s-1/2",
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_THERMAL_INERTIA",
+    "url": null,
+    "note": "type THEMIS"
+   },
+   "uncertainty": {
+    "value": 50.0,
+    "unit": "J m-2 K-1 s-1/2",
+    "coreg_m": 0.0
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 100.0
+  },
+  {
+   "layer_id": "loose_soil",
+   "title": "Classe de sol",
+   "value": 3.0,
+   "unit": null,
+   "label": "dune",
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_LOOSE_SOIL",
+    "url": null,
+    "note": "classes synthétiques"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "crism_minerals",
+   "title": "Minéralogie",
+   "value": 0.0,
+   "unit": null,
+   "label": "non détecté",
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_CRISM_MINERALS",
+    "url": null,
+    "note": "type CRISM"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": 0.0
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 18.0
+  },
+  {
+   "layer_id": "radio_coverage",
+   "title": "Couverture radio",
+   "value": 1.0,
+   "unit": null,
+   "label": "couvert",
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_RADIO_COVERAGE",
+    "url": null,
+    "note": "visibilité depuis l'antenne de l'habitat (3 m)"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "illumination",
+   "title": "Éclairement",
+   "value": 0.3400000035762787,
+   "unit": null,
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_ILLUMINATION",
+    "url": null,
+    "note": "Soleil à l'est, 20° de hauteur"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "return_time",
+   "title": "Temps de retour",
+   "value": 407.0,
+   "unit": "s",
+   "label": null,
+   "status": "ok",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_RETURN_TIME",
+    "url": null,
+    "note": "ligne droite à 1 m/s (bouchon P3)"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "acquired": "2026-11-01",
+   "resolution_m": 2.0
+  },
+  {
+   "layer_id": "crism_minerals_hr",
+   "title": "Minéralogie haute résolution (absente)",
+   "value": null,
+   "unit": null,
+   "label": null,
+   "status": "missing",
+   "source": {
+    "instrument": "SYNTHETIC",
+    "mission": "Marswalk",
+    "product_id": "FICTIF_HIRISE_VIS",
+    "url": null,
+    "note": "exemple de couche manquante"
+   },
+   "uncertainty": {
+    "value": null,
+    "unit": null,
+    "coreg_m": null
+   },
+   "acquired": null,
+   "resolution_m": null
+  }
+ ],
+ "return_time_s": 407.5
+}

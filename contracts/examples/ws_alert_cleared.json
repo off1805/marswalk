@@ -1,0 +1,10 @@
+{
+ "utc": "2026-11-14T10:00:00Z",
+ "sol": 14,
+ "lmst": "13:16:16",
+ "type": "alert_cleared",
+ "payload": {
+  "alert_id": "alert-2",
+  "reason": "Pente redevenue faible"
+ }
+}

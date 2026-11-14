@@ -34,7 +34,9 @@ class ISiteDataSource(Protocol):
         ...
 
     @abstractmethod
-    def get_tile_file(self, site_id: str, layer_id: str, z: int, x: int, y: int, ext: str) -> Path | None:
+    def get_tile_file(
+        self, site_id: str, layer_id: str, z: int, x: int, y: int, ext: str
+    ) -> Path | None:
         """Retourne le chemin d'accès au fichier de tuile s'il existe."""
         ...
 

@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from marswalk_api.services.site_layers.interfaces import ISiteDataSource
 from marswalk_core.paths import repo_root
 from marswalk_core.schemas import SiteManifest
 from marswalk_core.site_package import Site, load_site
-from marswalk_api.services.site_layers.interfaces import ISiteDataSource
 
 
 class PackageSiteDataSource(ISiteDataSource):
@@ -29,7 +29,9 @@ class PackageSiteDataSource(ISiteDataSource):
         site = self._get_site(site_id)
         return site.sample(layer_id, lon, lat)
 
-    def get_tile_file(self, site_id: str, layer_id: str, z: int, x: int, y: int, ext: str) -> Path | None:
+    def get_tile_file(
+        self, site_id: str, layer_id: str, z: int, x: int, y: int, ext: str
+    ) -> Path | None:
         site = self._get_site(site_id)
         tile_path = site.root / "tiles" / layer_id / str(z) / str(x) / f"{y}.{ext}"
         if tile_path.is_file():
@@ -59,7 +61,8 @@ class MockSiteDataSource(ISiteDataSource):
         if self._manifest is None:
             example_file = repo_root() / "contracts" / "examples" / "site_manifest.json"
             if example_file.is_file():
-                self._manifest = SiteManifest.model_validate_json(example_file.read_text(encoding="utf-8"))
+                content = example_file.read_text(encoding="utf-8")
+                self._manifest = SiteManifest.model_validate_json(content)
 
     def get_manifest(self, site_id: str) -> SiteManifest:
         if self._manifest and self._manifest.site_id == site_id:
@@ -67,29 +70,23 @@ class MockSiteDataSource(ISiteDataSource):
         raise FileNotFoundError(f"Site inconnu : {site_id}")
 
     def sample_layer(self, site_id: str, layer_id: str, lon: float, lat: float) -> float | None:
-        if layer_id == "slope":
-            return 8.5
-        elif layer_id == "roughness":
-            return 0.25
-        elif layer_id == "dem":
-            return -2500.0
-        elif layer_id == "thermal_inertia":
-            return 320.0
-        elif layer_id == "crism_minerals":
-            return 1.0
-        elif layer_id == "obstacles":
-            return 0.0
-        elif layer_id == "scarps":
-            return 0.0
-        elif layer_id == "radio_coverage":
-            return 1.0
-        elif layer_id == "loose_soil":
-            return 1.0
-        elif layer_id == "illumination":
-            return 0.95
-        return 128.0
+        values = {
+            "slope": 8.5,
+            "roughness": 0.25,
+            "dem": -2500.0,
+            "thermal_inertia": 320.0,
+            "crism_minerals": 1.0,
+            "obstacles": 0.0,
+            "scarps": 0.0,
+            "radio_coverage": 1.0,
+            "loose_soil": 1.0,
+            "illumination": 0.95,
+        }
+        return values.get(layer_id, 128.0)
 
-    def get_tile_file(self, site_id: str, layer_id: str, z: int, x: int, y: int, ext: str) -> Path | None:
+    def get_tile_file(
+        self, site_id: str, layer_id: str, z: int, x: int, y: int, ext: str
+    ) -> Path | None:
         return None
 
     def get_vector_geojson(self, site_id: str, layer_id: str) -> str | None:

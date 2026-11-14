@@ -1,7 +1,7 @@
 """Zones dangereuses et réglages de sécurité.
 
 Architecture SOLID : le routeur délègue le calcul des zones de risques à `IHazardService`
-et la persistance des seuils de sécurité à `ISafetySettingsRepository` (module `mission_planning`).
+et la persistance des seuils de sécurité à `ISafetySettingsRepository`.
 """
 
 from __future__ import annotations

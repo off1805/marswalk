@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LayerPanel } from "./components/LayerPanel";
 import { MarsScaleBar } from "./components/MarsScaleBar";
@@ -111,6 +111,11 @@ describe("Fonctionnalité Carte et couches (F1)", () => {
     const scaleBar = screen.getByTestId("mars-scale-bar");
     expect(scaleBar).toBeDefined();
     expect(scaleBar.textContent).toContain("Mars 2000");
+  });
+
+  it("affiche le composant LayerPanel dans l'état de chargement", () => {
+    renderWithClient(<LayerPanel />);
+    expect(screen.getByText("Couches cartographiques")).toBeDefined();
   });
 
   it("permet de basculer la visibilité d'une couche", () => {

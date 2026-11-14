@@ -1,16 +1,10 @@
 """Tests unitaires et d'intégration pour mission_planning (Cibles, Itinéraires, Risques)."""
 
-import pytest
 from fastapi.testclient import TestClient
 
 from marswalk_api.main import app
-from marswalk_api.services.mission_planning.memory_repo import (
-    InMemoryPlanRepository,
-    InMemorySafetySettingsRepository,
-    InMemoryTargetRepository,
-)
-from marswalk_api.services.mission_planning.services import HazardService, PlanComputationService
-from marswalk_core.schemas import PlanCreate, SafetySettings, TargetCreate, TargetUpdate
+from marswalk_api.services.mission_planning.memory_repo import InMemoryTargetRepository
+from marswalk_core.schemas import TargetCreate, TargetUpdate
 
 client = TestClient(app)
 

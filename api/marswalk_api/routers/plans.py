@@ -1,7 +1,7 @@
 """Plans et itinéraires (EF-05, EF-06).
 
 Architecture SOLID : le routeur gère les requêtes HTTP et délègue le calcul d'itinéraires
-au service `IPlanComputationService` et la persistance au dépôt `IPlanRepository` (module `mission_planning`).
+au service `IPlanComputationService` et la persistance au dépôt `IPlanRepository`.
 """
 
 from __future__ import annotations

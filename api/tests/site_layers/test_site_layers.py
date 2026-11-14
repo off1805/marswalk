@@ -1,11 +1,10 @@
 """Tests unitaires et d'intégration pour le service site_layers (Sites, Couches, Interrogation)."""
 
-import pytest
 from fastapi.testclient import TestClient
 
 from marswalk_api.main import app
-from marswalk_api.services.site_layers.data_source import MockSiteDataSource, PackageSiteDataSource
-from marswalk_api.services.site_layers.services import PointQueryService, SiteCatalogService
+from marswalk_api.services.site_layers.data_source import MockSiteDataSource
+from marswalk_api.services.site_layers.services import PointQueryService
 
 client = TestClient(app)
 

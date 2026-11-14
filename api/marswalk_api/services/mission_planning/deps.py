@@ -61,6 +61,8 @@ def get_plan_computation_service(
 
 TargetRepoDep = Annotated[ITargetRepository, Depends(get_target_repository)]
 PlanRepoDep = Annotated[IPlanRepository, Depends(get_plan_repository)]
-SafetySettingsRepoDep = Annotated[ISafetySettingsRepository, Depends(get_safety_settings_repository)]
+SafetySettingsRepoDep = Annotated[
+    ISafetySettingsRepository, Depends(get_safety_settings_repository)
+]
 HazardServiceDep = Annotated[IHazardService, Depends(get_hazard_service)]
 PlanComputationDep = Annotated[IPlanComputationService, Depends(get_plan_computation_service)]

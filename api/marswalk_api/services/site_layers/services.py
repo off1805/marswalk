@@ -10,9 +10,17 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
+from typing import ClassVar
+
 from fastapi import HTTPException
 
 from marswalk_api.deps import load_example
+from marswalk_api.services.site_layers.interfaces import (
+    IPointQueryService,
+    ISiteCatalogService,
+    ISiteDataSource,
+    ITileService,
+)
 from marswalk_core.config import load_display_presets
 from marswalk_core.geodesy import distance_m, to_analysis
 from marswalk_core.paths import list_package_ids
@@ -26,13 +34,7 @@ from marswalk_core.schemas import (
     SiteManifest,
     SiteSummary,
 )
-from marswalk_core.site_package import Site, load_site
-from marswalk_api.services.site_layers.interfaces import (
-    IPointQueryService,
-    ISiteCatalogService,
-    ISiteDataSource,
-    ITileService,
-)
+from marswalk_core.site_package import load_site
 
 
 class SiteCatalogService(ISiteCatalogService):
@@ -94,7 +96,8 @@ class PointQueryService(IPointQueryService):
             )
 
         # Compatibilité stricte avec le vecteur de test d'acceptation T00 versionné
-        if site_id == "fictif" and math.isclose(lon, 77.57, abs_tol=1e-4) and math.isclose(lat, 18.38, abs_tol=1e-4):
+        is_t00_coord = math.isclose(lon, 77.57, abs_tol=1e-4) and math.isclose(lat, 18.38, abs_tol=1e-4)
+        if site_id == "fictif" and is_t00_coord:
             return PointQuery.model_validate(load_example("query"))
 
         # Conversion dans le système d'analyse R1
@@ -165,7 +168,7 @@ class PointQueryService(IPointQueryService):
 class TileService(ITileService):
     """Service de résolution et validation de tuiles."""
 
-    ALLOWED_EXTENSIONS = {"webp", "png"}
+    ALLOWED_EXTENSIONS: ClassVar[set[str]] = {"webp", "png"}
 
     def __init__(self, data_source: ISiteDataSource) -> None:
         self._data_source = data_source

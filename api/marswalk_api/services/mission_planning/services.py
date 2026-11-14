@@ -1,10 +1,13 @@
-"""Services métier pour mission_planning : Calcul de plan et calcul des risques (SOLID - SRP & DIP)."""
+"""Services métier pour mission_planning : Planification et analyse des risques.
+
+Respecte les principes SOLID (SRP & DIP).
+"""
 
 from __future__ import annotations
 
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 
@@ -24,7 +27,6 @@ from marswalk_core.schemas import (
     Plan,
     PlanCreate,
     PlanStatus,
-    SafetySettings,
     Target,
 )
 from marswalk_core.site_package import load_site
@@ -92,7 +94,7 @@ class PlanComputationService(IPlanComputationService):
             site_id=site_id,
             name=f"Sortie {site.manifest.name}",
             status=PlanStatus.computed,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             departure_utc=plan_create.departure_utc,
             start=start,
             return_to=return_to,

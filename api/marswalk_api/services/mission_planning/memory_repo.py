@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from marswalk_api.deps import load_example
 from marswalk_api.services.mission_planning.interfaces import (
@@ -57,7 +57,7 @@ class InMemoryTargetRepository(ITargetRepository):
     def create(self, site_id: str, data: TargetCreate) -> Target:
         with self._lock:
             target_id = f"target-{uuid.uuid4().hex[:8]}"
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             target = Target(
                 id=target_id,
                 site_id=site_id,
@@ -76,7 +76,7 @@ class InMemoryTargetRepository(ITargetRepository):
             updates = data.model_dump(exclude_unset=True)
             updated_dict = existing.model_dump()
             updated_dict.update(updates)
-            updated_dict["updated_at"] = datetime.now(timezone.utc)
+            updated_dict["updated_at"] = datetime.now(UTC)
             updated = Target.model_validate(updated_dict)
             self._targets[target_id] = updated
             return updated

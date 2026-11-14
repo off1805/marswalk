@@ -1,0 +1,120 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "id": "img-0",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.5648891,
+     18.3750917
+    ]
+   },
+   "properties": {
+    "image_id": "FICTIF_IMG_000",
+    "sol": 2,
+    "instrument": "SYNTHETIC",
+    "camera": "Mastcam-Z (fictif)",
+    "thumb": null,
+    "azimuth_deg": 0
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "img-1",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.5689779,
+     18.3759352
+    ]
+   },
+   "properties": {
+    "image_id": "FICTIF_IMG_001",
+    "sol": 3,
+    "instrument": "SYNTHETIC",
+    "camera": "Mastcam-Z (fictif)",
+    "thumb": null,
+    "azimuth_deg": 40
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "img-2",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.5720001,
+     18.3769474
+    ]
+   },
+   "properties": {
+    "image_id": "FICTIF_IMG_002",
+    "sol": 4,
+    "instrument": "SYNTHETIC",
+    "camera": "Mastcam-Z (fictif)",
+    "thumb": null,
+    "azimuth_deg": 80
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "img-3",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.574489,
+     18.3781284
+    ]
+   },
+   "properties": {
+    "image_id": "FICTIF_IMG_003",
+    "sol": 5,
+    "instrument": "SYNTHETIC",
+    "camera": "Mastcam-Z (fictif)",
+    "thumb": null,
+    "azimuth_deg": 120
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "img-4",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.5773334,
+     18.3793093
+    ]
+   },
+   "properties": {
+    "image_id": "FICTIF_IMG_004",
+    "sol": 6,
+    "instrument": "SYNTHETIC",
+    "camera": "Mastcam-Z (fictif)",
+    "thumb": null,
+    "azimuth_deg": 160
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "img-5",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.5807111,
+     18.3804903
+    ]
+   },
+   "properties": {
+    "image_id": "FICTIF_IMG_005",
+    "sol": 7,
+    "instrument": "SYNTHETIC",
+    "camera": "Mastcam-Z (fictif)",
+    "thumb": null,
+    "azimuth_deg": 200
+   }
+  }
+ ],
+ "crs_note": "IAU_2015:49900 (Mars 2000, planétocentrique, longitudes est)"
+}

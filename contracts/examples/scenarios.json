@@ -1,0 +1,25 @@
+[
+ {
+  "id": "solar-event",
+  "title": "Éruption solaire pendant la sortie",
+  "description": "Rejeu d'un événement à particules solaires vu au sol par RAD (Curiosity, événement de mai 2024 ; date et dose à vérifier dans le PDS par K1). Perseverance n'emporte pas de RAD : la dose est transposée à Jezero.",
+  "duration_s": 3600.0,
+  "events": [
+   {
+    "t_s": 0.0,
+    "kind": "start",
+    "description": "Conditions calmes"
+   },
+   {
+    "t_s": 1200.0,
+    "kind": "solar_event",
+    "description": "Pic de dose"
+   },
+   {
+    "t_s": 2400.0,
+    "kind": "end",
+    "description": "Retour au calme"
+   }
+  ]
+ }
+]

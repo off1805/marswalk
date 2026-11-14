@@ -1,0 +1,36 @@
+# Seuils de sécurité et poids du coût (créé par T00, valeurs par défaut réglées par P1,
+# ajustées par I1). Les seuils sont des hypothèses de conception à justifier (besoins §6) :
+# la NASA n'a pas publié de normes définitives de sortie sur Mars.
+# Le paramètre `preset` de GET /api/sites/{site_id}/hazards choisit une entrée de `presets`.
+default: standard
+presets:
+  standard:
+    max_slope_deg: 20.0
+    penalty_slope_deg: 10.0
+    max_roughness_m: 0.5
+    obstacle_buffer_m: 2.0
+    scarp_buffer_m: 10.0
+    avoid_loose_soil_class: 3
+    require_radio: false
+    radio_penalty: 2.0
+    min_illumination: 0.0
+    min_reserve_pct: 30.0
+    max_dust_tau: 2.0
+    max_dose_usv: 1000.0
+    degraded_margin_pct: 15.0
+    weights: { time: 1.0, risk: 1.0, science: 0.5 }
+  prudent:
+    max_slope_deg: 15.0
+    penalty_slope_deg: 8.0
+    max_roughness_m: 0.3
+    obstacle_buffer_m: 4.0
+    scarp_buffer_m: 20.0
+    avoid_loose_soil_class: 2
+    require_radio: true
+    radio_penalty: 4.0
+    min_illumination: 0.2
+    min_reserve_pct: 40.0
+    max_dust_tau: 1.5
+    max_dose_usv: 500.0
+    degraded_margin_pct: 25.0
+    weights: { time: 0.5, risk: 2.0, science: 0.3 }

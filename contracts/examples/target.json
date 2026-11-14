@@ -1,0 +1,16 @@
+{
+ "name": "Front du delta",
+ "kind": "science",
+ "position": [
+  77.5844444,
+  18.392131
+ ],
+ "objective": "Argiles et carbonates du delta, au-dessus de la falaise",
+ "measurement": "Imagerie rapprochée et prélèvement",
+ "work_time_s": 1200.0,
+ "priority": 1,
+ "id": "T1",
+ "site_id": "fictif",
+ "created_at": "2026-11-14T10:00:00Z",
+ "updated_at": "2026-11-14T10:00:00Z"
+}

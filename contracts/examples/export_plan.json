@@ -1,0 +1,86 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "id": "route-safest",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      77.5782222,
+      18.3816712
+     ],
+     [
+      77.5844444,
+      18.392131
+     ],
+     [
+      77.5853333,
+      18.3825147
+     ],
+     [
+      77.5725334,
+      18.3774535
+     ],
+     [
+      77.5782222,
+      18.3816712
+     ]
+    ]
+   },
+   "properties": {
+    "plan_id": "plan-demo",
+    "variant": "safest",
+    "distance_m": 2470.25,
+    "duration_s": 5770.3
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "T1",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.5844444,
+     18.392131
+    ]
+   },
+   "properties": {
+    "name": "Front du delta",
+    "objective": "Argiles et carbonates du delta, au-dessus de la falaise"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "T3",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.5853333,
+     18.3825147
+    ]
+   },
+   "properties": {
+    "name": "Unité à olivine",
+    "objective": "Roches ignées à olivine altérée du plancher"
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "T2",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.5725334,
+     18.3774535
+    ]
+   },
+   "properties": {
+    "name": "Bord des dunes",
+    "objective": "Granulométrie du sable actif"
+   }
+  }
+ ],
+ "crs_note": "IAU_2015:49900 (Mars 2000, planétocentrique, longitudes est)"
+}

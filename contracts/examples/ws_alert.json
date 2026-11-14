@@ -1,0 +1,27 @@
+{
+ "utc": "2026-11-14T10:00:00Z",
+ "sol": 14,
+ "lmst": "13:16:16",
+ "type": "alert",
+ "payload": {
+  "id": "alert-1",
+  "eva_id": "eva-demo",
+  "level": "danger",
+  "cause": "solar_event",
+  "title": "Événement à particules solaires",
+  "message": "Débit de dose en forte hausse (RAD). Abri nécessaire.",
+  "action": "Retour à l'abri",
+  "value": 250.0,
+  "threshold": 50.0,
+  "unit": "µSv/h",
+  "position": [
+   77.58366118601398,
+   18.39081438181818
+  ],
+  "utc": "2026-11-14T10:00:00Z",
+  "sol": 14,
+  "lmst": "13:16:16",
+  "acknowledged": false,
+  "acknowledged_at": null
+ }
+}

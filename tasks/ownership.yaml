@@ -1,0 +1,210 @@
+# Carte de propriété des dossiers (T00). Lue par tools/check_ownership.py dans l'intégration
+# continue : une branche task/<ID>-<slug> ne peut créer ou modifier que les chemins de <ID>,
+# les fichiers partagés (ajout de dépendances seulement) et tasks/change-requests/<ID>-*.md.
+#
+# Motifs : `**` couvre n'importe quelle profondeur, `*` un seul niveau. Les chemins de la
+# section 3 de taches-agents.md sont rapportés aux paquets Python (pipeline/marswalk_pipeline/,
+# planner/marswalk_planner/, api/marswalk_api/). Les tests et le README d'une tâche qui partage
+# un dossier avec d'autres vont dans un sous-dossier à son nom (planner/tests/p1/, ...), et ses
+# modules privés dans un dossier _<id> (planner/marswalk_planner/_p1/) ou services/<id>/.
+
+shared:
+  - pyproject.toml
+  - uv.lock
+  - package.json
+  - pnpm-lock.yaml
+  - packages/core/pyproject.toml
+  - pipeline/pyproject.toml
+  - planner/pyproject.toml
+  - conditions/pyproject.toml
+  - api/pyproject.toml
+  - web/package.json
+
+tasks:
+  T00:
+    title: Socle, contrats et site fictif
+    bootstrap: true   # crée les bouchons de toutes les tâches, une seule fois
+    paths:
+      - contracts/**
+      - config/**
+      - fixtures/**
+      - packages/core/**
+      - api/marswalk_api/main.py
+      - api/marswalk_api/deps.py
+      - api/marswalk_api/db/**
+      - web/src/app/**
+      - web/src/shared/**
+      - infra/docker-compose.yml
+      - .github/**
+      - tools/**
+      - tasks/**
+      - docs/scenario-demo.md
+      - "*"
+  C1:
+    title: Temps martien et géodésie
+    paths:
+      - packages/core/marswalk_core/marstime.py
+      - packages/core/marswalk_core/geodesy.py
+      - packages/core/tests/c1/**
+      - web/src/shared/marstime*.ts
+      - web/src/shared/geodesy*.ts
+  D1:
+    title: Ingestion et recalage des données réelles de Jezero
+    paths:
+      - pipeline/marswalk_pipeline/ingest/**
+      - pipeline/marswalk_pipeline/coreg/**
+      - pipeline/tests/d1/**
+      - config/sites/jezero/**
+    exclude:
+      - config/sites/jezero/targets-seed.geojson
+  D2:
+    title: Couches dérivées
+    paths:
+      - pipeline/marswalk_pipeline/derived/**
+      - pipeline/tests/d2/**
+  D3:
+    title: Paquet de site
+    paths:
+      - pipeline/marswalk_pipeline/package/**
+      - pipeline/tests/d3/**
+  P1:
+    title: Moteur de risque et grille de coût
+    paths:
+      - planner/marswalk_planner/cost.py
+      - planner/marswalk_planner/hazards.py
+      - planner/marswalk_planner/_p1/**
+      - planner/tests/p1/**
+      - config/safety.yaml
+  P2:
+    title: Recherche d'itinéraire et variantes
+    paths:
+      - planner/marswalk_planner/route.py
+      - planner/marswalk_planner/order.py
+      - planner/marswalk_planner/variants.py
+      - planner/marswalk_planner/_p2/**
+      - planner/tests/p2/**
+  P3:
+    title: Modèle de marche, budgets et retour garanti
+    paths:
+      - planner/marswalk_planner/walk.py
+      - planner/marswalk_planner/budget.py
+      - planner/marswalk_planner/return_field.py
+      - planner/marswalk_planner/_p3/**
+      - planner/tests/p3/**
+      - config/suit.yaml
+      - docs/science/hypotheses-marche.md
+  K1:
+    title: Conditions martiennes et scénarios
+    paths:
+      - conditions/**
+  A1:
+    title: API site, couches et interrogation de point
+    paths:
+      - api/marswalk_api/routers/sites.py
+      - api/marswalk_api/routers/query.py
+      - api/marswalk_api/routers/tiles.py
+      - api/marswalk_api/services/a1/**
+      - api/tests/a1/**
+  A2:
+    title: API cibles, itinéraires et persistance
+    paths:
+      - api/marswalk_api/routers/targets.py
+      - api/marswalk_api/routers/plans.py
+      - api/marswalk_api/routers/hazards.py
+      - api/marswalk_api/services/a2/**
+      - api/tests/a2/**
+  A3:
+    title: Alertes et temps réel
+    paths:
+      - api/marswalk_api/routers/alerts.py
+      - api/marswalk_api/routers/ws.py
+      - api/marswalk_api/routers/conditions.py
+      - api/marswalk_api/routers/time.py
+      - api/marswalk_api/services/a3/**
+      - api/tests/a3/**
+  A4:
+    title: Simulateur de sortie
+    paths:
+      - api/marswalk_api/routers/eva.py
+      - api/marswalk_api/services/a4/**
+      - api/tests/a4/**
+  F1:
+    title: Carte et couches
+    paths:
+      - web/src/features/map/**
+      - config/presets.yaml
+  F2:
+    title: Cibles et itinéraire
+    paths: [web/src/features/targets/**]
+  F3:
+    title: Profil d'itinéraire
+    paths: [web/src/features/profile/**]
+  F4:
+    title: Panneau sécurité et conditions
+    paths: [web/src/features/safety/**]
+  F5:
+    title: HUD de visière
+    paths: [web/src/features/hud/**]
+  F6:
+    title: Vue 3D
+    paths: [web/src/features/terrain3d/**]
+  F7:
+    title: Hors ligne
+    paths: [web/src/features/offline/**]
+  S1:
+    title: Objectif scientifique et cibles
+    paths:
+      - docs/science/**
+      - config/sites/jezero/targets-seed.geojson
+    exclude:
+      - docs/science/hypotheses-marche.md
+  G1:
+    title: Images au sol
+    paths:
+      - pipeline/marswalk_pipeline/ground_images/**
+      - pipeline/tests/g1/**
+      - api/marswalk_api/routers/ground_images.py
+      - api/marswalk_api/services/g1/**
+      - api/tests/g1/**
+      - web/src/features/ground-images/**
+  X1:
+    title: Export et carnet de terrain
+    paths:
+      - api/marswalk_api/routers/export.py
+      - api/marswalk_api/services/x1/**
+      - api/tests/x1/**
+      - web/src/features/export/**
+  I1:
+    title: Bascule sur Jezero et calibration
+    paths:
+      - config/sites/jezero/**
+      - config/safety.yaml
+      - config/suit.yaml
+      - docs/calibration.md
+  I2:
+    title: Tests de bout en bout du scénario de démo
+    paths: [e2e/**]
+  L1:
+    title: Déploiement et mode démo
+    paths:
+      - infra/deploy/**
+      - .github/workflows/deploy*.yml
+  L2:
+    title: Pitch, vidéo et dossier de soumission
+    paths:
+      - docs/pitch/**
+      - README.md
+  X2:
+    title: Générateur pour n'importe quel site (bonus)
+    paths:
+      - pipeline/marswalk_pipeline/generator/**
+      - pipeline/tests/x2/**
+  X3:
+    title: Binôme ou rover (bonus)
+    paths:
+      - planner/marswalk_planner/team.py
+      - planner/tests/x3/**
+      - web/src/features/team/**
+  X4:
+    title: Démo WebXR (bonus)
+    paths: [web/src/features/xr/**]

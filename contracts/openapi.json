@@ -1,0 +1,5249 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Marswalk API",
+    "description": "Carte et planification de sorties sur Mars. Coordonnées en degrés planétocentriques est, Mars 2000 (IAU_2015:49900). Contrats : contrats-v1.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/_contracts/ws-message": {
+      "get": {
+        "tags": [
+          "contracts"
+        ],
+        "summary": "Forme des messages du WebSocket /ws/eva/{eva_id} (documentation)",
+        "operationId": "ws_message_contract_api__contracts_ws_message_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WsEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites": {
+      "get": {
+        "tags": [
+          "sites"
+        ],
+        "summary": "List Sites",
+        "operationId": "list_sites_api_sites_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SiteSummary"
+                  },
+                  "type": "array",
+                  "title": "Response List Sites Api Sites Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}": {
+      "get": {
+        "tags": [
+          "sites"
+        ],
+        "summary": "Get Site Manifest",
+        "operationId": "get_site_manifest_api_sites__site_id__get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteManifest"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presets": {
+      "get": {
+        "tags": [
+          "sites"
+        ],
+        "summary": "List Presets",
+        "operationId": "list_presets_api_presets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DisplayPreset"
+                  },
+                  "type": "array",
+                  "title": "Response List Presets Api Presets Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}/vector/{layer_id}": {
+      "get": {
+        "tags": [
+          "sites"
+        ],
+        "summary": "Get Vector Layer",
+        "operationId": "get_vector_layer_api_sites__site_id__vector__layer_id__get",
+        "parameters": [
+          {
+            "name": "layer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Layer Id"
+            }
+          },
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tiles/{site_id}/{layer_id}/{z}/{x}/{y}.{ext}": {
+      "get": {
+        "tags": [
+          "tiles"
+        ],
+        "summary": "Get Tile",
+        "operationId": "get_tile_tiles__site_id___layer_id___z___x___y___ext__get",
+        "parameters": [
+          {
+            "name": "layer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Layer Id"
+            }
+          },
+          {
+            "name": "z",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Z"
+            }
+          },
+          {
+            "name": "x",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "X"
+            }
+          },
+          {
+            "name": "y",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Y"
+            }
+          },
+          {
+            "name": "ext",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ext"
+            }
+          },
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/webp": {},
+              "image/png": {}
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}/query": {
+      "get": {
+        "tags": [
+          "sites"
+        ],
+        "summary": "Query Point",
+        "operationId": "query_point_api_sites__site_id__query_get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Lon"
+            }
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Lat"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PointQuery"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}/hazards": {
+      "get": {
+        "tags": [
+          "hazards"
+        ],
+        "summary": "Get Hazards",
+        "description": "Zones interdites et pénalisées selon les seuils courants ; preset choisit une\nentrée de config/safety.yaml.",
+        "operationId": "get_hazards_api_sites__site_id__hazards_get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Preset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}/settings": {
+      "get": {
+        "tags": [
+          "hazards"
+        ],
+        "summary": "Get Settings",
+        "operationId": "get_settings_api_sites__site_id__settings_get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafetySettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "hazards"
+        ],
+        "summary": "Put Settings",
+        "operationId": "put_settings_api_sites__site_id__settings_put",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SafetySettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafetySettings"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}/targets": {
+      "get": {
+        "tags": [
+          "targets"
+        ],
+        "summary": "List Targets",
+        "operationId": "list_targets_api_sites__site_id__targets_get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Target"
+                  },
+                  "title": "Response List Targets Api Sites  Site Id  Targets Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "targets"
+        ],
+        "summary": "Create Target",
+        "operationId": "create_target_api_sites__site_id__targets_post",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Target"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/targets/{target_id}": {
+      "patch": {
+        "tags": [
+          "targets"
+        ],
+        "summary": "Update Target",
+        "operationId": "update_target_api_targets__target_id__patch",
+        "parameters": [
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Target Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Target"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "targets"
+        ],
+        "summary": "Delete Target",
+        "operationId": "delete_target_api_targets__target_id__delete",
+        "parameters": [
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Target Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}/plans": {
+      "post": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Create Plan",
+        "operationId": "create_plan_api_sites__site_id__plans_post",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Plan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{plan_id}": {
+      "get": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Get Plan",
+        "operationId": "get_plan_api_plans__plan_id__get",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Plan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Update Plan",
+        "operationId": "update_plan_api_plans__plan_id__patch",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Plan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}/conditions/current": {
+      "get": {
+        "tags": [
+          "conditions"
+        ],
+        "summary": "Current Conditions",
+        "operationId": "current_conditions_api_sites__site_id__conditions_current_get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conditions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}/conditions/forecast": {
+      "get": {
+        "tags": [
+          "conditions"
+        ],
+        "summary": "Forecast Conditions",
+        "operationId": "forecast_conditions_api_sites__site_id__conditions_forecast_get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          },
+          {
+            "name": "hours",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 12,
+              "title": "Hours"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forecast"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios": {
+      "get": {
+        "tags": [
+          "conditions"
+        ],
+        "summary": "List Scenarios",
+        "operationId": "list_scenarios_api_scenarios_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Scenario"
+                  },
+                  "type": "array",
+                  "title": "Response List Scenarios Api Scenarios Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios/{scenario_id}/start": {
+      "post": {
+        "tags": [
+          "conditions"
+        ],
+        "summary": "Start Scenario",
+        "operationId": "start_scenario_api_scenarios__scenario_id__start_post",
+        "parameters": [
+          {
+            "name": "scenario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scenario Id"
+            }
+          },
+          {
+            "name": "speed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 1.0,
+              "title": "Speed"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios/{scenario_id}/stop": {
+      "post": {
+        "tags": [
+          "conditions"
+        ],
+        "summary": "Stop Scenario",
+        "operationId": "stop_scenario_api_scenarios__scenario_id__stop_post",
+        "parameters": [
+          {
+            "name": "scenario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scenario Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/alerts": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "List Alerts",
+        "operationId": "list_alerts_api_alerts_get",
+        "parameters": [
+          {
+            "name": "eva_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Eva Id"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Active"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Alert"
+                  },
+                  "title": "Response List Alerts Api Alerts Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/alerts/{alert_id}/ack": {
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Acknowledge Alert",
+        "operationId": "acknowledge_alert_api_alerts__alert_id__ack_post",
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Alert"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/time": {
+      "get": {
+        "tags": [
+          "time"
+        ],
+        "summary": "Get Time",
+        "description": "UTC, date solaire martienne, sol de mission et heure solaire locale du site.",
+        "operationId": "get_time_api_time_get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "fictif",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeInfo"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eva": {
+      "post": {
+        "tags": [
+          "eva"
+        ],
+        "summary": "Start Eva",
+        "operationId": "start_eva_api_eva_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Eva"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eva/{eva_id}": {
+      "get": {
+        "tags": [
+          "eva"
+        ],
+        "summary": "Get Eva",
+        "operationId": "get_eva_api_eva__eva_id__get",
+        "parameters": [
+          {
+            "name": "eva_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Eva Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Eva"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eva/{eva_id}/position": {
+      "post": {
+        "tags": [
+          "eva"
+        ],
+        "summary": "Report Position",
+        "operationId": "report_position_api_eva__eva_id__position_post",
+        "parameters": [
+          {
+            "name": "eva_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Eva Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PositionReport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Eva"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eva/{eva_id}/observations": {
+      "post": {
+        "tags": [
+          "eva"
+        ],
+        "summary": "Add Observation",
+        "operationId": "add_observation_api_eva__eva_id__observations_post",
+        "parameters": [
+          {
+            "name": "eva_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Eva Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObservationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Observation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eva/{eva_id}/obstacles": {
+      "post": {
+        "tags": [
+          "eva"
+        ],
+        "summary": "Report Obstacle",
+        "operationId": "report_obstacle_api_eva__eva_id__obstacles_post",
+        "parameters": [
+          {
+            "name": "eva_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Eva Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObstacleReport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObstacleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eva/{eva_id}/simulate": {
+      "post": {
+        "tags": [
+          "eva"
+        ],
+        "summary": "Simulate",
+        "operationId": "simulate_api_eva__eva_id__simulate_post",
+        "parameters": [
+          {
+            "name": "eva_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Eva Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sites/{site_id}/ground-images": {
+      "get": {
+        "tags": [
+          "ground-images"
+        ],
+        "summary": "List Ground Images",
+        "operationId": "list_ground_images_api_sites__site_id__ground_images_get",
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{plan_id}/export.geojson": {
+      "get": {
+        "tags": [
+          "export"
+        ],
+        "summary": "Export Plan",
+        "operationId": "export_plan_api_plans__plan_id__export_geojson_get",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eva/{eva_id}/logbook": {
+      "get": {
+        "tags": [
+          "export"
+        ],
+        "summary": "Get Logbook",
+        "operationId": "get_logbook_api_eva__eva_id__logbook_get",
+        "parameters": [
+          {
+            "name": "eva_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Eva Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Logbook"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Alert": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "eva_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eva Id"
+          },
+          "level": {
+            "$ref": "#/components/schemas/AlertLevel"
+          },
+          "cause": {
+            "$ref": "#/components/schemas/AlertCause"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action",
+            "description": "Action conseillée, par ex. « retour à l'abri »"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LonLat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst"
+          },
+          "acknowledged": {
+            "type": "boolean",
+            "title": "Acknowledged",
+            "default": false
+          },
+          "acknowledged_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledged At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "level",
+          "cause",
+          "title",
+          "message",
+          "action",
+          "utc",
+          "sol",
+          "lmst"
+        ],
+        "title": "Alert"
+      },
+      "AlertCause": {
+        "type": "string",
+        "enum": [
+          "slope",
+          "radiation",
+          "solar_event",
+          "dust",
+          "consumables",
+          "return_reserve",
+          "point_of_no_return",
+          "off_route",
+          "radio",
+          "illumination",
+          "obstacle",
+          "other"
+        ],
+        "title": "AlertCause"
+      },
+      "AlertClearedPayload": {
+        "properties": {
+          "alert_id": {
+            "type": "string",
+            "title": "Alert Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "alert_id"
+        ],
+        "title": "AlertClearedPayload"
+      },
+      "AlertLevel": {
+        "type": "string",
+        "enum": [
+          "info",
+          "caution",
+          "danger"
+        ],
+        "title": "AlertLevel"
+      },
+      "BudgetPayload": {
+        "properties": {
+          "reserve_pct": {
+            "type": "number",
+            "title": "Reserve Pct"
+          },
+          "time_to_pnr_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time To Pnr S"
+          },
+          "return_time_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Time S"
+          },
+          "limiting_consumable": {
+            "type": "string",
+            "enum": [
+              "oxygen",
+              "battery",
+              "water",
+              "time",
+              "dose"
+            ],
+            "title": "Limiting Consumable"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reserve_pct",
+          "time_to_pnr_s",
+          "return_time_s",
+          "limiting_consumable"
+        ],
+        "title": "BudgetPayload"
+      },
+      "Conditions": {
+        "properties": {
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "sol": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sol"
+          },
+          "lmst": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lmst"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "historical",
+              "scenario",
+              "live",
+              "constant"
+            ],
+            "title": "Mode",
+            "default": "constant"
+          },
+          "temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature C"
+          },
+          "pressure_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pressure Pa"
+          },
+          "wind_mps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Mps"
+          },
+          "dust_tau": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dust Tau",
+            "description": "Opacité atmosphérique"
+          },
+          "uv_index": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uv Index"
+          },
+          "dose_rate_usv_h": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Rate Usv H",
+            "description": "Débit de dose, µSv/h"
+          },
+          "space_weather": {
+            "$ref": "#/components/schemas/SpaceWeather"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "cached_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached At",
+            "description": "Date de la valeur en cache (live)"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "utc"
+        ],
+        "title": "Conditions"
+      },
+      "ConsumablesState": {
+        "properties": {
+          "oxygen_pct": {
+            "type": "number",
+            "title": "Oxygen Pct"
+          },
+          "battery_pct": {
+            "type": "number",
+            "title": "Battery Pct"
+          },
+          "water_pct": {
+            "type": "number",
+            "title": "Water Pct"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "oxygen_pct",
+          "battery_pct",
+          "water_pct"
+        ],
+        "title": "ConsumablesState"
+      },
+      "Consumption": {
+        "properties": {
+          "oxygen_kg": {
+            "type": "number",
+            "title": "Oxygen Kg",
+            "default": 0.0
+          },
+          "battery_wh": {
+            "type": "number",
+            "title": "Battery Wh",
+            "default": 0.0
+          },
+          "water_l": {
+            "type": "number",
+            "title": "Water L",
+            "default": 0.0
+          },
+          "dose_usv": {
+            "type": "number",
+            "title": "Dose Usv",
+            "default": 0.0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Consumption"
+      },
+      "CostWeights": {
+        "properties": {
+          "time": {
+            "type": "number",
+            "title": "Time",
+            "default": 1.0
+          },
+          "risk": {
+            "type": "number",
+            "title": "Risk",
+            "default": 1.0
+          },
+          "science": {
+            "type": "number",
+            "title": "Science",
+            "default": 0.5
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CostWeights"
+      },
+      "DisplayPreset": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "layers": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/LayerViewState"
+            },
+            "type": "object",
+            "title": "Layers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "layers"
+        ],
+        "title": "DisplayPreset"
+      },
+      "Eva": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "site_id": {
+            "type": "string",
+            "title": "Site Id"
+          },
+          "plan_id": {
+            "type": "string",
+            "title": "Plan Id"
+          },
+          "route_id": {
+            "type": "string",
+            "title": "Route Id"
+          },
+          "crew": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Crew"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EvaStatus"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "heading_deg": {
+            "type": "number",
+            "title": "Heading Deg",
+            "default": 0.0
+          },
+          "speed_mps": {
+            "type": "number",
+            "title": "Speed Mps",
+            "default": 0.0
+          },
+          "distance_done_m": {
+            "type": "number",
+            "title": "Distance Done M",
+            "default": 0.0
+          },
+          "elapsed_s": {
+            "type": "number",
+            "title": "Elapsed S",
+            "default": 0.0
+          },
+          "consumables": {
+            "$ref": "#/components/schemas/ConsumablesState"
+          },
+          "dose_usv": {
+            "type": "number",
+            "title": "Dose Usv",
+            "default": 0.0
+          },
+          "next_target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Target Id"
+          },
+          "reserve_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reserve Pct"
+          },
+          "time_to_pnr_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time To Pnr S",
+            "description": "Temps avant le point de non-retour"
+          },
+          "return_time_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Time S"
+          },
+          "active_alert_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Active Alert Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "site_id",
+          "plan_id",
+          "route_id",
+          "crew",
+          "status",
+          "position",
+          "consumables"
+        ],
+        "title": "Eva"
+      },
+      "EvaCreate": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "title": "Plan Id"
+          },
+          "route_id": {
+            "type": "string",
+            "title": "Route Id"
+          },
+          "crew": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Crew"
+          },
+          "start_utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Utc"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "plan_id",
+          "route_id"
+        ],
+        "title": "EvaCreate"
+      },
+      "EvaStatus": {
+        "type": "string",
+        "enum": [
+          "planned",
+          "active",
+          "returning",
+          "completed",
+          "aborted"
+        ],
+        "title": "EvaStatus"
+      },
+      "Feature": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Feature",
+            "title": "Type",
+            "default": "Feature"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PointGeometry"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LineStringGeometry"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PolygonGeometry"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MultiPolygonGeometry"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "type",
+                  "mapping": {
+                    "LineString": "#/components/schemas/LineStringGeometry",
+                    "MultiPolygon": "#/components/schemas/MultiPolygonGeometry",
+                    "Point": "#/components/schemas/PointGeometry",
+                    "Polygon": "#/components/schemas/PolygonGeometry"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "properties": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Properties"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "geometry"
+        ],
+        "title": "Feature"
+      },
+      "FeatureCollection": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "FeatureCollection",
+            "title": "Type",
+            "default": "FeatureCollection"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/Feature"
+            },
+            "type": "array",
+            "title": "Features"
+          },
+          "crs_note": {
+            "type": "string",
+            "title": "Crs Note",
+            "default": "IAU_2015:49900 (Mars 2000, planétocentrique, longitudes est)"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "FeatureCollection",
+        "description": "FeatureCollection GeoJSON en coordonnées Mars 2000 (dérogation assumée à la RFC 7946)."
+      },
+      "Forecast": {
+        "properties": {
+          "site_id": {
+            "type": "string",
+            "title": "Site Id"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Conditions"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "site_id",
+          "generated_at",
+          "items"
+        ],
+        "title": "Forecast"
+      },
+      "GridInfo": {
+        "properties": {
+          "resolution_m": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Resolution M"
+          },
+          "width": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Height"
+          },
+          "transform": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 6,
+            "minItems": 6,
+            "title": "Transform",
+            "description": "Transformation affine (a, b, c, d, e, f) au sens de rasterio, en mètres"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "resolution_m",
+          "width",
+          "height",
+          "transform"
+        ],
+        "title": "GridInfo"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "contracts": {
+            "type": "string",
+            "title": "Contracts",
+            "default": "contrats-v1"
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable",
+              "disabled"
+            ],
+            "title": "Database"
+          },
+          "sites": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sites"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "database",
+          "sites"
+        ],
+        "title": "Health"
+      },
+      "LayerInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,40}$",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/LayerKind"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "value_range": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Range"
+          },
+          "resolution_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution M"
+          },
+          "acquired": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acquired"
+          },
+          "source": {
+            "$ref": "#/components/schemas/LayerSource"
+          },
+          "uncertainty": {
+            "$ref": "#/components/schemas/Uncertainty"
+          },
+          "legend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Legend"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cog": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cog",
+            "description": "Chemin relatif du COG, par ex. cog/slope.tif"
+          },
+          "tiles": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TileInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "vector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vector",
+            "description": "Chemin relatif du GeoJSON"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LayerStatus",
+            "default": "ok"
+          },
+          "status_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "kind",
+          "source"
+        ],
+        "title": "LayerInfo"
+      },
+      "LayerKind": {
+        "type": "string",
+        "enum": [
+          "imagery",
+          "dem",
+          "derived",
+          "thermal",
+          "spectral",
+          "vector",
+          "ground"
+        ],
+        "title": "LayerKind"
+      },
+      "LayerSource": {
+        "properties": {
+          "instrument": {
+            "type": "string",
+            "title": "Instrument",
+            "description": "Instrument, ou SYNTHETIC pour le site fictif"
+          },
+          "mission": {
+            "type": "string",
+            "title": "Mission"
+          },
+          "product_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Id",
+            "description": "Identifiant du produit PDS"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "instrument",
+          "mission"
+        ],
+        "title": "LayerSource"
+      },
+      "LayerStatus": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "missing",
+          "degraded"
+        ],
+        "title": "LayerStatus"
+      },
+      "LayerViewState": {
+        "properties": {
+          "visible": {
+            "type": "boolean",
+            "title": "Visible",
+            "default": false
+          },
+          "opacity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Opacity",
+            "default": 1.0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "LayerViewState"
+      },
+      "Legend": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "continuous",
+              "categorical"
+            ],
+            "title": "Type"
+          },
+          "stops": {
+            "items": {
+              "$ref": "#/components/schemas/LegendStop"
+            },
+            "type": "array",
+            "title": "Stops"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "stops"
+        ],
+        "title": "Legend"
+      },
+      "LegendStop": {
+        "properties": {
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Color"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value",
+          "color"
+        ],
+        "title": "LegendStop"
+      },
+      "LineStringGeometry": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "LineString",
+            "title": "Type",
+            "default": "LineString"
+          },
+          "coordinates": {
+            "items": {
+              "$ref": "#/components/schemas/LonLat"
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "coordinates"
+        ],
+        "title": "LineStringGeometry"
+      },
+      "Logbook": {
+        "properties": {
+          "eva_id": {
+            "type": "string",
+            "title": "Eva Id"
+          },
+          "site_id": {
+            "type": "string",
+            "title": "Site Id"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/LogbookEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "eva_id",
+          "site_id",
+          "entries"
+        ],
+        "title": "Logbook"
+      },
+      "LogbookEntry": {
+        "properties": {
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "start",
+              "target",
+              "observation",
+              "alert",
+              "obstacle",
+              "reroute",
+              "end"
+            ],
+            "title": "Kind"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LonLat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ref_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "utc",
+          "sol",
+          "lmst",
+          "kind",
+          "text"
+        ],
+        "title": "LogbookEntry"
+      },
+      "LonLat": {
+        "prefixItems": [
+          {
+            "type": "number",
+            "title": "Lon"
+          },
+          {
+            "type": "number",
+            "title": "Lat"
+          }
+        ],
+        "type": "array",
+        "maxItems": 2,
+        "minItems": 2
+      },
+      "MultiPolygonGeometry": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "MultiPolygon",
+            "title": "Type",
+            "default": "MultiPolygon"
+          },
+          "coordinates": {
+            "items": {
+              "items": {
+                "items": {
+                  "$ref": "#/components/schemas/LonLat"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "coordinates"
+        ],
+        "title": "MultiPolygonGeometry"
+      },
+      "Observation": {
+        "properties": {
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "eva_id": {
+            "type": "string",
+            "title": "Eva Id"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "position",
+          "note",
+          "utc",
+          "id",
+          "eva_id",
+          "sol",
+          "lmst"
+        ],
+        "title": "Observation"
+      },
+      "ObservationCreate": {
+        "properties": {
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utc"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "position",
+          "note"
+        ],
+        "title": "ObservationCreate"
+      },
+      "ObstacleReport": {
+        "properties": {
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "radius_m": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Radius M",
+            "default": 5.0
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "position"
+        ],
+        "title": "ObstacleReport"
+      },
+      "ObstacleResponse": {
+        "properties": {
+          "obstacle_id": {
+            "type": "string",
+            "title": "Obstacle Id"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Route"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Itinéraire recalculé localement, None si inchangé"
+          },
+          "compute_time_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compute Time Ms"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "obstacle_id",
+          "route"
+        ],
+        "title": "ObstacleResponse"
+      },
+      "Plan": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "site_id": {
+            "type": "string",
+            "title": "Site Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PlanStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "departure_utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Utc"
+          },
+          "start": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "return_to": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "target_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Target Ids",
+            "description": "Ordre de visite retenu"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SafetySettings"
+          },
+          "suit": {
+            "$ref": "#/components/schemas/SuitModel"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/Route"
+            },
+            "type": "array",
+            "title": "Routes"
+          },
+          "selected_route_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Route Id"
+          },
+          "compute_time_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compute Time Ms"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "site_id",
+          "status",
+          "created_at",
+          "start",
+          "return_to",
+          "target_ids",
+          "settings",
+          "suit",
+          "routes"
+        ],
+        "title": "Plan"
+      },
+      "PlanCreate": {
+        "properties": {
+          "target_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Target Ids"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LonLat"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Départ ; l'habitat si absent"
+          },
+          "return_to": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LonLat"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Arrivée ; l'habitat si absent"
+          },
+          "variants": {
+            "items": {
+              "$ref": "#/components/schemas/RouteVariant"
+            },
+            "type": "array",
+            "title": "Variants"
+          },
+          "optimize_order": {
+            "type": "boolean",
+            "title": "Optimize Order",
+            "default": true
+          },
+          "departure_utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Utc"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target_ids"
+        ],
+        "title": "PlanCreate"
+      },
+      "PlanStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "computed",
+          "selected",
+          "failed"
+        ],
+        "title": "PlanStatus"
+      },
+      "PlanUpdate": {
+        "properties": {
+          "selected_route_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Route Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "PlanUpdate"
+      },
+      "PointGeometry": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Point",
+            "title": "Type",
+            "default": "Point"
+          },
+          "coordinates": {
+            "$ref": "#/components/schemas/LonLat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "coordinates"
+        ],
+        "title": "PointGeometry"
+      },
+      "PointQuery": {
+        "properties": {
+          "site_id": {
+            "type": "string",
+            "title": "Site Id"
+          },
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "analysis_xy": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Analysis Xy",
+            "description": "Coordonnées dans le système d'analyse, en m"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/PointValue"
+            },
+            "type": "array",
+            "title": "Values"
+          },
+          "return_time_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Time S",
+            "description": "Temps de retour vers l'habitat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "site_id",
+          "position",
+          "analysis_xy",
+          "values"
+        ],
+        "title": "PointQuery"
+      },
+      "PointValue": {
+        "properties": {
+          "layer_id": {
+            "type": "string",
+            "title": "Layer Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "Libellé de classe pour une couche catégorielle"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LayerStatus",
+            "default": "ok"
+          },
+          "source": {
+            "$ref": "#/components/schemas/LayerSource"
+          },
+          "uncertainty": {
+            "$ref": "#/components/schemas/Uncertainty"
+          },
+          "acquired": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acquired"
+          },
+          "resolution_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution M"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "layer_id",
+          "title",
+          "value",
+          "source"
+        ],
+        "title": "PointValue"
+      },
+      "PolygonGeometry": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "Polygon",
+            "title": "Type",
+            "default": "Polygon"
+          },
+          "coordinates": {
+            "items": {
+              "items": {
+                "$ref": "#/components/schemas/LonLat"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Coordinates"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "coordinates"
+        ],
+        "title": "PolygonGeometry"
+      },
+      "PositionReport": {
+        "properties": {
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "heading_deg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heading Deg"
+          },
+          "speed_mps": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speed Mps"
+          },
+          "utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utc"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "position"
+        ],
+        "title": "PositionReport"
+      },
+      "ProfileSample": {
+        "properties": {
+          "distance_m": {
+            "type": "number",
+            "title": "Distance M",
+            "description": "Distance cumulée"
+          },
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "elevation_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elevation M"
+          },
+          "slope_deg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slope Deg"
+          },
+          "time_s": {
+            "type": "number",
+            "title": "Time S",
+            "description": "Temps cumulé, travail aux cibles compris"
+          },
+          "segment_index": {
+            "type": "integer",
+            "title": "Segment Index"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "distance_m",
+          "position",
+          "elevation_m",
+          "slope_deg",
+          "time_s",
+          "segment_index"
+        ],
+        "title": "ProfileSample"
+      },
+      "ReturnCheck": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ReturnStatus"
+          },
+          "reserve_at_return_pct": {
+            "type": "number",
+            "title": "Reserve At Return Pct",
+            "description": "Réserve du consommable limitant au retour"
+          },
+          "limiting_consumable": {
+            "type": "string",
+            "enum": [
+              "oxygen",
+              "battery",
+              "water",
+              "time",
+              "dose"
+            ],
+            "title": "Limiting Consumable"
+          },
+          "point_of_no_return": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LonLat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "point_of_no_return_time_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Point Of No Return Time S"
+          },
+          "targets_to_cut": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Targets To Cut",
+            "description": "Cibles à couper pour tenir la réserve"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "reserve_at_return_pct",
+          "limiting_consumable"
+        ],
+        "title": "ReturnCheck"
+      },
+      "ReturnStatus": {
+        "type": "string",
+        "enum": [
+          "ok",
+          "marginal",
+          "fail"
+        ],
+        "title": "ReturnStatus"
+      },
+      "Route": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "variant": {
+            "$ref": "#/components/schemas/RouteVariant"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/LineStringGeometry"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/RouteSegment"
+            },
+            "type": "array",
+            "title": "Segments"
+          },
+          "profile": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileSample"
+            },
+            "type": "array",
+            "title": "Profile",
+            "description": "Échantillons tous les 5 m"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/RouteTotals"
+          },
+          "return_check": {
+            "$ref": "#/components/schemas/ReturnCheck"
+          },
+          "explanation": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentExplanation"
+            },
+            "type": "array",
+            "title": "Explanation"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "variant",
+          "geometry",
+          "segments",
+          "profile",
+          "totals",
+          "return_check",
+          "explanation"
+        ],
+        "title": "Route"
+      },
+      "RouteSegment": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "from_point": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "to_point": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "from_target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Target Id",
+            "description": "None pour l'habitat"
+          },
+          "to_target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Target Id",
+            "description": "None pour l'habitat"
+          },
+          "distance_m": {
+            "type": "number",
+            "title": "Distance M"
+          },
+          "duration_s": {
+            "type": "number",
+            "title": "Duration S",
+            "description": "Temps de marche du tronçon"
+          },
+          "ascent_m": {
+            "type": "number",
+            "title": "Ascent M"
+          },
+          "descent_m": {
+            "type": "number",
+            "title": "Descent M"
+          },
+          "max_slope_deg": {
+            "type": "number",
+            "title": "Max Slope Deg"
+          },
+          "consumption": {
+            "$ref": "#/components/schemas/Consumption"
+          },
+          "work_time_s": {
+            "type": "number",
+            "title": "Work Time S",
+            "description": "Temps de travail à la cible d'arrivée"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "index",
+          "from_point",
+          "to_point",
+          "from_target_id",
+          "to_target_id",
+          "distance_m",
+          "duration_s",
+          "ascent_m",
+          "descent_m",
+          "max_slope_deg",
+          "consumption",
+          "work_time_s"
+        ],
+        "title": "RouteSegment"
+      },
+      "RouteTotals": {
+        "properties": {
+          "distance_m": {
+            "type": "number",
+            "title": "Distance M"
+          },
+          "walk_time_s": {
+            "type": "number",
+            "title": "Walk Time S"
+          },
+          "work_time_s": {
+            "type": "number",
+            "title": "Work Time S"
+          },
+          "duration_s": {
+            "type": "number",
+            "title": "Duration S"
+          },
+          "ascent_m": {
+            "type": "number",
+            "title": "Ascent M"
+          },
+          "descent_m": {
+            "type": "number",
+            "title": "Descent M"
+          },
+          "max_slope_deg": {
+            "type": "number",
+            "title": "Max Slope Deg"
+          },
+          "consumption": {
+            "$ref": "#/components/schemas/Consumption"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "distance_m",
+          "walk_time_s",
+          "work_time_s",
+          "duration_s",
+          "ascent_m",
+          "descent_m",
+          "max_slope_deg",
+          "consumption"
+        ],
+        "title": "RouteTotals"
+      },
+      "RouteUpdatedPayload": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "route": {
+            "$ref": "#/components/schemas/Route"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason",
+          "route"
+        ],
+        "title": "RouteUpdatedPayload"
+      },
+      "RouteVariant": {
+        "type": "string",
+        "enum": [
+          "safest",
+          "fastest",
+          "science"
+        ],
+        "title": "RouteVariant"
+      },
+      "SafetySettings": {
+        "properties": {
+          "preset": {
+            "type": "string",
+            "title": "Preset",
+            "default": "standard"
+          },
+          "max_slope_deg": {
+            "type": "number",
+            "title": "Max Slope Deg",
+            "description": "Interdit au-delà",
+            "default": 20.0
+          },
+          "penalty_slope_deg": {
+            "type": "number",
+            "title": "Penalty Slope Deg",
+            "description": "Pénalité forte au-delà",
+            "default": 10.0
+          },
+          "max_roughness_m": {
+            "type": "number",
+            "title": "Max Roughness M",
+            "default": 0.5
+          },
+          "obstacle_buffer_m": {
+            "type": "number",
+            "title": "Obstacle Buffer M",
+            "default": 2.0
+          },
+          "scarp_buffer_m": {
+            "type": "number",
+            "title": "Scarp Buffer M",
+            "default": 10.0
+          },
+          "avoid_loose_soil_class": {
+            "type": "integer",
+            "title": "Avoid Loose Soil Class",
+            "description": "Classe de sol interdite et au-delà",
+            "default": 3
+          },
+          "require_radio": {
+            "type": "boolean",
+            "title": "Require Radio",
+            "default": false
+          },
+          "radio_penalty": {
+            "type": "number",
+            "title": "Radio Penalty",
+            "default": 2.0
+          },
+          "min_illumination": {
+            "type": "number",
+            "title": "Min Illumination",
+            "default": 0.0
+          },
+          "min_reserve_pct": {
+            "type": "number",
+            "title": "Min Reserve Pct",
+            "description": "Réserve minimale au retour, en %",
+            "default": 30.0
+          },
+          "max_dust_tau": {
+            "type": "number",
+            "title": "Max Dust Tau",
+            "default": 2.0
+          },
+          "max_dose_usv": {
+            "type": "number",
+            "title": "Max Dose Usv",
+            "default": 1000.0
+          },
+          "degraded_margin_pct": {
+            "type": "number",
+            "title": "Degraded Margin Pct",
+            "description": "Marge ajoutée quand une couche manque (ENF-07)",
+            "default": 15.0
+          },
+          "weights": {
+            "$ref": "#/components/schemas/CostWeights"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SafetySettings",
+        "description": "Seuils de sécurité et poids du coût. Valeurs par défaut réglées par P1, calibrées par I1."
+      },
+      "Scenario": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "duration_s": {
+            "type": "number",
+            "title": "Duration S"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "duration_s"
+        ],
+        "title": "Scenario"
+      },
+      "ScenarioEvent": {
+        "properties": {
+          "t_s": {
+            "type": "number",
+            "title": "T S",
+            "description": "Instant depuis le début du scénario"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "t_s",
+          "kind",
+          "description"
+        ],
+        "title": "ScenarioEvent"
+      },
+      "ScenarioState": {
+        "properties": {
+          "scenario_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario Id"
+          },
+          "running": {
+            "type": "boolean",
+            "title": "Running"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "elapsed_s": {
+            "type": "number",
+            "title": "Elapsed S",
+            "default": 0.0
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed",
+            "default": 1.0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scenario_id",
+          "running"
+        ],
+        "title": "ScenarioState"
+      },
+      "SegmentExplanation": {
+        "properties": {
+          "segment_index": {
+            "type": "integer",
+            "title": "Segment Index"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "segment_index",
+          "reasons"
+        ],
+        "title": "SegmentExplanation"
+      },
+      "SimulateRequest": {
+        "properties": {
+          "speed": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Speed",
+            "description": "Facteur d'accélération du temps",
+            "default": 10.0
+          },
+          "scenario_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario Id",
+            "description": "Scénario de conditions à rejouer"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SimulateRequest"
+      },
+      "SimulationState": {
+        "properties": {
+          "eva_id": {
+            "type": "string",
+            "title": "Eva Id"
+          },
+          "running": {
+            "type": "boolean",
+            "title": "Running"
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed"
+          },
+          "scenario_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "eva_id",
+          "running",
+          "speed"
+        ],
+        "title": "SimulationState"
+      },
+      "SiteManifest": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "1.0"
+          },
+          "site_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{1,40}$",
+            "title": "Site Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "bbox": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Bbox",
+            "description": "[ouest, sud, est, nord] en degrés"
+          },
+          "analysis_crs": {
+            "type": "string",
+            "title": "Analysis Crs",
+            "description": "Chaîne PROJ du système d'analyse (règle R1)"
+          },
+          "grid": {
+            "$ref": "#/components/schemas/GridInfo"
+          },
+          "habitat": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "rover": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LonLat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mission_epoch_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Mission Epoch Utc",
+            "description": "Début du sol 1 de la mission simulée"
+          },
+          "default_preset": {
+            "type": "string",
+            "title": "Default Preset",
+            "default": "safety"
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/LayerInfo"
+            },
+            "type": "array",
+            "title": "Layers"
+          },
+          "terrain": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TileInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tuiles terrain-RGB pour la 3D"
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "generator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generator"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "site_id",
+          "name",
+          "bbox",
+          "analysis_crs",
+          "grid",
+          "habitat",
+          "mission_epoch_utc",
+          "layers"
+        ],
+        "title": "SiteManifest",
+        "description": "Contenu de ``manifest.json`` (schéma exporté : contracts/site-manifest.schema.json)."
+      },
+      "SiteSummary": {
+        "properties": {
+          "site_id": {
+            "type": "string",
+            "title": "Site Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "bbox": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 4,
+            "title": "Bbox"
+          },
+          "habitat": {
+            "$ref": "#/components/schemas/LonLat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "site_id",
+          "name",
+          "bbox",
+          "habitat"
+        ],
+        "title": "SiteSummary"
+      },
+      "SpaceWeather": {
+        "properties": {
+          "level": {
+            "$ref": "#/components/schemas/SpaceWeatherLevel",
+            "default": "quiet"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SpaceWeather"
+      },
+      "SpaceWeatherLevel": {
+        "type": "string",
+        "enum": [
+          "quiet",
+          "watch",
+          "warning",
+          "storm"
+        ],
+        "title": "SpaceWeatherLevel"
+      },
+      "SuitModel": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "default": "default"
+          },
+          "mass_total_kg": {
+            "type": "number",
+            "title": "Mass Total Kg",
+            "default": 180.0
+          },
+          "gravity_ms2": {
+            "type": "number",
+            "title": "Gravity Ms2",
+            "default": 3.721
+          },
+          "base_speed_mps": {
+            "type": "number",
+            "title": "Base Speed Mps",
+            "default": 1.0
+          },
+          "max_speed_mps": {
+            "type": "number",
+            "title": "Max Speed Mps",
+            "default": 1.4
+          },
+          "oxygen_capacity_kg": {
+            "type": "number",
+            "title": "Oxygen Capacity Kg",
+            "default": 1.2
+          },
+          "oxygen_rate_kg_h": {
+            "type": "number",
+            "title": "Oxygen Rate Kg H",
+            "default": 0.08
+          },
+          "battery_capacity_wh": {
+            "type": "number",
+            "title": "Battery Capacity Wh",
+            "default": 1500.0
+          },
+          "battery_rate_w": {
+            "type": "number",
+            "title": "Battery Rate W",
+            "default": 150.0
+          },
+          "water_capacity_l": {
+            "type": "number",
+            "title": "Water Capacity L",
+            "default": 4.0
+          },
+          "water_rate_l_h": {
+            "type": "number",
+            "title": "Water Rate L H",
+            "default": 0.3
+          },
+          "soil_speed_factor": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Soil Speed Factor",
+            "description": "Facteur de vitesse par classe de sol 0 à 3"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SuitModel",
+        "description": "Modèle de combinaison et de marche. Valeurs par défaut réglées par P3."
+      },
+      "Target": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/TargetKind",
+            "default": "science"
+          },
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "objective": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective",
+            "description": "Objectif scientifique"
+          },
+          "measurement": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Measurement",
+            "description": "Mesure ou prélèvement prévu"
+          },
+          "work_time_s": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Work Time S",
+            "default": 900.0
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "description": "1 haute, 3 basse",
+            "default": 2
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "site_id": {
+            "type": "string",
+            "title": "Site Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "position",
+          "id",
+          "site_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Target"
+      },
+      "TargetCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/TargetKind",
+            "default": "science"
+          },
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "objective": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective",
+            "description": "Objectif scientifique"
+          },
+          "measurement": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Measurement",
+            "description": "Mesure ou prélèvement prévu"
+          },
+          "work_time_s": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Work Time S",
+            "default": 900.0
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "description": "1 haute, 3 basse",
+            "default": 2
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "position"
+        ],
+        "title": "TargetCreate"
+      },
+      "TargetKind": {
+        "type": "string",
+        "enum": [
+          "science",
+          "waypoint"
+        ],
+        "title": "TargetKind"
+      },
+      "TargetUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TargetKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LonLat"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "objective": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective"
+          },
+          "measurement": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Measurement"
+          },
+          "work_time_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Time S"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TargetUpdate"
+      },
+      "TelemetryPayload": {
+        "properties": {
+          "position": {
+            "$ref": "#/components/schemas/LonLat"
+          },
+          "heading_deg": {
+            "type": "number",
+            "title": "Heading Deg"
+          },
+          "speed_mps": {
+            "type": "number",
+            "title": "Speed Mps"
+          },
+          "consumables": {
+            "$ref": "#/components/schemas/ConsumablesState"
+          },
+          "dose_usv": {
+            "type": "number",
+            "title": "Dose Usv"
+          },
+          "distance_done_m": {
+            "type": "number",
+            "title": "Distance Done M"
+          },
+          "elapsed_s": {
+            "type": "number",
+            "title": "Elapsed S"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "position",
+          "heading_deg",
+          "speed_mps",
+          "consumables",
+          "dose_usv",
+          "distance_done_m",
+          "elapsed_s"
+        ],
+        "title": "TelemetryPayload"
+      },
+      "TileInfo": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path",
+            "description": "Gabarit relatif au paquet, par ex. tiles/slope/{z}/{x}/{y}.webp"
+          },
+          "minzoom": {
+            "type": "integer",
+            "maximum": 24.0,
+            "minimum": 0.0,
+            "title": "Minzoom"
+          },
+          "maxzoom": {
+            "type": "integer",
+            "maximum": 24.0,
+            "minimum": 0.0,
+            "title": "Maxzoom"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "webp",
+              "png"
+            ],
+            "title": "Format"
+          },
+          "tile_size": {
+            "type": "integer",
+            "title": "Tile Size",
+            "default": 256
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "path",
+          "minzoom",
+          "maxzoom",
+          "format"
+        ],
+        "title": "TileInfo"
+      },
+      "TimeInfo": {
+        "properties": {
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "msd": {
+            "type": "number",
+            "title": "Msd",
+            "description": "Mars Sol Date"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol",
+            "description": "Sol de mission, 1 au début de mission_epoch_utc"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst",
+            "description": "Heure solaire moyenne locale, HH:MM:SS"
+          },
+          "lmst_hours": {
+            "type": "number",
+            "title": "Lmst Hours"
+          },
+          "ltst": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ltst",
+            "description": "Heure solaire vraie locale, HH:MM:SS"
+          },
+          "ls_deg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ls Deg",
+            "description": "Longitude solaire"
+          },
+          "site_id": {
+            "type": "string",
+            "title": "Site Id"
+          },
+          "lon_east": {
+            "type": "number",
+            "title": "Lon East"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "utc",
+          "msd",
+          "sol",
+          "lmst",
+          "lmst_hours",
+          "site_id",
+          "lon_east"
+        ],
+        "title": "TimeInfo"
+      },
+      "Uncertainty": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value",
+            "description": "Incertitude de mesure"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "coreg_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coreg M",
+            "description": "Incertitude de recalage en mètres"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Uncertainty"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WsAlert": {
+        "properties": {
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst"
+          },
+          "type": {
+            "type": "string",
+            "const": "alert",
+            "title": "Type",
+            "default": "alert"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/Alert"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "utc",
+          "sol",
+          "lmst",
+          "payload"
+        ],
+        "title": "WsAlert"
+      },
+      "WsAlertCleared": {
+        "properties": {
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst"
+          },
+          "type": {
+            "type": "string",
+            "const": "alert_cleared",
+            "title": "Type",
+            "default": "alert_cleared"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/AlertClearedPayload"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "utc",
+          "sol",
+          "lmst",
+          "payload"
+        ],
+        "title": "WsAlertCleared"
+      },
+      "WsBudget": {
+        "properties": {
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst"
+          },
+          "type": {
+            "type": "string",
+            "const": "budget",
+            "title": "Type",
+            "default": "budget"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/BudgetPayload"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "utc",
+          "sol",
+          "lmst",
+          "payload"
+        ],
+        "title": "WsBudget"
+      },
+      "WsConditions": {
+        "properties": {
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst"
+          },
+          "type": {
+            "type": "string",
+            "const": "conditions",
+            "title": "Type",
+            "default": "conditions"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/Conditions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "utc",
+          "sol",
+          "lmst",
+          "payload"
+        ],
+        "title": "WsConditions"
+      },
+      "WsEnvelope": {
+        "properties": {
+          "message": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WsTelemetry"
+              },
+              {
+                "$ref": "#/components/schemas/WsAlert"
+              },
+              {
+                "$ref": "#/components/schemas/WsAlertCleared"
+              },
+              {
+                "$ref": "#/components/schemas/WsConditions"
+              },
+              {
+                "$ref": "#/components/schemas/WsRouteUpdated"
+              },
+              {
+                "$ref": "#/components/schemas/WsBudget"
+              }
+            ],
+            "title": "Message",
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "alert": "#/components/schemas/WsAlert",
+                "alert_cleared": "#/components/schemas/WsAlertCleared",
+                "budget": "#/components/schemas/WsBudget",
+                "conditions": "#/components/schemas/WsConditions",
+                "route_updated": "#/components/schemas/WsRouteUpdated",
+                "telemetry": "#/components/schemas/WsTelemetry"
+              }
+            }
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "WsEnvelope",
+        "description": "Enveloppe documentaire d'un message WebSocket, exposée dans l'OpenAPI."
+      },
+      "WsRouteUpdated": {
+        "properties": {
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst"
+          },
+          "type": {
+            "type": "string",
+            "const": "route_updated",
+            "title": "Type",
+            "default": "route_updated"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/RouteUpdatedPayload"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "utc",
+          "sol",
+          "lmst",
+          "payload"
+        ],
+        "title": "WsRouteUpdated"
+      },
+      "WsTelemetry": {
+        "properties": {
+          "utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Utc"
+          },
+          "sol": {
+            "type": "integer",
+            "title": "Sol"
+          },
+          "lmst": {
+            "type": "string",
+            "title": "Lmst"
+          },
+          "type": {
+            "type": "string",
+            "const": "telemetry",
+            "title": "Type",
+            "default": "telemetry"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/TelemetryPayload"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "utc",
+          "sol",
+          "lmst",
+          "payload"
+        ],
+        "title": "WsTelemetry"
+      }
+    }
+  }
+}

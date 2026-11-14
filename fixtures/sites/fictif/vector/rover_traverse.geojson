@@ -1,0 +1,36 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "id": "traverse-1",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      77.5640002,
+      18.374923
+     ],
+     [
+      77.5693335,
+      18.3757665
+     ],
+     [
+      77.5746667,
+      18.3779597
+     ],
+     [
+      77.5810667,
+      18.380659
+     ]
+    ]
+   },
+   "properties": {
+    "name": "Trajet de Perseverance (synthétique)",
+    "sol_start": 1,
+    "sol_end": 12
+   }
+  }
+ ],
+ "crs_note": "IAU_2015:49900 (Mars 2000, planétocentrique, longitudes est)"
+}

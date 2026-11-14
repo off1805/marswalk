@@ -1,0 +1,42 @@
+{
+ "eva_id": "eva-demo",
+ "site_id": "fictif",
+ "entries": [
+  {
+   "utc": "2026-11-14T10:00:00Z",
+   "sol": 14,
+   "lmst": "13:16:16",
+   "kind": "start",
+   "text": "Départ de l'habitat",
+   "position": [
+    77.5782222,
+    18.3816712
+   ],
+   "ref_id": null
+  },
+  {
+   "utc": "2026-11-14T10:00:00Z",
+   "sol": 14,
+   "lmst": "13:16:16",
+   "kind": "observation",
+   "text": "Litage oblique visible sur le bloc",
+   "position": [
+    77.58366118601398,
+    18.39081438181818
+   ],
+   "ref_id": "obs-1"
+  },
+  {
+   "utc": "2026-11-14T10:00:00Z",
+   "sol": 14,
+   "lmst": "13:16:16",
+   "kind": "alert",
+   "text": "Événement à particules solaires : retour à l'abri",
+   "position": [
+    77.58366118601398,
+    18.39081438181818
+   ],
+   "ref_id": "alert-1"
+  }
+ ]
+}

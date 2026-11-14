@@ -1,0 +1,44 @@
+[
+ {
+  "id": "alert-1",
+  "eva_id": "eva-demo",
+  "level": "danger",
+  "cause": "solar_event",
+  "title": "Événement à particules solaires",
+  "message": "Débit de dose en forte hausse (RAD). Abri nécessaire.",
+  "action": "Retour à l'abri",
+  "value": 250.0,
+  "threshold": 50.0,
+  "unit": "µSv/h",
+  "position": [
+   77.58366118601398,
+   18.39081438181818
+  ],
+  "utc": "2026-11-14T10:00:00Z",
+  "sol": 14,
+  "lmst": "13:16:16",
+  "acknowledged": false,
+  "acknowledged_at": null
+ },
+ {
+  "id": "alert-2",
+  "eva_id": "eva-demo",
+  "level": "caution",
+  "cause": "slope",
+  "title": "Pente soutenue",
+  "message": "Pente de 14° sur les 50 prochains mètres.",
+  "action": "Ralentir",
+  "value": 14.0,
+  "threshold": 10.0,
+  "unit": "deg",
+  "position": [
+   77.58366118601398,
+   18.39081438181818
+  ],
+  "utc": "2026-11-14T10:00:00Z",
+  "sol": 14,
+  "lmst": "13:16:16",
+  "acknowledged": false,
+  "acknowledged_at": null
+ }
+]

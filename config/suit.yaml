@@ -1,0 +1,16 @@
+# Modèle de combinaison et de marche (créé par T00, valeurs par défaut réglées par P3,
+# chaque paramètre sourcé dans docs/science/hypotheses-marche.md). Valeurs provisoires.
+default: default
+suits:
+  default:
+    mass_total_kg: 180.0
+    gravity_ms2: 3.721
+    base_speed_mps: 1.0
+    max_speed_mps: 1.4
+    oxygen_capacity_kg: 1.2
+    oxygen_rate_kg_h: 0.08
+    battery_capacity_wh: 1500.0
+    battery_rate_w: 150.0
+    water_capacity_l: 4.0
+    water_rate_l_h: 0.3
+    soil_speed_factor: [1.0, 0.9, 0.7, 0.5]

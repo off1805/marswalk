@@ -1,0 +1,19 @@
+{
+ "utc": "2026-11-14T10:00:00Z",
+ "sol": 14,
+ "lmst": "13:16:16",
+ "mode": "constant",
+ "temperature_c": -20.0,
+ "pressure_pa": 850.0,
+ "wind_mps": 5.0,
+ "dust_tau": 0.6,
+ "uv_index": 5.0,
+ "dose_rate_usv_h": 10.0,
+ "space_weather": {
+  "level": "quiet",
+  "event": null,
+  "source": null
+ },
+ "source": "bouchon T00 (valeurs constantes)",
+ "cached_at": null
+}

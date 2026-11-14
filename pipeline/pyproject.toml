@@ -1,0 +1,16 @@
+[project]
+name = "marswalk-pipeline"
+version = "0.1.0"
+description = "Pipeline de données (ingestion, recalage, couches dérivées, paquet)"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "marswalk-core",
+    "pillow>=11.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["marswalk_pipeline"]

@@ -17,8 +17,8 @@ Code : `api/marswalk_api/services/a3/` (règles, moteur, diffusion, scénarios) 
 ```python
 from marswalk_api.services.a3 import get_service
 
-get_service().ingest_eva(eva)            # après chaque pas : telemetry, budget, alert, alert_cleared
-get_service().publish(eva.id, message)   # autre message, par ex. WsRouteUpdated
+get_service().ingest_eva(eva)  # après chaque pas : telemetry, budget, alert, alert_cleared
+get_service().publish(eva.id, message)  # autre message, par ex. WsRouteUpdated
 ```
 
 ## Limites

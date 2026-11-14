@@ -14,9 +14,8 @@ import numpy as np
 import pytest
 
 from marswalk_core.schemas import SafetySettings
-from marswalk_planner.cost import build_cost_grid, explain_cell
-
 from marswalk_core.site_package import Site
+from marswalk_planner.cost import build_cost_grid, explain_cell
 
 from .conftest import GRID_SIZE, make_layers, make_site
 

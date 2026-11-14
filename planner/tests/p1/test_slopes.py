@@ -10,10 +10,10 @@ Hypothèses :
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
-
-from pathlib import Path
 
 from marswalk_core.schemas import SafetySettings
 from marswalk_core.site_package import Site

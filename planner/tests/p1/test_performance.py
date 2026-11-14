@@ -224,7 +224,10 @@ def test_numpy_computation_2500x2500() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_timing_breakdown_logged(standard_settings: SafetySettings, capsys: pytest.CaptureFixture[str]) -> None:
+def test_timing_breakdown_logged(
+    standard_settings: SafetySettings,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """Affiche le découpage des temps pour chaque phase de P1."""
     clear_cache()
     site = load_site("fictif")

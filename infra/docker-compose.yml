@@ -24,6 +24,9 @@ services:
     build:
       context: ..
       dockerfile: infra/docker/api.Dockerfile
+      # Réseau de l'hôte pendant la construction : évite les pannes DNS des conteneurs
+      # de construction (fréquentes sous Ubuntu avec systemd-resolved).
+      network: host
     environment:
       MARSWALK_DATABASE_URL: postgresql+psycopg://marswalk:marswalk@db:5432/marswalk
       MARSWALK_CORS_ORIGINS: '["http://localhost:5173"]'
@@ -42,6 +45,9 @@ services:
     build:
       context: ..
       dockerfile: infra/docker/web.Dockerfile
+      # Réseau de l'hôte pendant la construction : évite les pannes DNS des conteneurs
+      # de construction (fréquentes sous Ubuntu avec systemd-resolved).
+      network: host
     environment:
       MARSWALK_API_URL: http://api:8000
     ports:

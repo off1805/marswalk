@@ -6,7 +6,7 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
     "marswalk-core",
     "marswalk-conditions",
-    "scipy>=1.11",
+    "scipy>=1.14",
 ]
 
 [build-system]

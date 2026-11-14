@@ -7,7 +7,7 @@ Ce document découpe la feuille de route corrigée (`feuille-de-route-revue.md`)
 - **Les contrats communs** (sections 2 à 8). Ils fixent d'avance tout ce qui est partagé : dossiers, systèmes de coordonnées, format des couches, API, interfaces de code. La tâche T00 les implémente, puis ils sont gelés. Aucun autre agent ne les modifie.
 - **Les fiches de tâches** (section 10). Chacune dit ce que l'agent possède, ce qu'il lit, ce qu'il livre et comment on vérifie que c'est fini.
 
-Le travail démarre une fois le jeu de données obtenu. Seules D1 et I1 ont besoin des vraies données ; tout le reste se développe sur le site fictif fourni par T00.
+D0 télécharge le jeu de données réel de Jezero. Seules D0, D1 et I1 ont besoin des vraies données ; tout le reste se développe sur le site fictif fourni par T00.
 
 ## 1. Comment s'en servir
 
@@ -21,7 +21,7 @@ Le travail démarre une fois le jeu de données obtenu. Seules D1 et I1 ont beso
 | Vague | Tâches | Démarre quand | Notes |
 | --- | --- | --- | --- |
 | 0 | T00 | Tout de suite | Seule tâche séquentielle. Tout le reste en dépend |
-| 1 | C1, P1, P2, P3, K1, D1, D2, D3, A1, A2, A3, A4, F1, F2, F3, F4, F6, F7, S1, G1, X1 | T00 fusionnée | Toutes en parallèle. Chacune code contre les bouchons et le site fictif de T00 |
+| 1 | D0, C1, P1, P2, P3, K1, D1, D2, D3, A1, A2, A3, A4, F1, F2, F3, F4, F6, F7, S1, G1, X1 | T00 fusionnée | Toutes en parallèle. Chacune code contre les bouchons et le site fictif de T00 |
 | 2 | I1 | D1, D2, D3, P1, P2, P3 fusionnées et recalage validé | Bascule sur Jezero et calibration |
 | 3 | I2 | Toutes les tâches M et S fusionnées, I1 fusionnée | Tests de bout en bout, puis gel |
 | 4 | L1, L2 | I2 fusionnée | Livraison |
@@ -30,7 +30,7 @@ Le travail démarre une fois le jeu de données obtenu. Seules D1 et I1 ont beso
 **Ordre de fusion recommandé dans la vague 1.** Les dépendances passent par des bouchons, donc l'ordre n'est pas obligatoire, mais fusionner les bibliothèques avant leurs consommateurs fait passer les tests d'intégration plus tôt :
 
 1. Bibliothèques : C1, P1, P3, K1, D2, D3
-2. Moteur et données : P2, D1, G1 (partie données)
+2. Moteur et données : P2, D0, D1, G1 (partie données)
 3. API : A1, A2, A3, A4, X1
 4. Front : F1, puis F2, F3, F4, F6, F7 dans n'importe quel ordre
 5. Contenu : S1 (à tout moment)
@@ -38,10 +38,10 @@ Le travail démarre une fois le jeu de données obtenu. Seules D1 et I1 ont beso
 Avant chaque fusion, l'agent rebase sa branche sur `main` et relance les tests.
 
 **Chemins critiques à démarrer en premier :**
-- T00, D1, puis validation du recalage, puis I1
+- T00, D0, D1, puis validation du recalage, puis I1
 - T00, P1 et P2, A2, F2, A4 et F4, I2
 
-**Si le nombre d'agents est limité**, lancer par lots : lot 1 = P1, P2, P3, D1, D2, D3, C1 ; lot 2 = A1, A2, A3, A4, K1, S1 ; lot 3 = F1, F2, F3, F4, F6, F7 ; lot 4 = G1, X1.
+**Si le nombre d'agents est limité**, lancer par lots : lot 1 = D0, P1, P2, P3, D1, D2, D3, C1 ; lot 2 = A1, A2, A3, A4, K1, S1 ; lot 3 = F1, F2, F3, F4, F6, F7 ; lot 4 = G1, X1.
 
 ## 3. Structure du monorepo et propriété des dossiers
 
@@ -61,6 +61,7 @@ marswalk/
 │   ├── marstime.py             C1
 │   └── geodesy.py              C1
 ├── pipeline/                   Python marswalk_pipeline
+│   ├── fetch/                  D0
 │   ├── ingest/, coreg/         D1
 │   ├── derived/                D2
 │   ├── package/                D3
@@ -311,11 +312,38 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 - **Acceptation :** les cas publiés par le Mars24 de la NASA GISS sont retrouvés à la seconde près ; Python et TypeScript donnent les mêmes résultats sur tous les cas ; une distance de 1° de longitude à l'équateur vaut environ 59,3 km.
 - **Couvre :** ENF-11, R3.
 
+### D0. Téléchargement des données de Jezero
+
+- **Vague :** 1, à lancer en premier. **Dépend de :** T00. **Possède :** `pipeline/marswalk_pipeline/fetch/`, `pipeline/tests/d0/`, `config/sites/jezero/sources.yaml`. **S'exécute sur l'ordinateur de la personne** (téléchargements de plusieurs Go, accès réseau aux serveurs de la NASA), par exemple par Remote Control.
+- **Objectif :** tous les produits bruts nécessaires à D1, G1 et K1 dans `data/raw/jezero/`, avec leur provenance.
+- **Entrées :** les URL des ressources que la personne donne à l'agent au lancement (page des ressources du défi Space Apps, pages Mars Trek, USGS, PDS ou liens directs). L'agent part de ces URL ; il n'en cherche d'autres que pour un produit de la liste ci-dessous qu'elles ne couvrent pas, et il le signale.
+- **Produits à obtenir :**
+
+  | # | Produit | Couche ou usage | Priorité |
+  | --- | --- | --- | --- |
+  | 1 | Orthomosaïque HiRISE de Jezero, 25 cm (Mars 2020, `JEZ_hirise_soc_007_orthoMosaic_25cm_…`) | `hirise_vis` | Indispensable |
+  | 2 | MNT HiRISE de Jezero, 1 m (`JEZ_hirise_soc_006_DTM_…_1m_…`) | `dem` | Indispensable |
+  | 3 | Orthomosaïque CTX 6 m et MNT CTX 20 m (`JEZ_ctx_B_soc_008_…`) | `ctx_vis`, repli de `dem` | Indispensable |
+  | 4 | MNT MOLA global 463 m, ou MOLA-HRSC 200 m | `dem_mola`, horizon | Indispensable |
+  | 5 | Inertie thermique THEMIS (mosaïque quantitative d'ASU, environ 100 m) | `thermal_inertia` | Important |
+  | 6 | Un ou deux cubes CRISM MTRDR (FRT ou HRL) sur le delta et le bord ouest, trouvés par l'API ODE du PDS ; indices D2300, BD2290, BD2500, OLINDEX3 | `crism_minerals` | Important |
+  | 7 | Positions et trajet de Perseverance publiés par le JPL | `rover_traverse` (G1) | Utile |
+  | 8 | Séries MEDA de Perseverance (nœud Atmosphères du PDS), quelques dizaines de sols | K1 | Utile |
+  | 9 | Débit de dose RAD de Curiosity autour de l'événement solaire de mai 2024 (PDS) | scénario `solar-event` (K1) | Utile |
+
+  Les noms de fichiers sont indicatifs : l'agent les vérifie sur les serveurs et note les noms réels. Les images Mastcam-Z et Navcam (G1) et DONKI (K1) ne se téléchargent pas à l'avance.
+- **Livrables :**
+  - `config/sites/jezero/sources.yaml`, versionné : une entrée par produit avec la couche, l'identifiant PDS ou le nom du produit, l'URL, la taille, la licence ou la citation demandée, la priorité, et l'emprise voulue.
+  - Commande `python -m marswalk_pipeline.fetch jezero` avec `--dry-run` (liste ce qui sera téléchargé et la taille totale) et `--only <id>`. Elle découpe à la source quand c'est possible (lecture fenêtrée des GeoTIFF par `/vsicurl/` de GDAL ou découpe proposée par le serveur) sur 5 × 5 km autour du site plus une marge de 1 km, reprend un téléchargement interrompu et ne retélécharge pas un fichier déjà complet.
+  - Fichiers dans `data/raw/jezero/` (jamais dans Git), plus `data/raw/jezero/sources.lock.yaml` (date, taille, SHA-256, URL réellement utilisée) et `data/raw/jezero/fetch_report.md` (ce qui a été obtenu, ce qui manque et pourquoi).
+- **Acceptation :** les produits 1 à 4 sont présents et s'ouvrent avec rasterio, avec un système de coordonnées martien lisible ; chaque fichier a son entrée dans `sources.yaml` et dans le fichier de verrouillage ; une seconde exécution ne télécharge rien ; `--dry-run` annonce la taille totale avant tout téléchargement ; les tests de `pipeline/tests/d0/` tournent sans réseau (réponses HTTP simulées) ; aucun fichier de données n'est ajouté à Git.
+- **Couvre :** EF-01 (données), ENF-04 (provenance).
+
 ### D1. Ingestion et recalage des données réelles de Jezero
 
-- **Vague :** 1. **Dépend de :** T00 et le jeu de données. **Possède :** `pipeline/ingest/`, `pipeline/coreg/`, `config/sites/jezero/`. **Validation humaine.**
+- **Vague :** 1. **Dépend de :** T00 et D0 (les données téléchargées). **Possède :** `pipeline/ingest/`, `pipeline/coreg/`, `config/sites/jezero/` (sauf `sources.yaml`, de D0). **Validation humaine.**
 - **Objectif :** des rasters réels alignés sur la grille d'analyse de Jezero.
-- **Entrées :** les produits bruts dans `data/raw/jezero/` avec un fichier `sources.yaml` (identifiant PDS, URL, date pour chacun) : image et MNT HiRISE (jeu Mars 2020 de l'atterrissage), CTX, MOLA, THEMIS, CRISM, téléchargés surtout depuis Mars Trek.
+- **Entrées :** les produits bruts téléchargés par D0 dans `data/raw/jezero/`, décrits dans `config/sites/jezero/sources.yaml` et `data/raw/jezero/sources.lock.yaml` : image et MNT HiRISE (jeu Mars 2020 de l'atterrissage), CTX, MOLA, THEMIS, CRISM.
 - **Livrables :** commande `marswalk ingest jezero` qui découpe 5 x 5 km autour du site, reprojette selon R1, recale THEMIS et CRISM sur HiRISE par points d'appui, puis écrit `data/work/jezero/aligned/<layer_id>.tif` et `coreg_report.md` (décalage résiduel mesuré par couche). Un projet QGIS `qgis/jezero.qgz` permet la vérification visuelle. Si le MNT HiRISE ne couvre pas toute l'emprise, le repli CTX ou MOLA est appliqué et noté `degraded`.
 - **Acceptation :** les rasters ont tous la même grille ; le décalage résiduel est indiqué pour chaque couche et reste sous 1 pixel de la couche la plus grossière ; la personne valide la superposition dans QGIS.
 - **Couvre :** EF-01 (données), ENF-03, ENF-04 (incertitude de recalage), ENF-07.
@@ -501,7 +529,7 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 
 | Exigence | Tâches |
 | --- | --- |
-| EF-01 carte de base | D1, D3, F1 |
+| EF-01 carte de base | D0, D1, D3, F1 |
 | EF-02 trois couches et opacité | D1, D3, F1 |
 | EF-03 pente, rugosité, ombrage | D2, P1, F1 |
 | EF-04 cibles | A2, F2, S1 |
@@ -519,7 +547,7 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 | ENF-01 hors ligne | D3, K1, F7 |
 | ENF-02 latence | P1, P2, A1, A2, F1, I1 |
 | ENF-03 précision géographique | T00, D1, D3, C1 |
-| ENF-04 traçabilité | D1, D3, A1, F1, S1, G1 |
+| ENF-04 traçabilité | D0, D1, D3, A1, F1, S1, G1 |
 | ENF-05 utilisable en combinaison | Abandonnée : une seule interface web |
 | ENF-06 lisibilité | T00, F1, F4, I2 |
 | ENF-07 dégradation gracieuse | D1, P1, F1 |

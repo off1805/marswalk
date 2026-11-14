@@ -12,20 +12,24 @@ Couvre :
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 from tests.p2.conftest import flat_layers, grid_lonlat, make_site, make_target, make_target_at
 
 from marswalk_core.geodesy import to_analysis
-from marswalk_core.grids import RouteOptions
+from marswalk_core.grids import CostGrid, RouteOptions
 from marswalk_core.schemas import (
     LonLat,
+    Route,
     RouteVariant,
+    SafetySettings,
 )
+from marswalk_core.site_package import Site
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.variants import plan_variants, replan_from_obstacle
 
 
-def _all_coords_safe(route, site, cost_grid):
+def _all_coords_safe(route: Route, site: Site, cost_grid: CostGrid) -> None:
     """Vérifie qu'aucun point de la route ne traverse une cellule interdite."""
     for pt in route.geometry.coordinates:
         x, y = to_analysis(site, pt.lon, pt.lat)
@@ -37,7 +41,9 @@ def _all_coords_safe(route, site, cost_grid):
 
 
 class TestPlanVariantsBasic:
-    def test_returns_three_routes(self, flat_site, standard_settings):
+    def test_returns_three_routes(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         start = grid_lonlat(0.5, 0.1)
         targets = [make_target_at(0, 0.5, 0.5)]
@@ -49,7 +55,9 @@ class TestPlanVariantsBasic:
         assert RouteVariant.fastest in variants
         assert RouteVariant.science in variants
 
-    def test_route_ids_are_unique(self, flat_site, standard_settings):
+    def test_route_ids_are_unique(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         start = grid_lonlat(0.5, 0.1)
         targets = [make_target_at(0, 0.5, 0.5)]
@@ -58,7 +66,9 @@ class TestPlanVariantsBasic:
         ids = [r.id for r in routes]
         assert len(set(ids)) == 3
 
-    def test_all_routes_have_segments(self, flat_site, standard_settings):
+    def test_all_routes_have_segments(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         start = grid_lonlat(0.5, 0.1)
         targets = [make_target_at(0, 0.5, 0.5), make_target_at(1, 0.5, 0.9)]
@@ -68,7 +78,9 @@ class TestPlanVariantsBasic:
             assert len(route.segments) > 0
             assert len(route.geometry.coordinates) >= 2
 
-    def test_no_forbidden_cells_flat_grid(self, flat_site, standard_settings):
+    def test_no_forbidden_cells_flat_grid(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
         start = grid_lonlat(0.5, 0.1)
@@ -78,7 +90,9 @@ class TestPlanVariantsBasic:
         for route in routes:
             _all_coords_safe(route, site, grid)
 
-    def test_subset_variants(self, flat_site, standard_settings):
+    def test_subset_variants(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         """On peut demander uniquement certaines variantes."""
         site, _ = flat_site
         start = grid_lonlat(0.5, 0.1)
@@ -92,7 +106,9 @@ class TestPlanVariantsBasic:
 
 
 class TestVariantDifferences:
-    def test_variants_valid_on_heterogeneous_terrain(self, standard_settings):
+    def test_variants_valid_on_heterogeneous_terrain(
+        self, standard_settings: SafetySettings
+    ) -> None:
         """Sur terrain hétérogène, les trois variantes doivent être valides."""
         gs = 100
         layers = flat_layers(gs)
@@ -110,7 +126,9 @@ class TestVariantDifferences:
         for route in routes:
             assert route.totals.distance_m > 0
 
-    def test_fictif_site_variants_valid(self, fictif_site, standard_settings):
+    def test_fictif_site_variants_valid(
+        self, fictif_site: Site, standard_settings: SafetySettings
+    ) -> None:
         """Sur le site fictif, les variantes doivent être valides et sans obstacle."""
         site = fictif_site
         hab = site.manifest.habitat
@@ -137,7 +155,7 @@ class TestVariantDifferences:
             assert route.totals.distance_m > 0
             assert len(route.profile) > 0
 
-    def test_safest_fastest_both_valid(self, standard_settings):
+    def test_safest_fastest_both_valid(self, standard_settings: SafetySettings) -> None:
         """Safest et fastest doivent produire des routes valides sur terrain risqué."""
         gs = 100
         layers = flat_layers(gs)
@@ -158,7 +176,9 @@ class TestVariantDifferences:
 
 
 class TestReplanAfterObstacle:
-    def test_replan_produces_valid_route(self, flat_site, standard_settings):
+    def test_replan_produces_valid_route(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         current_pos = grid_lonlat(0.5, 0.2)
         obstacle_pos = grid_lonlat(0.5, 0.5)
@@ -170,7 +190,9 @@ class TestReplanAfterObstacle:
         assert route is not None
         assert len(route.geometry.coordinates) >= 2
 
-    def test_replan_avoids_obstacle(self, flat_site, standard_settings):
+    def test_replan_avoids_obstacle(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         """L'itinéraire recalculé ne doit pas passer par l'obstacle."""
         site, _ = flat_site
         current_pos = grid_lonlat(0.5, 0.1)
@@ -183,7 +205,9 @@ class TestReplanAfterObstacle:
         assert route is not None
         assert len(route.geometry.coordinates) >= 2
 
-    def test_replan_no_remaining_targets(self, flat_site, standard_settings):
+    def test_replan_no_remaining_targets(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         """Replan sans cible restante : retour direct."""
         site, _ = flat_site
         current_pos = grid_lonlat(0.5, 0.3)
@@ -196,7 +220,9 @@ class TestReplanAfterObstacle:
 
 
 class TestReturnCheck:
-    def test_return_check_present(self, flat_site, standard_settings):
+    def test_return_check_present(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         start = grid_lonlat(0.5, 0.1)
         targets = [make_target_at(0, 0.5, 0.5)]

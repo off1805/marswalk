@@ -18,35 +18,35 @@ from marswalk_planner._p2.smooth import _bresenham_clear, smooth_path
 
 
 class TestBresenhamClear:
-    def test_straight_line_free(self):
+    def test_straight_line_free(self) -> None:
         cost = np.ones((20, 20), dtype=np.float32)
         assert _bresenham_clear(cost, 0, 0, 0, 19)
 
-    def test_blocked_cell_in_line(self):
+    def test_blocked_cell_in_line(self) -> None:
         cost = np.ones((20, 20), dtype=np.float32)
         cost[0, 10] = np.inf
         assert not _bresenham_clear(cost, 0, 0, 0, 19)
 
-    def test_diagonal_free(self):
+    def test_diagonal_free(self) -> None:
         cost = np.ones((20, 20), dtype=np.float32)
         assert _bresenham_clear(cost, 0, 0, 19, 19)
 
-    def test_diagonal_blocked(self):
+    def test_diagonal_blocked(self) -> None:
         cost = np.ones((20, 20), dtype=np.float32)
         cost[10, 10] = np.inf
         assert not _bresenham_clear(cost, 0, 0, 19, 19)
 
-    def test_out_of_bounds(self):
+    def test_out_of_bounds(self) -> None:
         cost = np.ones((10, 10), dtype=np.float32)
         assert not _bresenham_clear(cost, 0, 0, 20, 20)
 
-    def test_same_cell(self):
+    def test_same_cell(self) -> None:
         cost = np.ones((10, 10), dtype=np.float32)
         assert _bresenham_clear(cost, 5, 5, 5, 5)
 
 
 class TestSmoothPath:
-    def test_straight_path_unchanged(self):
+    def test_straight_path_unchanged(self) -> None:
         """Un chemin déjà droit ne doit pas être modifié."""
         cost = np.ones((20, 20), dtype=np.float32)
         path = [Cell(0, i) for i in range(10)]
@@ -54,7 +54,7 @@ class TestSmoothPath:
         assert smoothed[0] == Cell(0, 0)
         assert smoothed[-1] == Cell(0, 9)
 
-    def test_zigzag_simplified_on_free_grid(self):
+    def test_zigzag_simplified_on_free_grid(self) -> None:
         """Un chemin en escalier sur terrain libre doit être simplifié."""
         cost = np.ones((20, 20), dtype=np.float32)
         # Chemin en L : 0,0 → 0,5 → 10,5 → 10,10
@@ -68,7 +68,7 @@ class TestSmoothPath:
         assert smoothed[-1] == Cell(10, 10)
         assert len(smoothed) < len(path)
 
-    def test_smooth_does_not_cross_obstacle(self):
+    def test_smooth_does_not_cross_obstacle(self) -> None:
         """Le lissage ne doit pas traverser un obstacle."""
         cost = np.ones((30, 30), dtype=np.float32)
         # Obstacle vertical
@@ -83,7 +83,7 @@ class TestSmoothPath:
         for cell in smoothed:
             assert not math.isinf(cost[cell.row, cell.col])
 
-    def test_no_shortcut_through_wall(self):
+    def test_no_shortcut_through_wall(self) -> None:
         """Un raccourci direct qui traverse un mur ne doit pas être pris.
 
         La ligne directe (0,0)→(0,19) traverserait le mur en col=10.
@@ -103,19 +103,19 @@ class TestSmoothPath:
         for cell in smoothed:
             assert not math.isinf(cost[cell.row, cell.col])
 
-    def test_short_path_unchanged(self):
+    def test_short_path_unchanged(self) -> None:
         cost = np.ones((10, 10), dtype=np.float32)
         path = [Cell(0, 0), Cell(0, 1)]
         smoothed = smooth_path(cost, path)
         assert smoothed == path
 
-    def test_single_cell_unchanged(self):
+    def test_single_cell_unchanged(self) -> None:
         cost = np.ones((10, 10), dtype=np.float32)
         path = [Cell(5, 5)]
         smoothed = smooth_path(cost, path)
         assert smoothed == path
 
-    def test_endpoints_preserved(self):
+    def test_endpoints_preserved(self) -> None:
         """Les extrémités du chemin doivent être conservées."""
         cost = np.ones((30, 30), dtype=np.float32)
         cost[10:20, 15] = np.inf
@@ -124,7 +124,7 @@ class TestSmoothPath:
         assert smoothed[0] == path[0]
         assert smoothed[-1] == path[-1]
 
-    def test_segment_check_not_just_endpoints(self):
+    def test_segment_check_not_just_endpoints(self) -> None:
         """La vérification doit porter sur tout le segment, pas seulement les extrémités."""
         cost = np.ones((30, 30), dtype=np.float32)
         # Obstacle au milieu exact du segment

@@ -23,8 +23,8 @@ from affine import Affine
 
 from marswalk_core.geodesy import to_lonlat
 from marswalk_core.grids import RouteOptions
-from marswalk_core.schemas import LonLat, SafetySettings
-from marswalk_core.site_package import Site, SiteManifest
+from marswalk_core.schemas import LonLat, SafetySettings, SiteManifest
+from marswalk_core.site_package import Site
 from marswalk_planner._p2 import cache as _cache
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.route import plan_route
@@ -35,7 +35,7 @@ GRID_SIZE_PERF = 500
 RESOLUTION_PERF = 2.0
 
 
-def _make_perf_site(grid_size: int = GRID_SIZE_PERF, resolution: float = RESOLUTION_PERF):
+def _make_perf_site(grid_size: int = GRID_SIZE_PERF, resolution: float = RESOLUTION_PERF) -> Site:
     """Site de performance avec terrain hétérogène réaliste."""
     h = w = grid_size
     rng = np.random.default_rng(0)
@@ -130,7 +130,7 @@ def _grid_point(site: Site, row_frac: float, col_frac: float) -> LonLat:
 
 
 @pytest.mark.timeout(15)
-def test_five_targets_performance():
+def test_five_targets_performance() -> None:
     """5 cibles sur une grille {gs}×{gs} à {res} m de résolution.
 
     Critère : < 5 s pour 2500×2500.
@@ -167,7 +167,7 @@ def test_five_targets_performance():
 
 
 @pytest.mark.timeout(10)
-def test_target_move_cache_speedup():
+def test_target_move_cache_speedup() -> None:
     """Après déplacement d'une cible, le recalcul partiel doit être < 2 s.
 
     Machine de référence : même que ci-dessus.
@@ -198,7 +198,7 @@ def test_target_move_cache_speedup():
     assert elapsed < 5.0, f"Recalcul trop lent : {elapsed:.2f} s (seuil 5 s)"
 
 
-def test_cache_reuse_measured():
+def test_cache_reuse_measured() -> None:
     """Le deuxième appel identique doit utiliser le cache (nettement plus rapide)."""
     _cache.clear()
     site = _make_perf_site(GRID_SIZE_PERF)

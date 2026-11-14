@@ -178,7 +178,7 @@ def optimize_order(
     end_idx = n_targets + 1
     target_indices = list(range(1, n_targets + 1))
 
-    def cost_fn(a, b):
+    def cost_fn(a: LonLat, b: LonLat) -> float:
         return _euclid_cost(cost_grid, a, b)
 
     matrix = _build_cost_matrix(cost_grid, nodes, cost_fn)

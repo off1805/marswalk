@@ -203,7 +203,9 @@ def make_target(
     )
 
 
-def make_target_at(idx: int, row_frac: float, col_frac: float, gs: int = GRID_SIZE, **kw) -> Target:
+def make_target_at(
+    idx: int, row_frac: float, col_frac: float, gs: int = GRID_SIZE, **kw: Any
+) -> Target:
     """Crée une cible à une position exprimée en fraction de grille [0,1]."""
     pos = grid_lonlat(row_frac, col_frac, gs)
     return make_target(idx, pos.lon, pos.lat, **kw)

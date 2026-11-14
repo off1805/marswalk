@@ -10,18 +10,22 @@ Couvre :
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from tests.p2.conftest import grid_lonlat, make_target_at
 
-from marswalk_core.grids import RouteOptions
+from marswalk_core.grids import CostGrid, RouteOptions
+from marswalk_core.schemas import LonLat, SafetySettings, Target
+from marswalk_core.site_package import Site
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.order import order_targets
 
 
-def _cost_of_order(grid, start, ordered, end):
+def _cost_of_order(grid: CostGrid, start: LonLat, ordered: list[Target], end: LonLat) -> float:
     """Estimation du coût total d'un ordre donné (distance euclidienne pondérée)."""
     from marswalk_planner._p2.tsp import _euclid_cost
 
-    nodes = [start, *[t.position for t in ordered], end]
+    nodes: list[LonLat] = [start, *[t.position for t in ordered], end]
     total = 0.0
     for i in range(len(nodes) - 1):
         total += _euclid_cost(grid, nodes[i], nodes[i + 1])
@@ -29,7 +33,9 @@ def _cost_of_order(grid, start, ordered, end):
 
 
 class TestOrderImposed:
-    def test_imposed_order_preserved(self, flat_site, standard_settings):
+    def test_imposed_order_preserved(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
         targets = [make_target_at(i, 0.5, 0.1 * (i + 1)) for i in range(5)]
@@ -37,7 +43,9 @@ class TestOrderImposed:
         result = order_targets(grid, grid_lonlat(0.5, 0.0), targets, opts)
         assert [t.id for t in result] == [t.id for t in targets]
 
-    def test_imposed_order_single_target(self, flat_site, standard_settings):
+    def test_imposed_order_single_target(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
         target = make_target_at(0, 0.3, 0.7)
@@ -46,7 +54,9 @@ class TestOrderImposed:
         assert len(result) == 1
         assert result[0].id == target.id
 
-    def test_imposed_order_empty(self, flat_site, standard_settings):
+    def test_imposed_order_empty(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
         opts = RouteOptions(optimize_order=False)
@@ -55,7 +65,9 @@ class TestOrderImposed:
 
 
 class TestOrderOptimized:
-    def test_single_target_no_change(self, flat_site, standard_settings):
+    def test_single_target_no_change(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
         target = make_target_at(0, 0.3, 0.7)
@@ -63,7 +75,9 @@ class TestOrderOptimized:
         result = order_targets(grid, grid_lonlat(0.1, 0.1), [target], opts)
         assert len(result) == 1
 
-    def test_two_targets_optimal_order(self, flat_site, standard_settings):
+    def test_two_targets_optimal_order(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         """Avec deux cibles, l'ordre optimal est vérifiable analytiquement."""
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
@@ -78,7 +92,9 @@ class TestOrderOptimized:
         assert result[0].id == t_a.id
         assert result[1].id == t_b.id
 
-    def test_optimized_cost_le_original(self, flat_site, standard_settings):
+    def test_optimized_cost_le_original(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         """L'ordre optimisé ne doit pas coûter plus que l'ordre initial."""
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
@@ -97,7 +113,9 @@ class TestOrderOptimized:
         cost_optimized = _cost_of_order(grid, start, result, end)
         assert cost_optimized <= cost_original + 1e-6
 
-    def test_exact_tsp_up_to_8_targets(self, flat_site, standard_settings):
+    def test_exact_tsp_up_to_8_targets(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         """Avec 8 cibles sur une ligne, l'ordre optimal est de gauche à droite."""
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
@@ -118,7 +136,9 @@ class TestOrderOptimized:
         cols = [t.position.lon for t in result]
         assert cols == sorted(cols)
 
-    def test_heuristic_tsp_above_8_targets(self, flat_site, standard_settings):
+    def test_heuristic_tsp_above_8_targets(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         """Avec 9 cibles, l'heuristique doit fonctionner."""
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
@@ -132,7 +152,9 @@ class TestOrderOptimized:
         cost_original = _cost_of_order(grid, start, targets, end)
         assert cost_optimized <= cost_original * 1.5
 
-    def test_empty_targets(self, flat_site, standard_settings):
+    def test_empty_targets(
+        self, flat_site: tuple[Site, Path], standard_settings: SafetySettings
+    ) -> None:
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
         opts = RouteOptions(optimize_order=True)

@@ -46,7 +46,8 @@ _DS = np.array(
 _INF = float("inf")
 
 # Cache du graphe CSR : id(cost_array) → (csr_matrix, weak_ref)
-_GRAPH_CACHE: dict[int, csr_matrix] = {}
+_GraphKey = tuple[int, tuple[int, ...], tuple[int, ...], tuple[float, ...], int]
+_GRAPH_CACHE: dict[_GraphKey, csr_matrix] = {}
 _GRAPH_LOCK = threading.Lock()
 
 

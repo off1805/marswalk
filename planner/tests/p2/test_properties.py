@@ -51,7 +51,7 @@ def _random_layers(rng: np.random.Generator, grid_size: int = 50) -> dict[str, n
 
 
 @pytest.mark.parametrize("seed", [0, 1, 2, 3, 4, 7, 13, 42, 99, 137])
-def test_no_forbidden_cell_in_path(seed: int):
+def test_no_forbidden_cell_in_path(seed: int) -> None:
     """Propriété : aucun point du tracé ne traverse une cellule interdite.
 
     Testé sur 10 grilles aléatoires différentes.
@@ -98,7 +98,7 @@ def test_no_forbidden_cell_in_path(seed: int):
 
 
 @pytest.mark.parametrize("seed", [0, 5, 10, 20, 30])
-def test_smooth_does_not_introduce_forbidden(seed: int):
+def test_smooth_does_not_introduce_forbidden(seed: int) -> None:
     """Le lissage ne doit pas introduire de cellules interdites dans le tracé."""
     rng = np.random.default_rng(seed)
     gs = 40

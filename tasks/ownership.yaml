@@ -48,6 +48,12 @@ tasks:
       - packages/core/tests/c1/**
       - web/src/shared/marstime*.ts
       - web/src/shared/geodesy*.ts
+  D0:
+    title: Téléchargement des données de Jezero
+    paths:
+      - pipeline/marswalk_pipeline/fetch/**
+      - pipeline/tests/d0/**
+      - config/sites/jezero/sources.yaml
   D1:
     title: Ingestion et recalage des données réelles de Jezero
     paths:
@@ -57,6 +63,7 @@ tasks:
       - config/sites/jezero/**
     exclude:
       - config/sites/jezero/targets-seed.geojson
+      - config/sites/jezero/sources.yaml
   D2:
     title: Couches dérivées
     paths:

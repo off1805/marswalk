@@ -59,6 +59,7 @@ def test_every_task_has_paths() -> None:
     expected = {
         "T00",
         "C1",
+        "D0",
         "D1",
         "D2",
         "D3",

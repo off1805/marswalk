@@ -77,7 +77,11 @@ class MedaClimatologyEngine:
         # 6. Débit de dose radiative (µSv/h) : fond cosmique galactique au sol martien
         dose_rate = dose_rate_override if dose_rate_override is not None else 10.0
 
-        space_weather = space_weather_override if space_weather_override is not None else SpaceWeather()
+        space_weather = (
+            space_weather_override
+            if space_weather_override is not None
+            else SpaceWeather()
+        )
 
         return Conditions(
             utc=utc,

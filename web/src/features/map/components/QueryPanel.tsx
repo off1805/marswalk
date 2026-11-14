@@ -3,9 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Panel } from "@/shared/ui/Panel";
 import { Button } from "@/shared/ui/Button";
 import { AlertBadge } from "@/shared/ui/AlertBadge";
-import { api, type PointQuery, type PointValue } from "@/shared/api/client";
+import { api, type PointQuery } from "@/shared/api/client";
 import { queryKeys } from "@/shared/queryKeys";
 import { useShared } from "@/shared/store";
+import type { PointValue } from "../types";
 
 function PointValueItem({ value }: { value: PointValue }) {
   const isMissing = value.status === "missing";
@@ -137,7 +138,7 @@ export function QueryPanel() {
           {queryResult && (
             <div className="space-y-3">
               {/* Synthèse retour à l'habitat */}
-              {queryResult.return_time_s !== null && (
+              {typeof queryResult.return_time_s === "number" && (
                 <div className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-2">
                   <div className="text-[10px] uppercase font-bold text-[var(--text-muted)]">
                     Temps de retour estimé

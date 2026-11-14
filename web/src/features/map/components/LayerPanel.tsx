@@ -4,8 +4,7 @@ import { useSiteManifest } from "@/shared/hooks";
 import { useShared } from "@/shared/store";
 import { LayerRow } from "./LayerRow";
 import { usePresets } from "../hooks/usePresets";
-import type { LayerKindGroup } from "../types";
-import type { LayerKind } from "@/shared/api/client";
+import type { LayerKind, LayerKindGroup } from "../types";
 
 const KIND_TITLES: Record<LayerKind, string> = {
   imagery: "Imagerie de surface",

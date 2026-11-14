@@ -2,8 +2,11 @@
  * Types et interfaces pour la fonctionnalité F1 : Carte et couches.
  * Respecte les principes SOLID (Interface Segregation Principle).
  */
-import type { LayerInfo, PointQuery, PointValue } from "@/shared/api/client";
+import type { LayerInfo, PointQuery } from "@/shared/api/client";
 import type { LayerView } from "@/shared/store";
+
+export type LayerKind = LayerInfo["kind"];
+export type PointValue = PointQuery["values"][number];
 
 export interface LayerControlProps {
   layer: LayerInfo;
@@ -27,7 +30,7 @@ export interface PointValueRowProps {
 }
 
 export type LayerKindGroup = {
-  kind: LayerInfo["kind"];
+  kind: LayerKind;
   title: string;
   layers: LayerInfo[];
 };

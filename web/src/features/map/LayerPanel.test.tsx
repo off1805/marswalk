@@ -102,8 +102,10 @@ describe("Fonctionnalité Carte et couches (F1)", () => {
 
     const sources = getMapSources(ctx);
     expect(sources.length).toBe(1);
-    expect(sources[0].id).toBe("raster-slope");
-    expect(sources[0].layers[0].paint?.["raster-opacity"]).toBe(0.6);
+    const source = sources[0];
+    expect(source?.id).toBe("raster-slope");
+    const paint = source?.layers[0]?.paint as Record<string, unknown> | undefined;
+    expect(paint?.["raster-opacity"]).toBe(0.6);
   });
 
   it("affiche l'échelle martienne calculée sur Mars 2000 (R3)", () => {
@@ -121,10 +123,10 @@ describe("Fonctionnalité Carte et couches (F1)", () => {
   it("permet de basculer la visibilité d'une couche", () => {
     const setLayer = useShared.getState().setLayer;
     setLayer("slope", { visible: false });
-    expect(useShared.getState().layers["slope"].visible).toBe(false);
+    expect(useShared.getState().layers["slope"]?.visible).toBe(false);
 
     setLayer("roughness", { visible: true, opacity: 0.8 });
-    expect(useShared.getState().layers["roughness"].visible).toBe(true);
-    expect(useShared.getState().layers["roughness"].opacity).toBe(0.8);
+    expect(useShared.getState().layers["roughness"]?.visible).toBe(true);
+    expect(useShared.getState().layers["roughness"]?.opacity).toBe(0.8);
   });
 });

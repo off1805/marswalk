@@ -25,7 +25,6 @@ from marswalk_conditions.interfaces import (
 from marswalk_conditions.live import DonkiClient, InMemoryCacheStore, LiveProvider
 from marswalk_conditions.scenario import (
     SOLAR_EVENT_SCENARIO,
-    ScenarioManager,
     ScenarioProvider,
     get_scenario_manager,
     list_scenarios,
@@ -78,6 +77,7 @@ def get_provider(
 
 
 __all__ = [
+    "SOLAR_EVENT_SCENARIO",
     "ConditionsProvider",
     "DonkiClient",
     "HistoricalProvider",
@@ -89,7 +89,6 @@ __all__ = [
     "MedaClimatologyEngine",
     "MockMedaRadSource",
     "PdsMedaRadSource",
-    "SOLAR_EVENT_SCENARIO",
     "ScenarioProvider",
     "get_provider",
     "get_scenario_manager",

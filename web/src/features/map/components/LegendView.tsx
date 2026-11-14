@@ -11,8 +11,8 @@ export function LegendView({ legend, unit }: LegendViewProps) {
   if (legend.type === "continuous") {
     // Construction du dégradé CSS
     const sortedStops = [...legend.stops].sort((a, b) => a.value - b.value);
-    const minVal = sortedStops[0].value;
-    const maxVal = sortedStops[sortedStops.length - 1].value;
+    const minVal = sortedStops[0]?.value ?? 0;
+    const maxVal = sortedStops[sortedStops.length - 1]?.value ?? 0;
     const range = maxVal - minVal || 1;
 
     const gradientParts = sortedStops.map((stop) => {

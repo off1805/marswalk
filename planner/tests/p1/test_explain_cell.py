@@ -36,6 +36,7 @@ def _cell_xy(site, row: int, col: int) -> tuple[float, float]:
 # Cellule interdite
 # ---------------------------------------------------------------------------
 
+
 def test_explain_forbidden_returns_one_term(standard_settings: SafetySettings) -> None:
     """Cellule interdite → un seul terme 'forbidden'."""
     layers = make_layers(slope_val=25.0)
@@ -77,6 +78,7 @@ def test_explain_forbidden_obstacle(standard_settings: SafetySettings) -> None:
 # ---------------------------------------------------------------------------
 # Cellule non interdite
 # ---------------------------------------------------------------------------
+
 
 def test_explain_non_forbidden_has_time_risk_science(standard_settings: SafetySettings) -> None:
     """Cellule libre → termes time, risk, science."""
@@ -153,6 +155,7 @@ def test_explain_no_active_penalty_when_nominal(standard_settings: SafetySetting
 # Hors grille
 # ---------------------------------------------------------------------------
 
+
 def test_explain_out_of_bounds_returns_empty(standard_settings: SafetySettings) -> None:
     """Coordonnées hors grille → liste vide."""
     layers = make_layers()
@@ -166,6 +169,7 @@ def test_explain_out_of_bounds_returns_empty(standard_settings: SafetySettings) 
 # ---------------------------------------------------------------------------
 # Cohérence avec le site fictif
 # ---------------------------------------------------------------------------
+
 
 def test_explain_fictif_site_coherent(fictif_site, standard_settings: SafetySettings) -> None:
     """Sur le site fictif, explain_cell est cohérent sur 50 cellules finies."""
@@ -182,9 +186,7 @@ def test_explain_fictif_site_coherent(fictif_site, standard_settings: SafetySett
         y = f + e * (row + 0.5)
         terms = explain_cell(grid, float(x), float(y))
         actual = float(grid.cost[row, col])
-        reconstructed = max(
-            sum(t.value * t.weight for t in terms if t.name != "_debug"), 0.0
-        )
+        reconstructed = max(sum(t.value * t.weight for t in terms if t.name != "_debug"), 0.0)
         assert abs(reconstructed - actual) < 1e-2, (
             f"({row},{col}) reconstruit={reconstructed:.5f} réel={actual:.5f}"
         )

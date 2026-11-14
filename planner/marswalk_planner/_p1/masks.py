@@ -131,16 +131,12 @@ def build_masks(
     # ------------------------------------------------------------------
 
     # 1. Pente intermédiaire
-    slope_pen: BoolGrid = (
-        (layers.slope >= settings.penalty_slope_deg) & ~slope_forbidden
-    )
+    slope_pen: BoolGrid = (layers.slope >= settings.penalty_slope_deg) & ~slope_forbidden
 
     # 2. Sol meuble (classe avoid_loose_soil_class − 1 = meuble mais pas dune)
     soil_pen_class = settings.avoid_loose_soil_class - 1
     if soil_pen_class >= 1:
-        loose_pen: BoolGrid = (
-            (layers.loose_soil == float(soil_pen_class)) & ~dune_forbidden
-        )
+        loose_pen: BoolGrid = (layers.loose_soil == float(soil_pen_class)) & ~dune_forbidden
     else:
         loose_pen = np.zeros(shape, dtype=bool)
 
@@ -159,8 +155,8 @@ def build_masks(
     # 5. Rugosité excessive (pas obstacle, mais sol difficile)
     if layers.roughness is not None:
         roughness_pen: BoolGrid = (
-            (layers.roughness > settings.max_roughness_m) & ~obstacle_forbidden
-        )
+            layers.roughness > settings.max_roughness_m
+        ) & ~obstacle_forbidden
     else:
         roughness_pen = np.zeros(shape, dtype=bool)
 

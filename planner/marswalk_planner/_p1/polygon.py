@@ -45,50 +45,77 @@ _MIN_POLYGON_CELLS = 2
 _CAUSE_META: dict[str, dict] = {
     # --- interdits ---
     "slope_forbidden": {
-        "kind": "forbidden", "severity": "danger", "color": "#d62728",
+        "kind": "forbidden",
+        "severity": "danger",
+        "color": "#d62728",
         "label": "Pente excessive",
-        "threshold_key": "max_slope_deg", "unit": "deg",
+        "threshold_key": "max_slope_deg",
+        "unit": "deg",
     },
     "obstacle": {
-        "kind": "forbidden", "severity": "danger", "color": "#d62728",
+        "kind": "forbidden",
+        "severity": "danger",
+        "color": "#d62728",
         "label": "Obstacle",
-        "threshold_key": "obstacle_buffer_m", "unit": "m",
+        "threshold_key": "obstacle_buffer_m",
+        "unit": "m",
     },
     "dune": {
-        "kind": "forbidden", "severity": "danger", "color": "#9467bd",
+        "kind": "forbidden",
+        "severity": "danger",
+        "color": "#9467bd",
         "label": "Dune active",
-        "threshold_key": "avoid_loose_soil_class", "unit": "class",
+        "threshold_key": "avoid_loose_soil_class",
+        "unit": "class",
     },
     "scarp": {
-        "kind": "forbidden", "severity": "danger", "color": "#e377c2",
+        "kind": "forbidden",
+        "severity": "danger",
+        "color": "#e377c2",
         "label": "Bord de falaise (tampon)",
-        "threshold_key": "scarp_buffer_m", "unit": "m",
+        "threshold_key": "scarp_buffer_m",
+        "unit": "m",
     },
     # --- pénalisés ---
     "slope_penalized": {
-        "kind": "penalized", "severity": "caution", "color": "#ff7f0e",
+        "kind": "penalized",
+        "severity": "caution",
+        "color": "#ff7f0e",
         "label": "Pente modérée",
-        "threshold_key": "penalty_slope_deg", "unit": "deg",
+        "threshold_key": "penalty_slope_deg",
+        "unit": "deg",
     },
     "loose_soil": {
-        "kind": "penalized", "severity": "caution", "color": "#bcbd22",
+        "kind": "penalized",
+        "severity": "caution",
+        "color": "#bcbd22",
         "label": "Sol meuble",
-        "threshold_key": "avoid_loose_soil_class", "unit": "class",
+        "threshold_key": "avoid_loose_soil_class",
+        "unit": "class",
     },
     "no_radio": {
-        "kind": "penalized", "severity": "caution", "color": "#17becf",
+        "kind": "penalized",
+        "severity": "caution",
+        "color": "#17becf",
         "label": "Hors couverture radio",
-        "threshold_key": "radio_penalty", "unit": "",
+        "threshold_key": "radio_penalty",
+        "unit": "",
     },
     "shadow": {
-        "kind": "penalized", "severity": "caution", "color": "#7f7f7f",
+        "kind": "penalized",
+        "severity": "caution",
+        "color": "#7f7f7f",
         "label": "Zone ombragée",
-        "threshold_key": "min_illumination", "unit": "",
+        "threshold_key": "min_illumination",
+        "unit": "",
     },
     "roughness": {
-        "kind": "penalized", "severity": "caution", "color": "#8c564b",
+        "kind": "penalized",
+        "severity": "caution",
+        "color": "#8c564b",
         "label": "Rugosité élevée",
-        "threshold_key": "max_roughness_m", "unit": "m",
+        "threshold_key": "max_roughness_m",
+        "unit": "m",
     },
 }
 
@@ -160,19 +187,21 @@ def build_hazard_polygons(
                 continue
 
             rings = _rings_to_lonlat(coords, site)
-            features.append(Feature(
-                id=f"{cause_key}-{feature_id}",
-                geometry=PolygonGeometry(coordinates=rings),
-                properties={
-                    "kind": kind,
-                    "cause": cause_key,
-                    "severity": severity,
-                    "label": meta["label"],
-                    "color": meta["color"],
-                    "threshold": threshold_val,
-                    "unit": meta["unit"],
-                },
-            ))
+            features.append(
+                Feature(
+                    id=f"{cause_key}-{feature_id}",
+                    geometry=PolygonGeometry(coordinates=rings),
+                    properties={
+                        "kind": kind,
+                        "cause": cause_key,
+                        "severity": severity,
+                        "label": meta["label"],
+                        "color": meta["color"],
+                        "threshold": threshold_val,
+                        "unit": meta["unit"],
+                    },
+                )
+            )
             feature_id += 1
 
     return FeatureCollection(features=features)

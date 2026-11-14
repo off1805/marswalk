@@ -20,6 +20,7 @@ from .conftest import make_layers, make_site
 # Couverture radio
 # ---------------------------------------------------------------------------
 
+
 def test_no_radio_penalized_not_forbidden(standard_settings: SafetySettings) -> None:
     """L'absence de couverture radio pénalise mais n'interdit pas."""
     layers = make_layers(radio=0.0)
@@ -73,6 +74,7 @@ def test_require_radio_still_not_forbidden(standard_settings: SafetySettings) ->
 # Ombres / illumination
 # ---------------------------------------------------------------------------
 
+
 def test_shadow_penalized(standard_settings: SafetySettings) -> None:
     """Zone à illumination 0 est pénalisée quand min_illumination=0."""
     layers = make_layers(illumination=0.0)
@@ -99,7 +101,7 @@ def test_shadow_threshold_configurable() -> None:
     layers = make_layers(illumination=0.3)
     site, _ = make_site(layers)
 
-    settings_low = SafetySettings(min_illumination=0.1)   # 0.3 > 0.1 → pas pénalisé
+    settings_low = SafetySettings(min_illumination=0.1)  # 0.3 > 0.1 → pas pénalisé
     settings_high = SafetySettings(min_illumination=0.5)  # 0.3 ≤ 0.5 → pénalisé
 
     masks_low = hazard_masks(site, settings_low)
@@ -112,6 +114,7 @@ def test_shadow_threshold_configurable() -> None:
 # ---------------------------------------------------------------------------
 # Sol meuble (classe 2)
 # ---------------------------------------------------------------------------
+
 
 def test_loose_soil_class2_penalized(standard_settings: SafetySettings) -> None:
     """Classe 2 (sol meuble) est pénalisée mais pas interdite."""
@@ -137,6 +140,7 @@ def test_loose_soil_class3_forbidden(standard_settings: SafetySettings) -> None:
 # Rugosité
 # ---------------------------------------------------------------------------
 
+
 def test_roughness_above_threshold_penalized(standard_settings: SafetySettings) -> None:
     """Rugosité > max_roughness_m est pénalisée."""
     layers = make_layers()
@@ -161,6 +165,7 @@ def test_roughness_below_threshold_no_penalty(standard_settings: SafetySettings)
 # ---------------------------------------------------------------------------
 # Polygones des zones pénalisées
 # ---------------------------------------------------------------------------
+
 
 def test_penalized_polygons_are_caution(standard_settings: SafetySettings) -> None:
     """Les polygones pénalisés ont severity='caution'."""

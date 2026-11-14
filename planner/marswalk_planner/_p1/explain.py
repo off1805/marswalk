@@ -102,15 +102,17 @@ def explain_cell(cost_grid: CostGrid, x: float, y: float) -> list[CostTerm]:
     s_val = float(s_arr[row, col]) if s_arr is not None else 0.0
 
     # --- terme temporel --------------------------------------------------
-    terms.append(CostTerm(
-        name="time",
-        value=t_val,
-        weight=w_t,
-        reason=(
-            f"temps de traversée {t_val:.2f} s "
-            f"(Tobler 0,38 g × facteur sol) → contribution {w_t * t_val:.3f}"
-        ),
-    ))
+    terms.append(
+        CostTerm(
+            name="time",
+            value=t_val,
+            weight=w_t,
+            reason=(
+                f"temps de traversée {t_val:.2f} s "
+                f"(Tobler 0,38 g × facteur sol) → contribution {w_t * t_val:.3f}"
+            ),
+        )
+    )
 
     # --- terme de risque -------------------------------------------------
     pen_active: list[str] = []
@@ -120,8 +122,7 @@ def explain_cell(cost_grid: CostGrid, x: float, y: float) -> list[CostTerm]:
             pen_active.append(label)
 
     risk_reason = (
-        f"R={r_val:.3f} [{', '.join(pen_active)}]"
-        f" → contribution {w_r * r_val:.3f}"
+        f"R={r_val:.3f} [{', '.join(pen_active)}] → contribution {w_r * r_val:.3f}"
         if pen_active
         else f"R={r_val:.3f} (aucune pénalité active) → contribution {w_r * r_val:.3f}"
     )
@@ -129,9 +130,7 @@ def explain_cell(cost_grid: CostGrid, x: float, y: float) -> list[CostTerm]:
 
     # --- terme scientifique (réduction) ----------------------------------
     if s_val > 0.0:
-        sci_reason = (
-            f"S={s_val:.2f} (minéralogie CRISM) → réduction −{w_s * s_val:.3f}"
-        )
+        sci_reason = f"S={s_val:.2f} (minéralogie CRISM) → réduction −{w_s * s_val:.3f}"
     else:
         sci_reason = "S=0 (aucune signature minéralogique détectée)"
     terms.append(CostTerm(name="science", value=s_val, weight=-w_s, reason=sci_reason))

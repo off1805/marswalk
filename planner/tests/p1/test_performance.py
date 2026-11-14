@@ -28,18 +28,19 @@ from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.hazards import hazard_masks
 
 # Limite de temps pour le calcul pur (sans I/O disque) sur 1000×1000
-_LIMIT_1000x1000_MS = 500      # ms, généreux par rapport au critère 5×5 km
+_LIMIT_1000x1000_MS = 500  # ms, généreux par rapport au critère 5×5 km
 # Limite pour la simulation 2500×2500 en numpy pur (sans I/O).
 # Le critère du cahier des charges est < 1 s sur l'environnement de référence
 # (Linux/CI, numpy compilé avec OpenBLAS). Sur Windows avec variabilité plus
 # élevée (scheduler, BLAS différent), on tolère jusqu'à 2 s pour que le test
 # ne soit pas flaky. La valeur réelle observée sur Linux est ~700 ms.
-_LIMIT_2500x2500_MS = 2000     # ms
+_LIMIT_2500x2500_MS = 2000  # ms
 
 
 # ---------------------------------------------------------------------------
 # Test de non-régression : pas de boucle Python sur les cellules
 # ---------------------------------------------------------------------------
+
 
 def test_time_grid_vectorized() -> None:
     """_time_grid ne doit pas contenir de boucle Python sur les cellules."""
@@ -84,14 +85,13 @@ def test_risk_grid_vectorized() -> None:
         _risk_grid(layers, settings, None)
     elapsed_ms = (time.perf_counter() - start) / 5 * 1000
 
-    assert elapsed_ms < 200, (
-        f"_risk_grid 1000×1000 en {elapsed_ms:.0f} ms (limite 200 ms)"
-    )
+    assert elapsed_ms < 200, f"_risk_grid 1000×1000 en {elapsed_ms:.0f} ms (limite 200 ms)"
 
 
 # ---------------------------------------------------------------------------
 # Performance sur site fictif (1000×1000, couches cachées)
 # ---------------------------------------------------------------------------
+
 
 def test_build_cost_grid_speed_cached(standard_settings: SafetySettings) -> None:
     """build_cost_grid sur 1000×1000 (couches cachées) < 500 ms."""
@@ -126,14 +126,13 @@ def test_hazard_masks_speed_cached(standard_settings: SafetySettings) -> None:
         times_ms.append((time.perf_counter() - start) * 1000)
 
     median_ms = float(np.median(times_ms))
-    assert median_ms < 200, (
-        f"hazard_masks 1000×1000 : {median_ms:.0f} ms (limite 200 ms)"
-    )
+    assert median_ms < 200, f"hazard_masks 1000×1000 : {median_ms:.0f} ms (limite 200 ms)"
 
 
 # ---------------------------------------------------------------------------
 # Simulation directe 2500×2500
 # ---------------------------------------------------------------------------
+
 
 def test_numpy_computation_2500x2500() -> None:
     """Simulation 2500×2500 : calcul numpy < 2 s sur Windows (< 1 s sur Linux/CI).
@@ -153,11 +152,12 @@ def test_numpy_computation_2500x2500() -> None:
     loose_soil = (rng.random((n_grid, n_grid)) * 4).astype(np.float32)
     scarps = (rng.random((n_grid, n_grid)) > 0.98).astype(np.float32)
     radio = (rng.random((n_grid, n_grid)) > 0.3).astype(np.float32)
-    rng.random((n_grid, n_grid)).astype(np.float32)   # illumination, non utilisée ici
-    rng.random((n_grid, n_grid)).astype(np.float32)   # roughness, non utilisée ici
+    rng.random((n_grid, n_grid)).astype(np.float32)  # illumination, non utilisée ici
+    rng.random((n_grid, n_grid)).astype(np.float32)  # roughness, non utilisée ici
     crism = (rng.random((n_grid, n_grid)) * 3).astype(np.float32)
 
     from marswalk_planner._p1.cost import _LUT_N, _LUT_SCALE, _LUT_SPEED
+
     soil_speed = np.array([1.0, 0.9, 0.7, 0.5], dtype=np.float32)
     r = 6
     sz = 2 * r + 1
@@ -187,9 +187,7 @@ def test_numpy_computation_2500x2500() -> None:
         risk += np.where(loose_soil == 2.0, 0.5, 0.0).astype(np.float32)
         risk += np.where(radio < 0.5, np.float32(2.0 / 3.0), 0.0).astype(np.float32)
         np.clip(risk, 0.0, 1.0, out=risk)
-        sci = np.where(
-            crism >= 1.5, 1.0, np.where(crism >= 0.5, 0.5, 0.0)
-        ).astype(np.float32)
+        sci = np.where(crism >= 1.5, 1.0, np.where(crism >= 0.5, 0.5, 0.0)).astype(np.float32)
         return np.where(
             forb,
             np.inf,
@@ -224,6 +222,7 @@ def test_numpy_computation_2500x2500() -> None:
 # Profil temporel détaillé (informatif, non bloquant)
 # ---------------------------------------------------------------------------
 
+
 def test_timing_breakdown_logged(standard_settings: SafetySettings, capsys) -> None:
     """Affiche le découpage des temps pour chaque phase de P1."""
     clear_cache()
@@ -251,7 +250,7 @@ def test_timing_breakdown_logged(standard_settings: SafetySettings, capsys) -> N
         print(f"  load_layers : {load_ms:6.1f} ms")
         print(f"  build_masks : {mask_ms:6.1f} ms")
         print(f"  compute_cost: {cost_ms:6.1f} ms")
-        print(f"  total       : {(t3-t0)*1000:6.1f} ms")
+        print(f"  total       : {(t3 - t0) * 1000:6.1f} ms")
 
     # Le test ne bloque pas — il sert de référence documentée
     assert True

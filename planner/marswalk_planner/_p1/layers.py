@@ -119,8 +119,7 @@ def load_layers(site: Site) -> LayerBundle:
     slope_raw = _read_or_none(site, "slope", warn)
     if slope_raw is None:
         warn.append(
-            "Couche 'slope' absente : toutes les cases sont traitées comme "
-            "à 90° (tout interdit)."
+            "Couche 'slope' absente : toutes les cases sont traitées comme à 90° (tout interdit)."
         )
         slope = np.full(site.shape, 90.0, dtype=np.float32)
         degraded.append("slope")

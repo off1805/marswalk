@@ -21,6 +21,7 @@ from .conftest import make_layers, make_site
 # Cohérence masques ↔ grille de coût
 # ---------------------------------------------------------------------------
 
+
 def test_grid_forbidden_matches_masks_forbidden(standard_settings: SafetySettings) -> None:
     """grid.forbidden == hazard_masks.forbidden (même calcul, appel séparé)."""
     layers = make_layers(slope_val=15.0, has_obstacle=True)
@@ -31,8 +32,9 @@ def test_grid_forbidden_matches_masks_forbidden(standard_settings: SafetySetting
     grid = build_cost_grid(site, standard_settings)
 
     np.testing.assert_array_equal(
-        grid.forbidden, masks.forbidden,
-        err_msg="grid.forbidden et hazard_masks.forbidden doivent être identiques"
+        grid.forbidden,
+        masks.forbidden,
+        err_msg="grid.forbidden et hazard_masks.forbidden doivent être identiques",
     )
 
 
@@ -61,6 +63,7 @@ def test_penalized_cells_not_inf(standard_settings: SafetySettings) -> None:
 # Cohérence masques ↔ polygones
 # ---------------------------------------------------------------------------
 
+
 def test_polygons_causes_match_masks_causes(standard_settings: SafetySettings) -> None:
     """Les causes des polygones sont un sous-ensemble des causes des masques actives."""
     layers = make_layers(has_obstacle=True, has_dune=True)
@@ -69,9 +72,7 @@ def test_polygons_causes_match_masks_causes(standard_settings: SafetySettings) -
     masks = hazard_masks(site, standard_settings)
     polys = hazard_polygons(site, standard_settings)
 
-    active_causes = {
-        cause for cause, arr in masks.by_cause.items() if arr.any()
-    }
+    active_causes = {cause for cause, arr in masks.by_cause.items() if arr.any()}
     poly_causes = {f.properties["cause"] for f in polys.features}
 
     # Les causes des polygones doivent être dans les causes actives des masques
@@ -85,6 +86,7 @@ def test_polygons_present_for_active_causes(standard_settings: SafetySettings) -
     """Chaque cause active a au moins un polygone (sur une grille de taille suffisante)."""
     # On utilise le site fictif qui a toutes les couches
     from marswalk_core.site_package import load_site
+
     site = load_site("fictif")
 
     masks = hazard_masks(site, standard_settings)
@@ -92,7 +94,8 @@ def test_polygons_present_for_active_causes(standard_settings: SafetySettings) -
     poly_causes = {f.properties["cause"] for f in polys.features}
 
     active_causes = {
-        cause for cause, arr in masks.by_cause.items()
+        cause
+        for cause, arr in masks.by_cause.items()
         if arr.sum() >= 25  # au moins 25 cases pour générer un polygone visible
     }
 
@@ -105,6 +108,7 @@ def test_polygons_present_for_active_causes(standard_settings: SafetySettings) -
 # ---------------------------------------------------------------------------
 # Effet d'un changement de seuil sur les trois objets simultanément
 # ---------------------------------------------------------------------------
+
 
 def test_threshold_change_affects_masks_polygons_grid() -> None:
     """Modifier max_slope_deg change masques, polygones ET grille conjointement."""
@@ -127,8 +131,11 @@ def test_threshold_change_affects_masks_polygons_grid() -> None:
     forbidden_poly_15 = [f for f in polys_15.features if f.properties["kind"] == "forbidden"]
     assert len(forbidden_poly_15) > 0, "Aucun polygone forbidden avec seuil 15°"
     # Avec seuil 20°, la zone est pénalisée (pas interdite) → polygon kind=penalized
-    forbidden_poly_20 = [f for f in polys_20.features if f.properties["kind"] == "forbidden"
-                         and f.properties["cause"] == "slope_forbidden"]
+    forbidden_poly_20 = [
+        f
+        for f in polys_20.features
+        if f.properties["kind"] == "forbidden" and f.properties["cause"] == "slope_forbidden"
+    ]
     assert len(forbidden_poly_20) == 0, "Polygone slope_forbidden trouvé avec seuil 20° (pente=18°)"
 
     # Grille
@@ -162,12 +169,14 @@ def test_scarp_buffer_change_affects_all() -> None:
 # Préréglages standard vs prudent
 # ---------------------------------------------------------------------------
 
+
 def test_prudent_more_restrictive_than_standard(
     standard_settings: SafetySettings,
     prudent_settings: SafetySettings,
 ) -> None:
     """Le préréglage 'prudent' interdit plus de zones que 'standard'."""
     from marswalk_core.site_package import load_site
+
     site = load_site("fictif")
 
     masks_std = hazard_masks(site, standard_settings)
@@ -189,6 +198,7 @@ def test_prudent_more_restrictive_than_standard(
 # ---------------------------------------------------------------------------
 # by_cause ↔ forbidden/penalized union
 # ---------------------------------------------------------------------------
+
 
 def test_forbidden_is_union_of_forbidden_causes(standard_settings: SafetySettings) -> None:
     """masks.forbidden == union de toutes les causes forbidden dans by_cause."""

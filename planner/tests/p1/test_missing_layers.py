@@ -27,6 +27,7 @@ from .conftest import GRID_SIZE, make_layers, make_site
 # Couche slope absente
 # ---------------------------------------------------------------------------
 
+
 def test_missing_slope_no_crash(standard_settings: SafetySettings) -> None:
     """Slope absente → pas d'exception."""
     layers = make_layers()
@@ -66,6 +67,7 @@ def test_missing_slope_increases_margin(standard_settings: SafetySettings) -> No
 # ---------------------------------------------------------------------------
 # thermal_inertia absente
 # ---------------------------------------------------------------------------
+
 
 def test_missing_thermal_inertia_no_crash(standard_settings: SafetySettings) -> None:
     """thermal_inertia absente ne provoque pas d'exception."""
@@ -116,6 +118,7 @@ def test_missing_thermal_inertia_does_not_make_dunes_safe(
 # loose_soil absente
 # ---------------------------------------------------------------------------
 
+
 def test_missing_loose_soil_worst_case(standard_settings: SafetySettings) -> None:
     """loose_soil absent → tout traité comme classe 3 (dune, pire cas)."""
     layers = make_layers()
@@ -144,6 +147,7 @@ def test_missing_loose_soil_emits_warning(standard_settings: SafetySettings) -> 
 # obstacles absente
 # ---------------------------------------------------------------------------
 
+
 def test_missing_obstacles_worst_case(standard_settings: SafetySettings) -> None:
     """obstacles absente → tout obstrué (pire cas)."""
     layers = make_layers()
@@ -158,6 +162,7 @@ def test_missing_obstacles_worst_case(standard_settings: SafetySettings) -> None
 # ---------------------------------------------------------------------------
 # Couches secondaires absentes (ne plantent pas, pénalité simplement absente)
 # ---------------------------------------------------------------------------
+
 
 def test_missing_radio_coverage_no_crash(standard_settings: SafetySettings) -> None:
     """radio_coverage absente → pas d'exception, pénalité radio ignorée."""
@@ -197,6 +202,7 @@ def test_missing_crism_no_crash_no_science_bonus(standard_settings: SafetySettin
 # ---------------------------------------------------------------------------
 # Couche dégradée
 # ---------------------------------------------------------------------------
+
 
 def test_degraded_layer_emits_warning(standard_settings: SafetySettings) -> None:
     """Une couche dégradée émet un avertissement."""

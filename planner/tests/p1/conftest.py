@@ -34,15 +34,16 @@ NODATA = -9999.0
 _DEFAULT_SOURCE = LayerSource(instrument="SYNTHETIC", mission="test", product_id="TEST")
 
 RESOLUTION = 2.0  # mètres
-GRID_SIZE = 100   # 100 × 100 = 200 m × 200 m (petit pour rapidité)
+GRID_SIZE = 100  # 100 × 100 = 200 m × 200 m (petit pour rapidité)
 
 
 def _write_cog(root: Path, name: str, data: np.ndarray) -> None:
     """Écrit un GeoTIFF simple (un seul band float32) dans ``root/cog/``."""
     cog_dir = root / "cog"
     cog_dir.mkdir(exist_ok=True)
-    transform = Affine(RESOLUTION, 0.0, -GRID_SIZE * RESOLUTION / 2,
-                       0.0, -RESOLUTION, GRID_SIZE * RESOLUTION / 2)
+    transform = Affine(
+        RESOLUTION, 0.0, -GRID_SIZE * RESOLUTION / 2, 0.0, -RESOLUTION, GRID_SIZE * RESOLUTION / 2
+    )
     path = cog_dir / f"{name}.tif"
     with rasterio.open(
         path,
@@ -104,22 +105,28 @@ def make_site(
 
     # Construire le manifeste
     transform_tup = (
-        resolution, 0.0, -grid_size * resolution / 2.0,
-        0.0, -resolution, grid_size * resolution / 2.0,
+        resolution,
+        0.0,
+        -grid_size * resolution / 2.0,
+        0.0,
+        -resolution,
+        grid_size * resolution / 2.0,
     )
 
     layer_infos: list[dict[str, Any]] = []
     for lid in list(layers.keys()) + missing:
         st = "missing" if lid in missing else ("degraded" if lid in degraded else "ok")
         cog = None if lid in missing else f"cog/{lid}.tif"
-        layer_infos.append({
-            "id": lid,
-            "title": lid,
-            "kind": "derived",
-            "source": {"instrument": "SYNTHETIC", "mission": "test", "product_id": "T"},
-            "cog": cog,
-            "status": st,
-        })
+        layer_infos.append(
+            {
+                "id": lid,
+                "title": lid,
+                "kind": "derived",
+                "source": {"instrument": "SYNTHETIC", "mission": "test", "product_id": "T"},
+                "cog": cog,
+                "status": st,
+            }
+        )
 
     manifest_data = {
         "schema_version": "1.0",
@@ -138,9 +145,7 @@ def make_site(
         "layers": layer_infos,
     }
 
-    (tmpdir / "manifest.json").write_text(
-        json.dumps(manifest_data), encoding="utf-8"
-    )
+    (tmpdir / "manifest.json").write_text(json.dumps(manifest_data), encoding="utf-8")
 
     manifest = SiteManifest.model_validate(manifest_data)
     return Site(tmpdir, manifest), tmpdir
@@ -149,6 +154,7 @@ def make_site(
 # ---------------------------------------------------------------------------
 # Couches synthétiques standard
 # ---------------------------------------------------------------------------
+
 
 def make_layers(
     grid_size: int = GRID_SIZE,
@@ -200,6 +206,7 @@ def make_layers(
 # Fixtures pytest
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="session")
 def fictif_site() -> Site:
     """Site fictif standard (2 km × 2 km, 1000 × 1000 cases à 2 m)."""
@@ -211,6 +218,7 @@ def fictif_site() -> Site:
 def standard_settings() -> SafetySettings:
     """Préréglage 'standard' de config/safety.yaml."""
     from marswalk_core.config import load_safety_settings
+
     return load_safety_settings("standard")
 
 
@@ -218,4 +226,5 @@ def standard_settings() -> SafetySettings:
 def prudent_settings() -> SafetySettings:
     """Préréglage 'prudent' de config/safety.yaml."""
     from marswalk_core.config import load_safety_settings
+
     return load_safety_settings("prudent")

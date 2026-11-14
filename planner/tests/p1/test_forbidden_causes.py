@@ -22,6 +22,7 @@ from .conftest import GRID_SIZE, make_layers, make_site
 # Obstacles
 # ---------------------------------------------------------------------------
 
+
 def test_obstacle_cells_forbidden(standard_settings: SafetySettings) -> None:
     """Les cases obstacles sont interdites."""
     layers = make_layers(has_obstacle=True)
@@ -66,6 +67,7 @@ def test_obstacle_polygon_present(standard_settings: SafetySettings) -> None:
 # ---------------------------------------------------------------------------
 # Dunes actives
 # ---------------------------------------------------------------------------
+
 
 def test_dune_cells_forbidden(standard_settings: SafetySettings) -> None:
     """Les cases loose_soil==3 (dunes) sont interdites."""
@@ -119,6 +121,7 @@ def test_dune_avoid_class_configurable() -> None:
 # ---------------------------------------------------------------------------
 # Tampon de falaise (scarp buffer)
 # ---------------------------------------------------------------------------
+
 
 def test_scarp_buffer_extends_forbidden_zone(standard_settings: SafetySettings) -> None:
     """La dilation du tampon étend la zone interdite au-delà de la ligne de falaise."""
@@ -176,6 +179,7 @@ def test_scarp_buffer_causes_no_passage(standard_settings: SafetySettings) -> No
 # ---------------------------------------------------------------------------
 # Polygones GeoJSON
 # ---------------------------------------------------------------------------
+
 
 def test_polygons_have_severity_field(standard_settings: SafetySettings) -> None:
     """Chaque polygone a les champs requis (severity, cause, kind, color)."""

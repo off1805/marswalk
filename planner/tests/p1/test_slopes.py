@@ -29,11 +29,11 @@ def _flat_site(slope_deg: float) -> tuple:
 @pytest.mark.parametrize(
     "slope_deg, expect_forbidden, expect_penalized",
     [
-        (9.0,  False, False),
+        (9.0, False, False),
         (10.0, False, True),
         (15.0, False, True),
-        (20.0, True,  False),
-        (21.0, True,  False),
+        (20.0, True, False),
+        (21.0, True, False),
     ],
 )
 def test_slope_classification(
@@ -158,9 +158,7 @@ def test_slope_changing_threshold_changes_cost_grid() -> None:
 
     inf_20 = int(np.isinf(grid_20.cost).sum())
     inf_15 = int(np.isinf(grid_15.cost).sum())
-    assert inf_15 > inf_20, (
-        f"Plus de cellules inf avec seuil 15° ({inf_15}) vs 20° ({inf_20})"
-    )
+    assert inf_15 > inf_20, f"Plus de cellules inf avec seuil 15° ({inf_15}) vs 20° ({inf_20})"
 
 
 def test_explain_cell_slope_forbidden(standard_settings: SafetySettings) -> None:

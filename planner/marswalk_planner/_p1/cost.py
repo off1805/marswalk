@@ -77,8 +77,7 @@ _LUT_N = 1800
 _LUT_ANGLES = np.linspace(0.0, 90.0, _LUT_N, dtype=np.float32)
 _LUT_NORM = float(np.exp(-_TOBLER_K * _TOBLER_OFFSET))
 _LUT_SPEED: FloatGrid = (
-    np.exp(-_TOBLER_K * np.abs(np.sin(np.radians(_LUT_ANGLES)) + _TOBLER_OFFSET))
-    / _LUT_NORM
+    np.exp(-_TOBLER_K * np.abs(np.sin(np.radians(_LUT_ANGLES)) + _TOBLER_OFFSET)) / _LUT_NORM
 ).astype(np.float32)
 _LUT_SCALE = np.float32((_LUT_N - 1) / 90.0)  # degrés → index LUT
 
@@ -102,9 +101,7 @@ def _time_grid(
     La LUT couvre 0–90° en 1800 pas (0,05°), précision suffisante par rapport à
     l'incertitude de mesure de la pente (±0,5° selon le manifeste).
     """
-    idx = np.clip(
-        (slope_deg * _LUT_SCALE).astype(np.int32), 0, _LUT_N - 1
-    )
+    idx = np.clip((slope_deg * _LUT_SCALE).astype(np.int32), 0, _LUT_N - 1)
     speed_factor = _LUT_SPEED[idx]  # (H, W) float32, vectorisé
 
     soil_cls = np.clip(loose_soil.astype(np.int32), 0, 3)
@@ -185,8 +182,7 @@ def _risk_grid(
     if conditions is not None:
         if conditions.dust_tau is not None and conditions.dust_tau > settings.max_dust_tau:
             excess_ratio = min(
-                (conditions.dust_tau - settings.max_dust_tau)
-                / max(settings.max_dust_tau, 0.1),
+                (conditions.dust_tau - settings.max_dust_tau) / max(settings.max_dust_tau, 0.1),
                 1.0,
             )
             risk += np.float32(excess_ratio * 0.3)
@@ -292,10 +288,7 @@ def compute_cost_grid(
             "_w_t": w_t,  # type: ignore[dict-item]
             "_w_r": w_r,  # type: ignore[dict-item]
             "_w_s": w_s,  # type: ignore[dict-item]
-            **{
-                f"cause_{k}": v.astype(np.float32)
-                for k, v in by_cause.items()
-            },
+            **{f"cause_{k}": v.astype(np.float32) for k, v in by_cause.items()},
         },
         warnings=extra_warnings,
         margin_pct=margin,

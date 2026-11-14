@@ -28,6 +28,7 @@ from .conftest import GRID_SIZE, make_layers, make_site
 # Forme et dtype
 # ---------------------------------------------------------------------------
 
+
 def test_cost_grid_shape(standard_settings: SafetySettings) -> None:
     """La grille a la forme (height, width) du site."""
     layers = make_layers()
@@ -64,6 +65,7 @@ def test_cost_grid_resolution_matches_site(standard_settings: SafetySettings) ->
 # ---------------------------------------------------------------------------
 # Cellules interdites
 # ---------------------------------------------------------------------------
+
 
 def test_forbidden_cells_are_inf(standard_settings: SafetySettings) -> None:
     """Toutes les cellules interdites ont coût +inf."""
@@ -102,6 +104,7 @@ def test_forbidden_cells_cannot_be_passages() -> None:
 # Cohérence de la formule
 # ---------------------------------------------------------------------------
 
+
 def test_formula_coherence_all_cells(standard_settings: SafetySettings) -> None:
     """C = max(w_t·t + w_r·R − w_s·S, 0) pour toutes les cellules finies."""
     layers = make_layers(slope_val=5.0)
@@ -119,8 +122,10 @@ def test_formula_coherence_all_cells(standard_settings: SafetySettings) -> None:
     expected = np.maximum(w_t * t_grid + w_r * r_grid - w_s * s_grid, 0.0)
     finite = ~grid.forbidden
     np.testing.assert_allclose(
-        grid.cost[finite], expected[finite], rtol=1e-4,
-        err_msg="La formule C = w_t·t + w_r·R − w_s·S n'est pas cohérente"
+        grid.cost[finite],
+        expected[finite],
+        rtol=1e-4,
+        err_msg="La formule C = w_t·t + w_r·R − w_s·S n'est pas cohérente",
     )
 
 
@@ -137,6 +142,7 @@ def test_cost_non_negative(standard_settings: SafetySettings) -> None:
 # ---------------------------------------------------------------------------
 # Effet des poids
 # ---------------------------------------------------------------------------
+
 
 def test_changing_time_weight_changes_cost() -> None:
     """Un poids temps plus élevé augmente le coût des cellules finies."""
@@ -195,6 +201,7 @@ def test_changing_risk_weight_changes_cost() -> None:
 # Conditions environnementales
 # ---------------------------------------------------------------------------
 
+
 def test_conditions_dust_increases_risk() -> None:
     """Poussière élevée (tau > max) augmente R."""
     layers = make_layers()
@@ -208,6 +215,7 @@ def test_conditions_dust_increases_risk() -> None:
     r_no = float(grid_no_dust.terms["risk"][0, 0])
     r_dust = float(grid_dust.terms["risk"][0, 0])
     assert r_dust > r_no, f"R avec poussière ({r_dust}) doit dépasser R sans ({r_no})"
+
 
 def test_conditions_dose_rate_increases_risk() -> None:
     """Débit de dose élevé augmente R."""
@@ -235,7 +243,7 @@ def test_conditions_nominal_no_effect() -> None:
 
     cond = Conditions(
         utc=datetime.datetime(2026, 11, 1),
-        dust_tau=1.0,       # < max_dust_tau
+        dust_tau=1.0,  # < max_dust_tau
         dose_rate_usv_h=50.0,  # < 1000/8 = 125
     )
     grid_no = build_cost_grid(site, settings)
@@ -248,6 +256,7 @@ def test_conditions_nominal_no_effect() -> None:
 # ---------------------------------------------------------------------------
 # Intérêt scientifique
 # ---------------------------------------------------------------------------
+
 
 def test_science_zero_when_no_crism() -> None:
     """S=0 quand CRISM est absent."""
@@ -279,6 +288,7 @@ def test_science_one_for_class2() -> None:
 # ---------------------------------------------------------------------------
 # Terms dict
 # ---------------------------------------------------------------------------
+
 
 def test_terms_contains_expected_keys(standard_settings: SafetySettings) -> None:
     """CostGrid.terms contient les composantes attendues."""

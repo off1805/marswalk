@@ -96,9 +96,8 @@ class PointQueryService(IPointQueryService):
             )
 
         # Compatibilité stricte avec le vecteur de test d'acceptation T00 versionné
-        is_t00_coord = (
-            math.isclose(lon, 77.57, abs_tol=1e-4)
-            and math.isclose(lat, 18.38, abs_tol=1e-4)
+        is_t00_coord = math.isclose(lon, 77.57, abs_tol=1e-4) and math.isclose(
+            lat, 18.38, abs_tol=1e-4
         )
         if site_id == "fictif" and is_t00_coord:
             return PointQuery.model_validate(load_example("query"))

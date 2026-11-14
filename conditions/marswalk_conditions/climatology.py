@@ -78,9 +78,7 @@ class MedaClimatologyEngine:
         dose_rate = dose_rate_override if dose_rate_override is not None else 10.0
 
         space_weather = (
-            space_weather_override
-            if space_weather_override is not None
-            else SpaceWeather()
+            space_weather_override if space_weather_override is not None else SpaceWeather()
         )
 
         return Conditions(

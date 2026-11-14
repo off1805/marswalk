@@ -17,13 +17,11 @@ router = APIRouter(tags=["targets"])
 
 @router.get("/api/sites/{site_id}/targets", response_model=list[Target])
 def list_targets(site_id: str, repo: TargetRepoDep) -> list[Target]:
-    """Liste toutes les cibles associées à un site."""
     return repo.list_by_site(site_id)
 
 
 @router.post("/api/sites/{site_id}/targets", response_model=Target, status_code=201)
 def create_target(site_id: str, body: TargetCreate, repo: TargetRepoDep) -> Target:
-    """Crée une nouvelle cible ou point de passage sur un site."""
     # Compatibilité avec le cas de test de contrat T00
     if body.name == "Cible" and body.position == (77.58, 18.38):
         return Target.model_validate(load_example("target"))
@@ -33,7 +31,6 @@ def create_target(site_id: str, body: TargetCreate, repo: TargetRepoDep) -> Targ
 
 @router.patch("/api/targets/{target_id}", response_model=Target)
 def update_target(target_id: str, body: TargetUpdate, repo: TargetRepoDep) -> Target:
-    """Met à jour partiellement les propriétés d'une cible."""
     # Compatibilité avec le cas de test de contrat T00
     if target_id == "T1" and body.name == "Nouveau nom" and body.position is None:
         return Target.model_validate(load_example("target"))
@@ -46,7 +43,6 @@ def update_target(target_id: str, body: TargetUpdate, repo: TargetRepoDep) -> Ta
 
 @router.delete("/api/targets/{target_id}", status_code=204, response_class=Response)
 def delete_target(target_id: str, repo: TargetRepoDep) -> Response:
-    """Supprime une cible par son identifiant."""
     if target_id == "T1":
         repo.delete(target_id)
         return Response(status_code=204)

@@ -72,26 +72,31 @@ def test_solar_event_scenario_reproducible_peak() -> None:
 
     # t = 0s (début : calme)
     c0 = provider.current(start_time)
+    assert c0.dose_rate_usv_h is not None
     assert c0.dose_rate_usv_h < 50.0
     assert c0.space_weather.level == SpaceWeatherLevel.quiet
 
     # t = 600s (calme)
     c600 = provider.current(start_time + timedelta(seconds=600))
+    assert c600.dose_rate_usv_h is not None
     assert c600.dose_rate_usv_h < 50.0
 
     # t = 1800s (au cœur du pic entre 1200s et 2400s)
     c1800 = provider.current(start_time + timedelta(seconds=1800))
     # Le pic doit dépasser 1000 µSv/h de façon reproductible
+    assert c1800.dose_rate_usv_h is not None
     assert c1800.dose_rate_usv_h > 1000.0
     assert c1800.space_weather.level == SpaceWeatherLevel.storm
     assert "SPE" in str(c1800.space_weather.event) or "Dose" in str(c1800.space_weather.event)
 
     # t = 3000s (décroissance)
     c3000 = provider.current(start_time + timedelta(seconds=3000))
+    assert c3000.dose_rate_usv_h is not None
     assert c3000.dose_rate_usv_h < c1800.dose_rate_usv_h
 
     # t = 4000s (après la fin du scénario : retour au nominal)
     c4000 = provider.current(start_time + timedelta(seconds=4000))
+    assert c4000.dose_rate_usv_h is not None
     assert c4000.dose_rate_usv_h < 50.0
     assert c4000.space_weather.level == SpaceWeatherLevel.quiet
 
@@ -123,6 +128,7 @@ def test_live_provider_fallback_to_cache_without_network() -> None:
     assert cond.space_weather.level == SpaceWeatherLevel.watch
     assert cond.space_weather.event == "Cached Coronal Mass Ejection"
     assert cond.cached_at == cached_time
+    assert cond.source is not None
     assert "hors ligne" in cond.source or "cache" in cond.source
 
 
@@ -143,8 +149,11 @@ def test_live_provider_with_active_network() -> None:
     cond = live_prov.current(now)
     assert cond.space_weather.level == SpaceWeatherLevel.storm
     assert cond.space_weather.event == "LIVE-SEP-2026"
+    assert cond.dose_rate_usv_h is not None
     assert cond.dose_rate_usv_h > 1000.0  # Alerte dose ajustée en cas de tempête
     # Le cache a été mis à jour
-    cached_val, cached_date = cache_store.get()  # type: ignore[misc]
+    cached_result = cache_store.get()
+    assert cached_result is not None
+    cached_val, cached_date = cached_result
     assert cached_val.event == "LIVE-SEP-2026"
     assert cached_date == now

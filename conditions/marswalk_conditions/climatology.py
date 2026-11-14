@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import math
 from datetime import UTC, datetime
+from typing import Literal
 
 from marswalk_core.marstime import mars_time
 from marswalk_core.schemas import Conditions, SpaceWeather
+
+ConditionsMode = Literal["historical", "scenario", "live", "constant"]
 
 # Coordonnées du cratère Jezero
 JEZERO_LON_EAST = 77.58
@@ -34,7 +37,7 @@ class MedaClimatologyEngine:
     def compute_conditions(
         self,
         utc: datetime,
-        mode: str = "historical",
+        mode: ConditionsMode = "historical",
         dose_rate_override: float | None = None,
         space_weather_override: SpaceWeather | None = None,
         source_note: str = "Climatologie MEDA Jezero",
@@ -85,7 +88,7 @@ class MedaClimatologyEngine:
             utc=utc,
             sol=mtime.sol,
             lmst=mtime.lmst,
-            mode=mode,  # type: ignore[arg-type]
+            mode=mode,
             temperature_c=round(temp_c, 1),
             pressure_pa=round(pressure_pa, 1),
             wind_mps=round(wind_mps, 1),

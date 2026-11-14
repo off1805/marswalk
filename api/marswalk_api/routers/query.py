@@ -18,12 +18,7 @@ router = APIRouter(tags=["sites"])
 def query_point(
     site_id: str,
     query_service: PointQueryDep,
-    lon: float = Query(ge=-180, le=180, description="Longitude planétocentrique est en degrés"),
-    lat: float = Query(ge=-90, le=90, description="Latitude planétocentrique en degrés"),
+    lon: float = Query(ge=-180, le=180),
+    lat: float = Query(ge=-90, le=90),
 ) -> PointQuery:
-    """Interroge la valeur de toutes les couches du site en un point (lon, lat).
-
-    Renvoie pour chaque couche sa valeur, son unité, sa source, son incertitude,
-    son statut et le temps de retour vers l'habitat le plus court.
-    """
     return query_service.query_point(site_id=site_id, lon=lon, lat=lat)

@@ -24,8 +24,8 @@ function PointValueItem({ value }: { value: PointValue }) {
         </div>
         <div className="text-[10px] text-[var(--text-muted)]">
           {value.source.instrument}
-          {value.uncertainty.coreg_m !== null && value.uncertainty.coreg_m !== undefined && (
-            <span> · Recalage ±{value.uncertainty.coreg_m}m</span>
+          {value.uncertainty?.coreg_m !== null && value.uncertainty?.coreg_m !== undefined && (
+            <span> · Recalage ±{value.uncertainty?.coreg_m}m</span>
           )}
         </div>
       </div>

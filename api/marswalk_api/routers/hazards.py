@@ -24,7 +24,8 @@ def get_hazards(
     hazard_service: HazardServiceDep,
     preset: str | None = None,
 ) -> FeatureCollection:
-    """Zones interdites et pénalisées selon les seuils courants en GeoJSON (règle R2)."""
+    """Zones interdites et pénalisées selon les seuils courants ; preset choisit une
+    entrée de config/safety.yaml."""
     # Compatibilité avec le cas de test de contrat T00
     if site_id == "fictif" and (preset is None or preset == "prudent"):
         return FeatureCollection.model_validate(load_example("hazards"))
@@ -34,7 +35,6 @@ def get_hazards(
 
 @router.get("/api/sites/{site_id}/settings", response_model=SafetySettings)
 def get_settings(site_id: str, settings_repo: SafetySettingsRepoDep) -> SafetySettings:
-    """Récupère les seuils de sécurité courants pour un site."""
     return settings_repo.get(site_id)
 
 
@@ -44,5 +44,4 @@ def put_settings(
     body: SafetySettings,
     settings_repo: SafetySettingsRepoDep,
 ) -> SafetySettings:
-    """Met à jour les seuils de sécurité et poids de coût pour un site."""
     return settings_repo.save(site_id, body)

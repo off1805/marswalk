@@ -22,15 +22,14 @@ MEDIA = {"webp": "image/webp", "png": "image/png"}
     responses={200: {"content": {"image/webp": {}, "image/png": {}}}, 404: {}},
 )
 def get_tile(
-    site_id: str,
     layer_id: str,
     z: int,
     x: int,
     y: int,
     ext: str,
+    site_id: str,
     tile_service: TileDep,
 ) -> FileResponse:
-    """Distribue les tuiles raster statiques WebP ou PNG avec en-tête de cache."""
     path = tile_service.get_tile(site_id=site_id, layer_id=layer_id, z=z, x=x, y=y, ext=ext)
     return FileResponse(
         path,

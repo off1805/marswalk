@@ -74,7 +74,6 @@ def test_every_task_has_paths() -> None:
         "F2",
         "F3",
         "F4",
-        "F5",
         "F6",
         "F7",
         "S1",
@@ -86,7 +85,6 @@ def test_every_task_has_paths() -> None:
         "L2",
         "X2",
         "X3",
-        "X4",
     }
     assert set(own.tasks) == expected
 

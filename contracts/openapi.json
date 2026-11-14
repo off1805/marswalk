@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Marswalk API",
-    "description": "Carte et planification de sorties sur Mars. Coordonnées en degrés planétocentriques est, Mars 2000 (IAU_2015:49900). Contrats : contrats-v1.",
+    "description": "Carte et planification de sorties sur Mars. Coordonnées en degrés planétocentriques est, Mars 2000 (IAU_2015:49900). Contrats : contrats-v2.",
     "version": "0.1.0"
   },
   "paths": {
@@ -2476,7 +2476,7 @@
           "contracts": {
             "type": "string",
             "title": "Contracts",
-            "default": "contrats-v1"
+            "default": "contrats-v2"
           },
           "database": {
             "type": "string",

@@ -1,4 +1,4 @@
-/** Les trois mises en page de la coquille, plus la vue 3D (taches-agents.md §8). */
+/** Mises en page de l'interface web : la carte et la vue 3D (taches-agents.md §8). */
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { MapView } from "./MapView";
@@ -24,10 +24,8 @@ function TopBar() {
       <span aria-label="État de l'API" className="text-sm text-[var(--text-muted)]">
         {apiOk ? "● API" : "○ API hors ligne"}
       </span>
-      <nav className="ml-auto flex gap-3" aria-label="Modes">
-        <Link to="/">Habitat</Link>
-        <Link to="/tablet">Tablette</Link>
-        <Link to="/hud">HUD</Link>
+      <nav className="ml-auto flex gap-3" aria-label="Vues">
+        <Link to="/">Carte</Link>
         <Link to="/3d">3D</Link>
       </nav>
       <span className="flex gap-1">
@@ -62,10 +60,10 @@ function Frame({ mode, children }: { mode: string; children: ReactNode }) {
   );
 }
 
-/** Grand écran de l'habitat : carte au centre, panneaux latéraux. */
-export function HabitatLayout({ mode = "habitat" }: { mode?: "habitat" | "tablet" }) {
+/** Interface web : carte au centre, panneaux latéraux et panneau du bas. */
+export function MapLayout() {
   return (
-    <Frame mode={mode}>
+    <Frame mode="map">
       <TopBar />
       <Slot name="top-banner" />
       <div className="flex min-h-0 flex-1">
@@ -76,41 +74,6 @@ export function HabitatLayout({ mode = "habitat" }: { mode?: "habitat" | "tablet
         <Slot name="right" className="flex w-96 flex-col gap-2 overflow-y-auto p-2" />
       </div>
       <Slot name="bottom" className="h-56 border-t border-[var(--border)]" />
-    </Frame>
-  );
-}
-
-/** Tablette : même contenu, cibles tactiles d'au moins 76 px (tokens.css). */
-export function TabletLayout() {
-  return <HabitatLayout mode="tablet" />;
-}
-
-/** HUD de visière : plein écran à fort contraste, cinq éléments au plus (ENF-08). */
-export function HudLayout() {
-  const widgets = registry
-    .flatMap((f) => f.hudWidgets)
-    .sort((a, b) => a.priority - b.priority)
-    .slice(0, 5);
-  const center = widgets.filter((w) => w.slot === "hud-center");
-  const corner = widgets.filter((w) => w.slot === "hud-corner");
-  return (
-    <Frame mode="hud">
-      <div className="relative flex flex-1 items-center justify-center">
-        <div data-slot="hud-center" className="flex flex-col items-center gap-4">
-          {center.map(({ id, component: C }) => (
-            <C key={id} />
-          ))}
-          {widgets.length === 0 && <p>HUD : aucun élément (F5)</p>}
-        </div>
-        <div data-slot="hud-corner" className="absolute right-4 top-4 flex flex-col gap-2">
-          {corner.map(({ id, component: C }) => (
-            <C key={id} />
-          ))}
-        </div>
-        <Link to="/" className="absolute bottom-4 left-4 text-base">
-          Quitter le HUD
-        </Link>
-      </div>
     </Frame>
   );
 }

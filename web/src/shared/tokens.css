@@ -16,7 +16,6 @@
   --color-route-safest: #009e73;
   --color-route-fastest: #0072b2;
   --color-route-science: #cc79a7;
-  --spacing-touch: 76px; /* 2 cm à 96 dpi : cible tactile minimale en mode tablette */
 }
 
 :root,
@@ -57,23 +56,6 @@ body,
   outline-offset: 2px;
 }
 
-/* Mode tablette : toutes les commandes font au moins 76 px (ENF-05). */
-[data-mode="tablet"] button,
-[data-mode="tablet"] [role="button"],
-[data-mode="tablet"] input,
-[data-mode="tablet"] select {
-  min-height: var(--spacing-touch);
-  min-width: var(--spacing-touch);
-  font-size: 1.25rem;
-}
-
-/* HUD : plein écran à fort contraste. */
-[data-mode="hud"] {
-  background: #000;
-  color: #fff;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
 
 .maplibregl-map {
   font-family: var(--font-sans);

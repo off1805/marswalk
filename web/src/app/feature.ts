@@ -1,5 +1,5 @@
 /**
- * Contrat d'une fonctionnalité du front (gelé avec contrats-v1, taches-agents.md §8).
+ * Contrat d'une fonctionnalité du front (gelé avec contrats-v2, taches-agents.md §8).
  * Chaque fonctionnalité exporte `feature` depuis features/<nom>/index.ts.
  */
 import type { Layer } from "@deck.gl/core";
@@ -15,8 +15,6 @@ export const SLOTS = [
   "bottom",
   "top-banner",
   "map-overlay",
-  "hud-center",
-  "hud-corner",
 ] as const;
 export type SlotName = (typeof SLOTS)[number];
 
@@ -49,15 +47,6 @@ export interface FeatureRoute {
   component: ComponentType;
 }
 
-/** Élément du HUD. La coquille n'en affiche jamais plus de cinq (ENF-08), par priorité. */
-export interface HudWidget {
-  id: string;
-  slot: "hud-center" | "hud-corner";
-  /** 1 = le plus important. */
-  priority: number;
-  component: ComponentType;
-}
-
 export interface Feature {
   id: string;
   panels: PanelSpec[];
@@ -66,12 +55,11 @@ export interface Feature {
   /** Sources MapLibre, fixes ou dépendantes du contexte. */
   mapSources?: MapSourceSpec[] | ((ctx: MapContext) => MapSourceSpec[]);
   routes: FeatureRoute[];
-  hudWidgets: HudWidget[];
   /** Appelé une fois au démarrage (par ex. service worker de F7). */
   setup?: () => void | Promise<void>;
 }
 
 /** Fonctionnalité vide, point de départ des modules créés par T00. */
 export function emptyFeature(id: string): Feature {
-  return { id, panels: [], routes: [], hudWidgets: [] };
+  return { id, panels: [], routes: [] };
 }

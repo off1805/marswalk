@@ -142,9 +142,6 @@ tasks:
   F4:
     title: Panneau sécurité et conditions
     paths: [web/src/features/safety/**]
-  F5:
-    title: HUD de visière
-    paths: [web/src/features/hud/**]
   F6:
     title: Vue 3D
     paths: [web/src/features/terrain3d/**]
@@ -205,6 +202,3 @@ tasks:
       - planner/marswalk_planner/team.py
       - planner/tests/x3/**
       - web/src/features/team/**
-  X4:
-    title: Démo WebXR (bonus)
-    paths: [web/src/features/xr/**]

@@ -20,7 +20,7 @@ from typing import Annotated, Any, Literal, NamedTuple
 
 from pydantic import BaseModel, ConfigDict, Field
 
-CONTRACTS_VERSION = "contrats-v1"
+CONTRACTS_VERSION = "contrats-v2"
 SCHEMA_VERSION = "1.0"
 
 MARS_2000_RADIUS_M = 3_396_190.0

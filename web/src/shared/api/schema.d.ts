@@ -882,7 +882,7 @@ export interface components {
             version: string;
             /**
              * Contracts
-             * @default contrats-v1
+             * @default contrats-v2
              */
             contracts: string;
             /**

@@ -5,7 +5,7 @@ import { registry } from "./registry";
 describe("registre des fonctionnalités", () => {
   it("liste toutes les fonctionnalités prévues par les contrats", () => {
     expect(registry.map((f) => f.id).sort()).toEqual(
-      ["export", "ground-images", "hud", "map", "offline", "profile", "safety", "targets", "terrain3d"].sort(),
+      ["export", "ground-images", "map", "offline", "profile", "safety", "targets", "terrain3d"].sort(),
     );
   });
 

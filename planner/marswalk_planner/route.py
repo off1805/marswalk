@@ -174,6 +174,18 @@ def plan_route(
             # Éviter la duplication du point de jonction
             all_coords.extend(segment_coords[1:])
 
+        # Récupérer le coût depuis le cache
+        seg_key = _cache.segment_key(
+            cost_grid,
+            LonLat(*waypoints[i]),
+            LonLat(*waypoints[i + 1]),
+            options.window_margin_m,
+            variant_name,
+        )
+        cached_seg = _cache.get(seg_key)
+        if cached_seg is not None:
+            total_cost += cached_seg.cost
+
     return RouteGeometry(
         coordinates=all_coords,
         segment_breaks=segment_breaks,

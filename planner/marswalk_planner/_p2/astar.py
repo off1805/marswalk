@@ -137,14 +137,24 @@ def _build_graph_vectorized(cost_flat: np.ndarray, h: int, w: int) -> csr_matrix
 def _get_or_build_graph(cost: FloatGrid) -> csr_matrix:
     """Retourne le graphe CSR de la grille, depuis le cache ou en le construisant.
 
-    Clé de cache : id de l'objet numpy + data_ptr + shape (robuste aux vues).
+    Clé de cache : adresse mémoire + shape + strides + hash d'une empreinte
+    légère du contenu (coins + nombre de cellules interdites). Robuste aux
+    réutilisations d'adresses mémoire après gc.
     """
-    # Clé qui identifie de manière unique ce tableau numpy
-    cache_key = (id(cost), cost.ctypes.data, cost.shape, cost.strides)
+    h, w = cost.shape
+    # Empreinte légère du contenu
+    corners = cost[0, 0], cost[0, -1], cost[-1, 0], cost[-1, -1]
+    n_forbidden = int(np.sum(np.isinf(cost)))
+    cache_key = (
+        cost.ctypes.data,
+        cost.shape,
+        cost.strides,
+        tuple(0.0 if np.isinf(v) else round(float(v), 4) for v in corners),
+        n_forbidden,
+    )
     with _GRAPH_LOCK:
         if cache_key in _GRAPH_CACHE:
             return _GRAPH_CACHE[cache_key]
-        h, w = cost.shape
         cost_flat = cost.ravel().astype(np.float64)
         graph = _build_graph_vectorized(cost_flat, h, w)
         _GRAPH_CACHE[cache_key] = graph

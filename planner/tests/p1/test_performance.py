@@ -18,6 +18,7 @@ from __future__ import annotations
 import time
 
 import numpy as np
+import pytest
 
 from marswalk_core.schemas import SafetySettings
 from marswalk_core.site_package import clear_cache, load_site
@@ -143,7 +144,7 @@ def test_numpy_computation_2500x2500() -> None:
     de la section H du cahier des charges (< 1 s sur l'environnement de référence
     Linux/CI ; la limite élargie à 2 s absorbe la variabilité Windows).
     """
-    from scipy.ndimage import maximum_filter1d
+    from scipy.ndimage import maximum_filter1d  # type: ignore[import-untyped]
 
     rng = np.random.default_rng(42)
     n_grid = 2500
@@ -223,7 +224,7 @@ def test_numpy_computation_2500x2500() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_timing_breakdown_logged(standard_settings: SafetySettings, capsys) -> None:
+def test_timing_breakdown_logged(standard_settings: SafetySettings, capsys: pytest.CaptureFixture[str]) -> None:
     """Affiche le découpage des temps pour chaque phase de P1."""
     clear_cache()
     site = load_site("fictif")

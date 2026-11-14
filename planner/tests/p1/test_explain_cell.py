@@ -16,15 +16,17 @@ import pytest
 from marswalk_core.schemas import SafetySettings
 from marswalk_planner.cost import build_cost_grid, explain_cell
 
+from marswalk_core.site_package import Site
+
 from .conftest import GRID_SIZE, make_layers, make_site
 
 
-def _center_xy(site) -> tuple[float, float]:
+def _center_xy(site: Site) -> tuple[float, float]:
     """Coordonnées du centre de la grille en mètres."""
     return 0.0, 0.0
 
 
-def _cell_xy(site, row: int, col: int) -> tuple[float, float]:
+def _cell_xy(site: Site, row: int, col: int) -> tuple[float, float]:
     """Coordonnées du centre de la cellule (row, col) en mètres."""
     a, _b, cx, _d, e, f = site.transform
     x = cx + a * (col + 0.5)
@@ -171,7 +173,7 @@ def test_explain_out_of_bounds_returns_empty(standard_settings: SafetySettings) 
 # ---------------------------------------------------------------------------
 
 
-def test_explain_fictif_site_coherent(fictif_site, standard_settings: SafetySettings) -> None:
+def test_explain_fictif_site_coherent(fictif_site: Site, standard_settings: SafetySettings) -> None:
     """Sur le site fictif, explain_cell est cohérent sur 50 cellules finies."""
     grid = build_cost_grid(fictif_site, standard_settings)
     fin_idx = np.argwhere(np.isfinite(grid.cost))

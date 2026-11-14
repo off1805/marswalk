@@ -108,7 +108,7 @@ def _time_grid(
     soil_factor = _SOIL_SPEED_FACTOR[soil_cls]
 
     speed = np.maximum(speed_factor * soil_factor, np.float32(1e-6))
-    return (np.float32(resolution_m) / speed).astype(np.float32)
+    return (np.float32(resolution_m) / speed).astype(np.float32)  # type: ignore[no-any-return]
 
 
 # ---------------------------------------------------------------------------
@@ -214,12 +214,10 @@ def _science_grid(layers: LayerBundle) -> FloatGrid:
         return np.zeros(layers.slope.shape, dtype=np.float32)
 
     crism = layers.crism_minerals
-    sci = np.zeros(crism.shape, dtype=np.float32)
-    sci = np.where(crism >= 1.5, 1.0, sci)
-    sci = np.where((crism >= 0.5) & (crism < 1.5), 0.5, sci)
-    return sci.astype(np.float32)
-
-
+    sci: FloatGrid = np.zeros(crism.shape, dtype=np.float32)
+    sci = np.where(crism >= 1.5, np.float32(1.0), sci).astype(np.float32)
+    sci = np.where((crism >= 0.5) & (crism < 1.5), np.float32(0.5), sci).astype(np.float32)
+    return sci
 # ---------------------------------------------------------------------------
 # Assemblage de la grille de coût
 # ---------------------------------------------------------------------------

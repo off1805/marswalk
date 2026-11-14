@@ -21,6 +21,8 @@ Ces clés sont écrites par ``_p1.cost.compute_cost_grid`` et lues ici.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import numpy as np
 
 from marswalk_core.grids import CostGrid, CostTerm
@@ -41,12 +43,14 @@ _PENALIZED_CAUSE_LABELS: dict[str, str] = {
 }
 
 
-def _get_weight(terms: dict, key: str, default: float) -> float:
+def _get_weight(terms: Mapping[str, object], key: str, default: float) -> float:
     """Lit un scalaire de poids depuis le dict terms (peut être float ou ndarray)."""
     val = terms.get(key, default)
     if isinstance(val, np.ndarray):
         return float(val.flat[0])
-    return float(val)
+    if isinstance(val, (int, float)):
+        return float(val)
+    return default
 
 
 def explain_cell(cost_grid: CostGrid, x: float, y: float) -> list[CostTerm]:

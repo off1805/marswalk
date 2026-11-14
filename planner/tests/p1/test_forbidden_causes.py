@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from marswalk_core.schemas import SafetySettings
+from marswalk_core.schemas import PolygonGeometry, SafetySettings
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.hazards import hazard_masks, hazard_polygons
 
@@ -223,6 +223,7 @@ def test_polygons_coordinates_are_finite(standard_settings: SafetySettings) -> N
     site, _ = make_site(layers)
     polys = hazard_polygons(site, standard_settings)
     for feat in polys.features:
+        assert isinstance(feat.geometry, PolygonGeometry)
         for ring in feat.geometry.coordinates:
             for pt in ring:
                 assert np.isfinite(pt.lon) and np.isfinite(pt.lat), (

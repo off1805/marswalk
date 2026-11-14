@@ -42,7 +42,7 @@ _POLYGON_RESOLUTION_M = 10.0
 _MIN_POLYGON_CELLS = 2
 
 # Configuration de chaque cause
-_CAUSE_META: dict[str, dict] = {
+_CAUSE_META: dict[str, dict[str, str]] = {
     # --- interdits ---
     "slope_forbidden": {
         "kind": "forbidden",
@@ -130,7 +130,7 @@ def _coarsen(mask: np.ndarray, factor: int) -> np.ndarray:
     return np.asarray(blocks.mean(axis=(1, 3)) >= 0.5, dtype=np.uint8)
 
 
-def _coarsen_transform(transform: tuple, factor: int) -> Affine:
+def _coarsen_transform(transform: tuple[float, ...], factor: int) -> Affine:
     a, b, c, d, e, f = transform
     return Affine(a * factor, b, c, d, e * factor, f)
 

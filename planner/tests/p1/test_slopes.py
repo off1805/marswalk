@@ -13,14 +13,17 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from pathlib import Path
+
 from marswalk_core.schemas import SafetySettings
+from marswalk_core.site_package import Site
 from marswalk_planner.cost import build_cost_grid, explain_cell
 from marswalk_planner.hazards import hazard_masks
 
 from .conftest import make_layers, make_site
 
 
-def _flat_site(slope_deg: float) -> tuple:
+def _flat_site(slope_deg: float) -> tuple[Site, Path]:
     """Site 100×100 avec pente uniforme ``slope_deg`` partout."""
     layers = make_layers(slope_val=slope_deg)
     return make_site(layers)

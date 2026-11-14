@@ -4,7 +4,7 @@ Marswalk est un outil de carte et de planification de sorties à pied sur Mars, 
 
 <!-- Section présentation : à écrire par L2. -->
 
-> Les documents de référence (`taches-agents.md`, la feuille de route et les besoins) ont été écrits pour Gale. Le site retenu est Jezero : partout où ils disent Gale, lire Jezero (`config/sites/jezero/` au lieu de `config/sites/gale/`).
+> Le site retenu est Jezero ; `taches-agents.md` est à jour. La feuille de route et le document de besoins, écrits pour Gale, restent valables : partout où ils disent Gale, lire Jezero.
 
 ## Démarrer
 

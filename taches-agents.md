@@ -1,6 +1,6 @@
 # Marswalk : tâches pour agents IA en parallèle
 
-12 novembre 2026
+12 novembre 2026, mis à jour le 14 novembre 2026 : le site retenu est le cratère Jezero.
 
 Ce document découpe la feuille de route corrigée (`feuille-de-route-revue.md`) en tâches qu'un agent IA peut réaliser seul, chacune sur sa branche, et dont la fusion donne le projet final. Il contient deux choses :
 
@@ -22,7 +22,7 @@ Le travail démarre une fois le jeu de données obtenu. Seules D1 et I1 ont beso
 | --- | --- | --- | --- |
 | 0 | T00 | Tout de suite | Seule tâche séquentielle. Tout le reste en dépend |
 | 1 | C1, P1, P2, P3, K1, D1, D2, D3, A1, A2, A3, A4, F1, F2, F3, F4, F5, F6, F7, S1, G1, X1 | T00 fusionnée | Toutes en parallèle. Chacune code contre les bouchons et le site fictif de T00 |
-| 2 | I1 | D1, D2, D3, P1, P2, P3 fusionnées et recalage validé | Bascule sur Gale et calibration |
+| 2 | I1 | D1, D2, D3, P1, P2, P3 fusionnées et recalage validé | Bascule sur Jezero et calibration |
 | 3 | I2 | Toutes les tâches M et S fusionnées, I1 fusionnée | Tests de bout en bout, puis gel |
 | 4 | L1, L2 | I2 fusionnée | Livraison |
 | Bonus | X2, X3, X4 | Jalon J2 atteint | Abandonnables sans effet sur le reste |
@@ -52,7 +52,7 @@ marswalk/
 │   ├── safety.yaml             T00 crée, P1 règle les valeurs par défaut
 │   ├── suit.yaml               T00 crée, P3 règle les valeurs par défaut
 │   ├── presets.yaml            T00 crée, F1 règle les valeurs par défaut
-│   └── sites/<site_id>/site.yaml   T00 (fictif), D1 (gale)
+│   └── sites/<site_id>/site.yaml   T00 (fictif), D1 (jezero)
 ├── fixtures/sites/fictif/      T00 : paquet de site fictif complet, versionné dans Git
 ├── data/                       DVC, hors Git : raw/, work/, packages/<site_id>/
 ├── packages/core/              Python marswalk_core
@@ -171,14 +171,14 @@ Champs de chaque couche :
 | `radio_coverage` | Visibilité radio depuis l'habitat ou le rover, 0 ou 1 | D2 |
 | `illumination` | Fraction éclairée à l'heure de référence | D2 |
 | `return_time` | Temps de retour le plus court vers l'habitat, en s | P3 (calculé à la volée, aussi exportable en couche) |
-| `rover_traverse` | Trajet de Curiosity (vecteur) | G1 |
+| `rover_traverse` | Trajet de Perseverance (vecteur) | G1 |
 | `ground_images` | Positions des images au sol (vecteur) | G1 |
 
 Ajouter une couche ne demande qu'une entrée dans `site.yaml` et une étape de pipeline, sans toucher au front ni à l'API (ENF-09).
 
 ### 5.4 Site fictif
 
-`fixtures/sites/fictif/` est un paquet complet de 2 x 2 km à 2 m, généré par un script de T00 et versionné dans Git (moins de 30 Mo). Il est placé aux coordonnées du centre de Gale et contient : un plateau, un bord de cratère avec falaise, un champ de dunes à faible inertie thermique, un chaos de blocs, deux unités minéralogiques, un habitat et quatre cibles. Toutes les couches du tableau ci-dessus y existent, avec `source.instrument = "SYNTHETIC"`. Le script `tools/validate_site_package.py` valide n'importe quel paquet contre le schéma ; D3 doit produire des paquets qui le passent.
+`fixtures/sites/fictif/` est un paquet complet de 2 x 2 km à 2 m, généré par un script de T00 et versionné dans Git (moins de 30 Mo). Il est placé aux coordonnées du centre du cratère Jezero et contient : un plateau limité par une falaise (comme le front du delta), un bord de cratère abrupt, un champ de dunes à faible inertie thermique, un chaos de blocs, deux unités minéralogiques, un habitat et quatre cibles. Toutes les couches du tableau ci-dessus y existent, avec `source.instrument = "SYNTHETIC"`. Le script `tools/validate_site_package.py` valide n'importe quel paquet contre le schéma ; D3 doit produire des paquets qui le passent.
 
 ## 6. API et temps réel
 
@@ -313,12 +313,12 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 - **Acceptation :** les cas publiés par le Mars24 de la NASA GISS sont retrouvés à la seconde près ; Python et TypeScript donnent les mêmes résultats sur tous les cas ; une distance de 1° de longitude à l'équateur vaut environ 59,3 km.
 - **Couvre :** ENF-11, R3.
 
-### D1. Ingestion et recalage des données réelles de Gale
+### D1. Ingestion et recalage des données réelles de Jezero
 
-- **Vague :** 1. **Dépend de :** T00 et le jeu de données. **Possède :** `pipeline/ingest/`, `pipeline/coreg/`, `config/sites/gale/`. **Validation humaine.**
-- **Objectif :** des rasters réels alignés sur la grille d'analyse de Gale.
-- **Entrées :** les produits bruts dans `data/raw/gale/` avec un fichier `sources.yaml` (identifiant PDS, URL, date pour chacun) : image et MNT HiRISE, CTX, MOLA, THEMIS, CRISM.
-- **Livrables :** commande `marswalk ingest gale` qui découpe 5 x 5 km autour du site, reprojette selon R1, recale THEMIS et CRISM sur HiRISE par points d'appui, puis écrit `data/work/gale/aligned/<layer_id>.tif` et `coreg_report.md` (décalage résiduel mesuré par couche). Un projet QGIS `qgis/gale.qgz` permet la vérification visuelle. Si le MNT HiRISE ne couvre pas toute l'emprise, le repli CTX ou MOLA est appliqué et noté `degraded`.
+- **Vague :** 1. **Dépend de :** T00 et le jeu de données. **Possède :** `pipeline/ingest/`, `pipeline/coreg/`, `config/sites/jezero/`. **Validation humaine.**
+- **Objectif :** des rasters réels alignés sur la grille d'analyse de Jezero.
+- **Entrées :** les produits bruts dans `data/raw/jezero/` avec un fichier `sources.yaml` (identifiant PDS, URL, date pour chacun) : image et MNT HiRISE (jeu Mars 2020 de l'atterrissage), CTX, MOLA, THEMIS, CRISM, téléchargés surtout depuis Mars Trek.
+- **Livrables :** commande `marswalk ingest jezero` qui découpe 5 x 5 km autour du site, reprojette selon R1, recale THEMIS et CRISM sur HiRISE par points d'appui, puis écrit `data/work/jezero/aligned/<layer_id>.tif` et `coreg_report.md` (décalage résiduel mesuré par couche). Un projet QGIS `qgis/jezero.qgz` permet la vérification visuelle. Si le MNT HiRISE ne couvre pas toute l'emprise, le repli CTX ou MOLA est appliqué et noté `degraded`.
 - **Acceptation :** les rasters ont tous la même grille ; le décalage résiduel est indiqué pour chaque couche et reste sous 1 pixel de la couche la plus grossière ; la personne valide la superposition dans QGIS.
 - **Couvre :** EF-01 (données), ENF-03, ENF-04 (incertitude de recalage), ENF-07.
 
@@ -334,7 +334,7 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 
 - **Vague :** 1. **Dépend de :** T00. **Possède :** `pipeline/package/`.
 - **Objectif :** transformer les rasters alignés et dérivés en paquet de site conforme à la section 5.
-- **Livrables :** commande `marswalk package <site_id>` qui écrit les COG, les tuiles d'affichage WebP avec la palette de la légende, les tuiles terrain-RGB et le manifeste avec la provenance, puis lance le validateur ; une cible `make site SITE=gale` enchaîne `ingest`, `derive` et `package`.
+- **Livrables :** commande `marswalk package <site_id>` qui écrit les COG, les tuiles d'affichage WebP avec la palette de la légende, les tuiles terrain-RGB et le manifeste avec la provenance, puis lance le validateur ; une cible `make site SITE=jezero` enchaîne `ingest`, `derive` et `package`.
 - **Acceptation :** le paquet régénéré à partir des sources du site fictif passe le validateur et ressemble au paquet de T00 ; les tuiles s'alignent dans MapLibre avec les COG (une valeur interrogée correspond au pixel affiché) ; la taille est contrôlée et refusée au-delà de 2 Go ; la commande est reproductible.
 - **Couvre :** EF-01, EF-02 (données), ENF-01, ENF-03, ENF-04, ENF-09, ENF-10.
 
@@ -366,8 +366,8 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 
 - **Vague :** 1. **Dépend de :** T00. **Possède :** `conditions/`.
 - **Objectif :** des conditions du moment et des prévisions, réelles, rejouées ou simulées.
-- **Livrables :** import des séries historiques REMS (température, pression, vent, UV, opacité) et RAD (débit de dose) depuis le PDS dans un format compact ; client DONKI avec cache local, utilisé seulement en mode `live` ; moteur de scénarios qui rejoue une chronologie accélérée ; le scénario `solar-event` fondé sur un événement réel mesuré par RAD (l'événement de mai 2024 est le meilleur candidat, date et dose à confirmer dans le PDS) ; prévisions simples par climatologie REMS à l'heure locale.
-- **Acceptation :** le mode `historical` renvoie des valeurs REMS réelles pour un sol donné ; le scénario `solar-event` produit un pic de dose à l'instant prévu, de façon reproductible ; sans réseau, tout fonctionne sauf `live`, qui renvoie la dernière valeur en cache avec sa date.
+- **Livrables :** import des séries historiques MEDA de Perseverance (température, pression, vent, UV, opacité) et RAD (débit de dose ; Perseverance n'a pas de RAD, on reprend les mesures de Curiosity à Gale, transposées à Jezero et présentées comme telles) depuis le PDS dans un format compact ; client DONKI avec cache local, utilisé seulement en mode `live` ; moteur de scénarios qui rejoue une chronologie accélérée ; le scénario `solar-event` fondé sur un événement réel mesuré par RAD (l'événement de mai 2024 est le meilleur candidat, date et dose à confirmer dans le PDS) ; prévisions simples par climatologie MEDA à l'heure locale.
+- **Acceptation :** le mode `historical` renvoie des valeurs MEDA réelles pour un sol donné ; le scénario `solar-event` produit un pic de dose à l'instant prévu, de façon reproductible ; sans réseau, tout fonctionne sauf `live`, qui renvoie la dernière valeur en cache avec sa date.
 - **Couvre :** EF-08 (radiation, poussière), EF-11, ENF-01.
 
 ### A1. API site, couches et interrogation de point
@@ -450,16 +450,16 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 
 ### S1. Objectif scientifique et cibles
 
-- **Vague :** 1. **Dépend de :** T00 (et D1 pour placer les cibles sur Gale). **Possède :** `docs/science/` (sauf `hypotheses-marche.md`), `config/sites/gale/targets-seed.geojson`. **Validation humaine.**
-- **Livrables :** une page qui justifie le site (boxwork du mont Sharp, ce que Curiosity y a mesuré, pourquoi un humain y apporterait plus qu'un rover) ; trois à cinq cibles avec objectif, mesure prévue et temps de travail, chacune appuyée par une couche (CRISM, imagerie, inertie thermique) et une source citée ; justification des seuils de sécurité (20°, 30 %, taille des blocs) pour le pitch.
+- **Vague :** 1. **Dépend de :** T00 (et D1 pour placer les cibles sur Jezero). **Possède :** `docs/science/` (sauf `hypotheses-marche.md`), `config/sites/jezero/targets-seed.geojson`. **Validation humaine.**
+- **Livrables :** une page qui justifie le site (delta de Jezero, argiles et carbonates, roches ignées à olivine du plancher, ce que Perseverance y a mesuré et prélevé, pourquoi un humain y apporterait plus qu'un rover) ; trois à cinq cibles avec objectif, mesure prévue et temps de travail, chacune appuyée par une couche (CRISM, imagerie, inertie thermique) et une source citée ; justification des seuils de sécurité (20°, 30 %, taille des blocs) pour le pitch.
 - **Acceptation :** chaque affirmation cite une source NASA ou une publication ; les cibles se chargent dans l'application ; la personne valide le contenu.
 - **Couvre :** critère « objectif scientifique » du défi, ENF-04.
 
 ### G1. Images au sol
 
 - **Vague :** 1. **Dépend de :** T00. **Possède :** `pipeline/ground_images/`, `api/marswalk_api/routers/ground_images.py`, `web/src/features/ground-images/`.
-- **Livrables :** index des images Mastcam et Navcam de Curiosity prises dans l'emprise, avec position du rover au sol de prise de vue (données de traverse), vignettes et lien vers l'image complète ; trajet du rover en vecteur ; icônes sur la carte et visionneuse ; images les plus proches proposées sur la fiche d'une cible.
-- **Acceptation :** au moins vingt images positionnées sur Gale ; chaque image affiche sol, instrument et identifiant.
+- **Livrables :** index des images Mastcam-Z et Navcam de Perseverance prises dans l'emprise, avec position du rover au sol de prise de vue (données de traverse), vignettes et lien vers l'image complète ; trajet du rover en vecteur ; icônes sur la carte et visionneuse ; images les plus proches proposées sur la fiche d'une cible.
+- **Acceptation :** au moins vingt images positionnées sur Jezero ; chaque image affiche sol, instrument et identifiant.
 - **Couvre :** EF-09, ENF-04.
 
 ### X1. Export et carnet de terrain (bonus, coût faible)
@@ -469,11 +469,11 @@ Chaque fiche donne : vague, dépendances, ce que la tâche possède, ce qu'elle 
 - **Acceptation :** le GeoJSON exporté se rouvre dans QGIS au bon endroit ; le carnet d'une sortie simulée liste toutes ses observations.
 - **Couvre :** EF-15.
 
-### I1. Bascule sur Gale et calibration
+### I1. Bascule sur Jezero et calibration
 
-- **Vague :** 2. **Dépend de :** D1 validée, D2, D3, P1, P2, P3. **Possède :** `config/sites/gale/` après D1, `config/safety.yaml` et `config/suit.yaml` pour l'ajustement, `docs/calibration.md`.
-- **Livrables :** paquet de Gale produit par `make site SITE=gale` ; site par défaut basculé sur Gale ; seuils et poids ajustés pour que les variantes soient crédibles sur le vrai relief ; mesures de performance sur la vraie grille ; correctifs nécessaires transmis aux tâches concernées ou faits dans une PR étiquetée `fix/<ID>`.
-- **Acceptation :** toutes les mesures d'ENF-02 tiennent sur Gale ; les étapes du scénario de démo passent sur Gale.
+- **Vague :** 2. **Dépend de :** D1 validée, D2, D3, P1, P2, P3. **Possède :** `config/sites/jezero/` après D1, `config/safety.yaml` et `config/suit.yaml` pour l'ajustement, `docs/calibration.md`.
+- **Livrables :** paquet de Jezero produit par `make site SITE=jezero` ; site par défaut basculé sur Jezero ; seuils et poids ajustés pour que les variantes soient crédibles sur le vrai relief ; mesures de performance sur la vraie grille ; correctifs nécessaires transmis aux tâches concernées ou faits dans une PR étiquetée `fix/<ID>`.
+- **Acceptation :** toutes les mesures d'ENF-02 tiennent sur Jezero ; les étapes du scénario de démo passent sur Jezero.
 - **Couvre :** ENF-02, ENF-10 sur données réelles.
 
 ### I2. Tests de bout en bout du scénario de démo

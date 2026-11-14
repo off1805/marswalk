@@ -1,0 +1,16 @@
+{
+  "name": "marswalk",
+  "private": true,
+  "description": "Marswalk : carte et planification de sorties sur Mars (Jezero)",
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "dev:mock": "pnpm --filter web dev:mock",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
+    "typecheck": "pnpm --filter web typecheck",
+    "test": "pnpm --filter web test",
+    "gen:api": "pnpm --filter web gen:api"
+  }
+}

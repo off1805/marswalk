@@ -510,12 +510,16 @@ source = { editable = "pipeline" }
 dependencies = [
     { name = "marswalk-core" },
     { name = "pillow" },
+    { name = "pyyaml" },
+    { name = "scipy" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "marswalk-core", editable = "packages/core" },
     { name = "pillow", specifier = ">=11.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "scipy", specifier = ">=1.14" },
 ]
 
 [[package]]

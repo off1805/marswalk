@@ -1,0 +1,64 @@
+# Site Jezero (cratère de Perseverance). Configuré par D1 / I1.
+# Centre : lon 77.4502°E, lat 18.4446°N (atterrissage Perseverance, Mars 2020).
+# Emprise D1 : 5 × 5 km autour du site. Résolution cible : 1 m (HiRISE).
+site_id: jezero
+name: Cratère Jezero (Perseverance)
+center: { lon: 77.4502, lat: 18.4446 }
+# Emprise de 5 × 5 km à 1 m (5000 × 5000 cases).
+size_m: 5000
+resolution_m: 1.0
+analysis_crs: "+proj=eqc +lat_ts=18.4446 +lon_0=77.4502 +R=3396190 +units=m +no_defs"
+mission_epoch_utc: "2026-11-01T00:00:00Z"
+default_preset: safety
+seed: 1805
+tiles: { minzoom: 12, maxzoom: 19 }
+habitat: { x: 0, y: 0 }       # à calibrer par I1 avec vraies coordonnées
+rover: { x: 100, y: 100 }     # position actuelle de Perseverance (I1)
+targets_seed: targets-seed.geojson
+layers:
+  - hirise_vis
+  - ctx_vis
+  - dem
+  - dem_mola
+  - slope
+  - roughness
+  - hillshade
+  - obstacles
+  - scarps
+  - thermal_inertia
+  - loose_soil
+  - crism_minerals
+  - radio_coverage
+  - illumination
+  - return_time
+  - rover_traverse
+  - ground_images
+
+# Sources brutes (gérées par D0/D1 via data/raw/jezero/).
+# Rempli par sources.yaml lors du téléchargement des données.
+derive:
+  roughness_window_m: 10.0
+  obstacle_roughness_threshold_m: 0.4
+  obstacle_buffer_m: 2.0
+  scarp_threshold_deg: 30.0
+  scarp_buffer_m: 10.0
+  antenna_height_m: 3.0
+  sun_azimuth_deg: 90.0
+  sun_altitude_deg: 20.0
+
+# Paramètres d'ingest D1
+ingest:
+  # Emprise en degrés (calculée à partir de center ± size_m/2)
+  # À vérifier après recalage par D1.
+  bbox_buffer_m: 500         # tampon au-delà de size_m pour le recalage
+  hirise_target_res_m: 1.0
+  ctx_target_res_m: 6.0
+  mola_target_res_m: 463.0
+  themis_target_res_m: 100.0
+  crism_target_res_m: 18.0
+  # Repli DEM : ordre de priorité si HiRISE ne couvre pas l'emprise complète
+  dem_fallback: ["ctx", "mola"]
+  # Recalage : nombre de points d'appui par couche
+  coreg_tie_points: 50
+  # Critère de validation : décalage résiduel < 1 pixel de la couche la plus grossière
+  coreg_max_residual_px: 1.0

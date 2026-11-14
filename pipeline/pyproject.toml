@@ -6,7 +6,12 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
     "marswalk-core",
     "pillow>=11.0",
+    "scipy>=1.14",
+    "PyYAML>=6.0",
 ]
+
+[project.scripts]
+marswalk-ingest = "marswalk_pipeline.ingest._cli:main"
 
 [build-system]
 requires = ["hatchling>=1.25"]

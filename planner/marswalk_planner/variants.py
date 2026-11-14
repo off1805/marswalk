@@ -18,7 +18,7 @@ import copy
 
 from marswalk_core.config import load_suit
 from marswalk_core.geodesy import to_analysis
-from marswalk_core.grids import CostGrid, RouteGeometry, RouteOptions
+from marswalk_core.grids import CostGrid, RouteOptions
 from marswalk_core.schemas import (
     Consumption,
     LineStringGeometry,
@@ -26,8 +26,8 @@ from marswalk_core.schemas import (
     ProfileSample,
     Route,
     RouteSegment,
-    RouteVariant,
     RouteTotals,
+    RouteVariant,
     SafetySettings,
     SegmentExplanation,
     Target,
@@ -164,7 +164,6 @@ def plan_variants(
     inchangés entre variants (si les points sont identiques mais la grille
     diffère, les clés seront différentes, donc le cache n'est pas trompé).
     """
-    suit = options.suit or load_suit()
     end = options.return_to or start
 
     # Mappage variante → settings de poids
@@ -232,16 +231,14 @@ def replan_from_obstacle(
     Route | None
         Nouvel itinéraire ou None si identique à l'ancien.
     """
-    import math
+
     import numpy as np
-    from marswalk_core.grids import CostGrid
 
     # Construire la grille avec l'obstacle intégré comme zone interdite
     cost_grid = build_cost_grid(site, settings, options.conditions)
 
     # Marquer les cases dans le rayon de l'obstacle comme interdites
     ox, oy = to_analysis(site, obstacle_position.lon, obstacle_position.lat)
-    radius_cells = max(1, int(math.ceil(obstacle_radius_m / cost_grid.resolution_m)))
     h, w = cost_grid.cost.shape
     a, _, c, _, e, f = cost_grid.transform
     xs = c + a * (np.arange(w) + 0.5)

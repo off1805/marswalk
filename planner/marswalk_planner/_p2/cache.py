@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any
 
 from marswalk_core.grids import CostGrid, RouteGeometry
 from marswalk_core.schemas import LonLat

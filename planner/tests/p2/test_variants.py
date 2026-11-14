@@ -12,23 +12,17 @@ Couvre :
 from __future__ import annotations
 
 import math
-from datetime import datetime
 
-import numpy as np
-import pytest
+from tests.p2.conftest import flat_layers, grid_lonlat, make_site, make_target, make_target_at
 
 from marswalk_core.geodesy import to_analysis
 from marswalk_core.grids import RouteOptions
 from marswalk_core.schemas import (
     LonLat,
     RouteVariant,
-    SafetySettings,
-    Target,
-    TargetKind,
 )
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.variants import plan_variants, replan_from_obstacle
-from tests.p2.conftest import flat_layers, make_site, make_target, make_target_at, grid_lonlat
 
 
 def _all_coords_safe(route, site, cost_grid):
@@ -124,7 +118,6 @@ class TestVariantDifferences:
         # Cibles dans l'emprise du site fictif (autour de l'habitat)
         from marswalk_core.geodesy import to_analysis, to_lonlat
         hx, hy = to_analysis(site, hab.lon, hab.lat)
-        res = site.manifest.grid.resolution_m
         # Cibles à ±100m de l'habitat en x et y
         t1_lon, t1_lat = to_lonlat(site, hx + 100, hy + 50)
         t2_lon, t2_lat = to_lonlat(site, hx - 80, hy + 100)

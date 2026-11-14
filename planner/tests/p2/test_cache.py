@@ -12,12 +12,12 @@ Couvre :
 from __future__ import annotations
 
 import pytest
+from tests.p2.conftest import flat_layers, grid_lonlat, make_site
 
 from marswalk_core.grids import RouteGeometry, RouteOptions
-from marswalk_core.schemas import LonLat, SafetySettings
+from marswalk_core.schemas import SafetySettings
 from marswalk_planner._p2 import cache as _cache
 from marswalk_planner.cost import build_cost_grid
-from tests.p2.conftest import flat_layers, make_site, grid_lonlat
 
 
 @pytest.fixture(autouse=True)

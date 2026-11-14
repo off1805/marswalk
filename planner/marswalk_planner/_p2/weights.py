@@ -37,7 +37,6 @@ import copy
 
 from marswalk_core.schemas import CostWeights, SafetySettings
 
-
 # Facteurs multiplicatifs par rapport aux poids nominaux
 # (w_t_nom, w_r_nom, w_s_nom) du settings fourni
 

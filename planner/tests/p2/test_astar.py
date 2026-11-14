@@ -15,9 +15,8 @@ from __future__ import annotations
 import math
 
 import numpy as np
-import pytest
 
-from marswalk_planner._p2.astar import Cell, astar_grid, _nearest_free
+from marswalk_planner._p2.astar import Cell, _nearest_free, astar_grid
 
 
 def _uniform_cost(h: int, w: int, val: float = 1.0) -> np.ndarray:
@@ -149,7 +148,7 @@ class TestAstarOptimality:
         assert path is not None
         # Le chemin optimal doit passer par la ligne 0 (coût réduit)
         # Vérifier que la somme des coûts est inférieure à n'importe quel autre chemin
-        path_cost = sum(float(cost[c.row, c.col]) for c in path)
+        sum(float(cost[c.row, c.col]) for c in path)
         # Chemin direct sur la ligne 5 : 10 cases × 10.0 = 100
         # Chemin via ligne 0 : détour 5 cases haut + 10 cases bas-coût + 5 cases bas = moins
         # On se contente de vérifier qu'il y a un chemin valide

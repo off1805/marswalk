@@ -18,8 +18,6 @@ from __future__ import annotations
 
 import math
 
-import numpy as np
-
 from marswalk_core.geodesy import to_analysis, to_lonlat
 from marswalk_core.grids import CostGrid, RouteGeometry, RouteOptions
 from marswalk_core.schemas import LonLat
@@ -48,7 +46,7 @@ def _cell_to_lonlat(cost_grid: CostGrid, cell: Cell) -> LonLat:
 
 def _window_margin_cells(cost_grid: CostGrid, margin_m: float) -> int:
     """Marge en cases à partir de la marge en mètres."""
-    return max(10, int(math.ceil(margin_m / cost_grid.resolution_m)))
+    return max(10, math.ceil(margin_m / cost_grid.resolution_m))
 
 
 def _plan_segment(

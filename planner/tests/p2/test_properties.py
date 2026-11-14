@@ -13,13 +13,13 @@ import math
 
 import numpy as np
 import pytest
+from tests.p2.conftest import make_site
 
 from marswalk_core.geodesy import to_analysis
 from marswalk_core.grids import RouteOptions
 from marswalk_core.schemas import LonLat, SafetySettings
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.route import plan_route
-from tests.p2.conftest import make_site
 
 
 def _random_layers(rng: np.random.Generator, grid_size: int = 50) -> dict[str, np.ndarray]:
@@ -30,8 +30,12 @@ def _random_layers(rng: np.random.Generator, grid_size: int = 50) -> dict[str, n
     scarps = np.zeros((grid_size, grid_size), dtype=np.float32)
 
     # S'assurer que start (coin haut-gauche) et end (coin bas-droit) sont libres
-    slope[0, 0] = 0.0; obstacles[0, 0] = 0.0; loose_soil[0, 0] = 0.0
-    slope[-1, -1] = 0.0; obstacles[-1, -1] = 0.0; loose_soil[-1, -1] = 0.0
+    slope[0, 0] = 0.0
+    obstacles[0, 0] = 0.0
+    loose_soil[0, 0] = 0.0
+    slope[-1, -1] = 0.0
+    obstacles[-1, -1] = 0.0
+    loose_soil[-1, -1] = 0.0
 
     return {
         "slope": slope,

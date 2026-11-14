@@ -13,17 +13,17 @@ from __future__ import annotations
 
 import math
 
-import numpy as np
 import pytest
+from tests.p2.conftest import (
+    grid_lonlat,
+    layers_with_obstacle,
+    layers_with_wall,
+    make_site,
+)
 
 from marswalk_core.grids import RouteOptions
-from marswalk_core.schemas import LonLat, SafetySettings
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.route import plan_route
-from tests.p2.conftest import (
-    flat_layers, layers_with_obstacle, layers_with_wall,
-    make_site, grid_lonlat,
-)
 
 
 class TestPlanRouteBasic:

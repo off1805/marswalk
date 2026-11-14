@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import math
 import threading
-import weakref
 from typing import NamedTuple
 
 import numpy as np
@@ -206,7 +205,7 @@ def astar_grid(
     # Seuil pour utiliser la grille entière vs sous-grille.
     # On limite la fenêtre à MAX_WINDOW_CELLS cases pour garantir la performance.
     # Si le chemin nécessite une fenêtre plus grande, on l'élargit progressivement.
-    _MAX_WINDOW_CELLS = 800 * 800  # ~640k cases max par segment
+    max_window_cells = 800 * 800  # ~640k cases max par segment
 
     margin = window_margin_cells
 
@@ -218,7 +217,9 @@ def astar_grid(
         sub_w = col_max - col_min + 1
         n_cells = sub_h * sub_w
 
-        use_full = (n_cells >= h * w * 0.9) or (n_cells >= _MAX_WINDOW_CELLS and _attempt >= max_window_expansions)
+        use_full = (n_cells >= h * w * 0.9) or (
+            n_cells >= max_window_cells and _attempt >= max_window_expansions
+        )
 
         if use_full:
             # Grille entière avec cache de graphe (build once per plan)

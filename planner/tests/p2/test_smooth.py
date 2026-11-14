@@ -12,10 +12,9 @@ from __future__ import annotations
 import math
 
 import numpy as np
-import pytest
 
 from marswalk_planner._p2.astar import Cell
-from marswalk_planner._p2.smooth import smooth_path, _bresenham_clear
+from marswalk_planner._p2.smooth import _bresenham_clear, smooth_path
 
 
 class TestBresenhamClear:

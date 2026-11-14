@@ -12,7 +12,6 @@ Paramètres : grille GRID_SIZE×GRID_SIZE à RESOLUTION m/case, 5 cibles.
 from __future__ import annotations
 
 import json
-import math
 import tempfile
 import time
 from pathlib import Path

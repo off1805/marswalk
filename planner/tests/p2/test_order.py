@@ -10,16 +10,11 @@ Couvre :
 
 from __future__ import annotations
 
-from datetime import datetime
-
-import numpy as np
-import pytest
+from tests.p2.conftest import grid_lonlat, make_target_at
 
 from marswalk_core.grids import RouteOptions
-from marswalk_core.schemas import LonLat, SafetySettings, Target, TargetKind
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.order import order_targets
-from tests.p2.conftest import flat_layers, make_site, make_target, make_target_at, grid_lonlat
 
 
 def _cost_of_order(grid, start, ordered, end):

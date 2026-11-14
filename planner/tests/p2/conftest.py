@@ -18,17 +18,14 @@ import pytest
 import rasterio
 from affine import Affine
 
-from marswalk_core.grids import CostGrid, RouteOptions
+from marswalk_core.grids import RouteOptions
 from marswalk_core.schemas import (
-    LayerInfo,
-    LayerKind,
     LayerSource,
-    LayerStatus,
+    LonLat,
     SafetySettings,
     SiteManifest,
     Target,
     TargetKind,
-    LonLat,
 )
 from marswalk_core.site_package import Site, clear_cache, load_site
 
@@ -51,7 +48,9 @@ def meters_to_deg(meters: float) -> float:
     return meters * 180.0 / (_MARS_R * math.pi)
 
 
-def grid_lonlat(row_frac: float, col_frac: float, gs: int = GRID_SIZE, res: float = RESOLUTION) -> LonLat:
+def grid_lonlat(
+    row_frac: float, col_frac: float, gs: int = GRID_SIZE, res: float = RESOLUTION
+) -> LonLat:
     """LonLat correspondant à (row_frac, col_frac) dans [0,1]×[0,1] de la grille.
 
     row_frac=0 → haut de la grille (lat positive), row_frac=1 → bas.
@@ -163,7 +162,9 @@ def layers_with_obstacle(
     return layers
 
 
-def layers_with_wall(wall_row: int, gap_col: int, gap_size: int = 5, grid_size: int = GRID_SIZE) -> dict[str, np.ndarray]:
+def layers_with_wall(
+    wall_row: int, gap_col: int, gap_size: int = 5, grid_size: int = GRID_SIZE
+) -> dict[str, np.ndarray]:
     """Mur horizontal avec un couloir étroit."""
     layers = flat_layers(grid_size)
     layers["obstacles"][wall_row, :] = 1.0

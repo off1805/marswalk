@@ -27,9 +27,9 @@ import itertools
 import math
 from collections.abc import Callable
 
+from marswalk_core.geodesy import to_analysis
 from marswalk_core.grids import CostGrid
 from marswalk_core.schemas import LonLat, Target
-from marswalk_core.geodesy import to_analysis
 
 # Seuil exact/heuristique
 EXACT_MAX = 8
@@ -115,7 +115,7 @@ def _nn_tsp(
     best_cost = _total_cost(best_order, matrix, start_idx, end_idx)
 
     # Redémarrage depuis chaque nœud de départ possible (y compris start)
-    for init in [start_idx] + list(target_indices):
+    for init in [start_idx, *list(target_indices)]:
         order = _nn_from(matrix, init, list(target_indices), end_idx)
         c = _total_cost(order, matrix, start_idx, end_idx)
         if c < best_cost:
@@ -178,7 +178,8 @@ def optimize_order(
     end_idx = n_targets + 1
     target_indices = list(range(1, n_targets + 1))
 
-    cost_fn = lambda a, b: _euclid_cost(cost_grid, a, b)
+    def cost_fn(a, b):
+        return _euclid_cost(cost_grid, a, b)
     matrix = _build_cost_matrix(cost_grid, nodes, cost_fn)
 
     if n_targets <= EXACT_MAX:

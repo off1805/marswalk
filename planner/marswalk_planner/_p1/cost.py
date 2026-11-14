@@ -218,6 +218,8 @@ def _science_grid(layers: LayerBundle) -> FloatGrid:
     sci = np.where(crism >= 1.5, np.float32(1.0), sci).astype(np.float32)
     sci = np.where((crism >= 0.5) & (crism < 1.5), np.float32(0.5), sci).astype(np.float32)
     return sci
+
+
 # ---------------------------------------------------------------------------
 # Assemblage de la grille de coût
 # ---------------------------------------------------------------------------

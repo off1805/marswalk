@@ -130,6 +130,7 @@ class TestCacheInvalidation:
     def test_different_settings_different_key(self):
         """Un changement de settings produit une grille différente → clé différente."""
         from marswalk_core.schemas import CostWeights
+
         site, _ = make_site(flat_layers(), site_id="inval_test")
 
         s1 = SafetySettings()

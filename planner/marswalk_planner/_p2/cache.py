@@ -39,8 +39,17 @@ def _grid_version(cost_grid: CostGrid) -> str:
     # Empreinte légère : coins + centre + min/max/somme pour détecter les changements
     h, w = cost.shape
     sample_vals = []
-    for r, c in [(0, 0), (0, w//2), (0, w-1), (h//2, 0), (h//2, w//2),
-                 (h//2, w-1), (h-1, 0), (h-1, w//2), (h-1, w-1)]:
+    for r, c in [
+        (0, 0),
+        (0, w // 2),
+        (0, w - 1),
+        (h // 2, 0),
+        (h // 2, w // 2),
+        (h // 2, w - 1),
+        (h - 1, 0),
+        (h - 1, w // 2),
+        (h - 1, w - 1),
+    ]:
         v = cost[r, c]
         sample_vals.append(0.0 if np.isinf(v) else float(v))
     # Nombre de cellules interdites (signature robuste)
@@ -52,9 +61,9 @@ def _grid_version(cost_grid: CostGrid) -> str:
         "transform": list(cost_grid.transform),
         "resolution_m": cost_grid.resolution_m,
         "margin_pct": cost_grid.margin_pct,
-        "warnings_hash": hashlib.md5(
-            json.dumps(sorted(cost_grid.warnings)).encode()
-        ).hexdigest()[:8],
+        "warnings_hash": hashlib.md5(json.dumps(sorted(cost_grid.warnings)).encode()).hexdigest()[
+            :8
+        ],
         "cost_sample": [round(v, 4) for v in sample_vals],
     }
     raw = json.dumps(data, sort_keys=True).encode()

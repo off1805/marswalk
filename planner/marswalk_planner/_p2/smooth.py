@@ -104,8 +104,10 @@ def smooth_path(cost: FloatGrid, path: list[Cell]) -> list[Cell]:
         for j in range(n - 1, i + 1, -1):
             if _bresenham_clear(
                 cost,
-                path[i].row, path[i].col,
-                path[j].row, path[j].col,
+                path[i].row,
+                path[i].col,
+                path[j].row,
+                path[j].col,
             ):
                 best = j
                 break

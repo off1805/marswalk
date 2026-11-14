@@ -68,14 +68,19 @@ def _write_cog(root: Path, name: str, data: np.ndarray, resolution: float = RESO
     cog_dir = root / "cog"
     cog_dir.mkdir(exist_ok=True)
     h, w = data.shape
-    transform = Affine(
-        resolution, 0.0, -w * resolution / 2, 0.0, -resolution, h * resolution / 2
-    )
+    transform = Affine(resolution, 0.0, -w * resolution / 2, 0.0, -resolution, h * resolution / 2)
     path = cog_dir / f"{name}.tif"
     with rasterio.open(
-        path, "w", driver="GTiff",
-        height=h, width=w, count=1,
-        dtype=np.float32, nodata=NODATA, transform=transform, crs=None,
+        path,
+        "w",
+        driver="GTiff",
+        height=h,
+        width=w,
+        count=1,
+        dtype=np.float32,
+        nodata=NODATA,
+        transform=transform,
+        crs=None,
     ) as ds:
         ds.write(data.astype(np.float32), 1)
 
@@ -98,19 +103,28 @@ def make_site(
             _write_cog(tmpdir, lid, data, resolution)
 
     transform_tup = (
-        resolution, 0.0, -grid_size * resolution / 2.0,
-        0.0, -resolution, grid_size * resolution / 2.0,
+        resolution,
+        0.0,
+        -grid_size * resolution / 2.0,
+        0.0,
+        -resolution,
+        grid_size * resolution / 2.0,
     )
 
     layer_infos: list[dict[str, Any]] = []
     for lid in list(layers.keys()) + missing:
         st = "missing" if lid in missing else ("degraded" if lid in degraded else "ok")
         cog = None if lid in missing else f"cog/{lid}.tif"
-        layer_infos.append({
-            "id": lid, "title": lid, "kind": "derived",
-            "source": {"instrument": "SYNTHETIC", "mission": "test", "product_id": "T"},
-            "cog": cog, "status": st,
-        })
+        layer_infos.append(
+            {
+                "id": lid,
+                "title": lid,
+                "kind": "derived",
+                "source": {"instrument": "SYNTHETIC", "mission": "test", "product_id": "T"},
+                "cog": cog,
+                "status": st,
+            }
+        )
 
     manifest_data = {
         "schema_version": "1.0",
@@ -168,7 +182,7 @@ def layers_with_wall(
     """Mur horizontal avec un couloir étroit."""
     layers = flat_layers(grid_size)
     layers["obstacles"][wall_row, :] = 1.0
-    layers["obstacles"][wall_row, gap_col:gap_col + gap_size] = 0.0
+    layers["obstacles"][wall_row, gap_col : gap_col + gap_size] = 0.0
     return layers
 
 
@@ -204,6 +218,7 @@ def fictif_site() -> Site:
 @pytest.fixture(scope="session")
 def standard_settings() -> SafetySettings:
     from marswalk_core.config import load_safety_settings
+
     return load_safety_settings("standard")
 
 

@@ -65,6 +65,7 @@ def test_no_forbidden_cell_in_path(seed: int):
 
     # Points dans les coins opposés de la grille (libres par construction)
     from marswalk_core.geodesy import to_lonlat
+
     a_tup = site.manifest.grid.transform
     res = a_tup[0]
     c0, f0 = a_tup[2], a_tup[5]

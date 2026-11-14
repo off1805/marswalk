@@ -31,8 +31,9 @@ def _all_coords_safe(route, site, cost_grid):
         x, y = to_analysis(site, pt.lon, pt.lat)
         cell = site.xy_to_cell(x, y)
         if cell is not None:
-            assert not math.isinf(cost_grid.cost[cell[0], cell[1]]), \
+            assert not math.isinf(cost_grid.cost[cell[0], cell[1]]), (
                 f"Point {pt} sur cellule interdite"
+            )
 
 
 class TestPlanVariantsBasic:
@@ -117,6 +118,7 @@ class TestVariantDifferences:
 
         # Cibles dans l'emprise du site fictif (autour de l'habitat)
         from marswalk_core.geodesy import to_analysis, to_lonlat
+
         hx, hy = to_analysis(site, hab.lon, hab.lat)
         # Cibles à ±100m de l'habitat en x et y
         t1_lon, t1_lat = to_lonlat(site, hx + 100, hy + 50)

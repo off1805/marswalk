@@ -45,7 +45,7 @@ def _make_perf_site(grid_size: int = GRID_SIZE_PERF, resolution: float = RESOLUT
     for _ in range(10):
         r = rng.integers(50, h - 60)
         c = rng.integers(50, w - 60)
-        obstacles[r:r+10, c:c+10] = 1.0
+        obstacles[r : r + 10, c : c + 10] = 1.0
 
     layers = {
         "slope": slope,
@@ -63,23 +63,34 @@ def _make_perf_site(grid_size: int = GRID_SIZE_PERF, resolution: float = RESOLUT
     cog_dir = tmpdir / "cog"
     cog_dir.mkdir()
 
-    transform_tup = (resolution, 0.0, -w * resolution / 2.0,
-                     0.0, -resolution, h * resolution / 2.0)
+    transform_tup = (resolution, 0.0, -w * resolution / 2.0, 0.0, -resolution, h * resolution / 2.0)
 
     for lid, data in layers.items():
-        tf = Affine(resolution, 0.0, -w * resolution / 2.0,
-                    0.0, -resolution, h * resolution / 2.0)
+        tf = Affine(resolution, 0.0, -w * resolution / 2.0, 0.0, -resolution, h * resolution / 2.0)
         path = cog_dir / f"{lid}.tif"
-        with rasterio.open(path, "w", driver="GTiff",
-                           height=h, width=w, count=1,
-                           dtype=np.float32, nodata=-9999.0,
-                           transform=tf, crs=None) as ds:
+        with rasterio.open(
+            path,
+            "w",
+            driver="GTiff",
+            height=h,
+            width=w,
+            count=1,
+            dtype=np.float32,
+            nodata=-9999.0,
+            transform=tf,
+            crs=None,
+        ) as ds:
             ds.write(data, 1)
 
     layer_infos = [
-        {"id": lid, "title": lid, "kind": "derived",
-         "source": {"instrument": "SYNTHETIC", "mission": "perf", "product_id": "P"},
-         "cog": f"cog/{lid}.tif", "status": "ok"}
+        {
+            "id": lid,
+            "title": lid,
+            "kind": "derived",
+            "source": {"instrument": "SYNTHETIC", "mission": "perf", "product_id": "P"},
+            "cog": f"cog/{lid}.tif",
+            "status": "ok",
+        }
         for lid in layers
     ]
 
@@ -210,6 +221,5 @@ def test_cache_reuse_measured():
 
     print(f"\n[PERF] premier appel: {t_first:.4f} s, second (cache): {t_second:.4f} s")
     assert t_second < t_first / 2 or t_second < 0.001, (
-        f"Le cache ne semble pas être utilisé : "
-        f"{t_second:.4f} s vs {t_first:.4f} s"
+        f"Le cache ne semble pas être utilisé : {t_second:.4f} s vs {t_first:.4f} s"
     )

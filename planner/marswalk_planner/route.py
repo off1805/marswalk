@@ -61,9 +61,7 @@ def _plan_segment(
     Retourne une liste de coordonnées LonLat (incluant start et end).
     Si aucun chemin n'est possible, retourne [start, end] (ligne droite de secours).
     """
-    key = _cache.segment_key(
-        cost_grid, start, end, options.window_margin_m, variant_name
-    )
+    key = _cache.segment_key(cost_grid, start, end, options.window_margin_m, variant_name)
     cached = _cache.get(key)
     if cached is not None:
         return list(cached.coordinates)
@@ -103,13 +101,16 @@ def _plan_segment(
     # sur des cellules libres. Sinon, conserver les centres de cellule de la recherche.
     if coords:
         import math as _math
+
         start_cell_check = _lonlat_to_cell(cost_grid, start)
-        if (start_cell_check is not None
-                and not _math.isinf(cost_grid.cost[start_cell_check.row, start_cell_check.col])):
+        if start_cell_check is not None and not _math.isinf(
+            cost_grid.cost[start_cell_check.row, start_cell_check.col]
+        ):
             coords[0] = start
         end_cell_check = _lonlat_to_cell(cost_grid, end)
-        if (end_cell_check is not None
-                and not _math.isinf(cost_grid.cost[end_cell_check.row, end_cell_check.col])):
+        if end_cell_check is not None and not _math.isinf(
+            cost_grid.cost[end_cell_check.row, end_cell_check.col]
+        ):
             coords[-1] = end
 
     # Coût total du tronçon

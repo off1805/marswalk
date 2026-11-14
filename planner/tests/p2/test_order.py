@@ -20,6 +20,7 @@ from marswalk_planner.order import order_targets
 def _cost_of_order(grid, start, ordered, end):
     """Estimation du coût total d'un ordre donné (distance euclidienne pondérée)."""
     from marswalk_planner._p2.tsp import _euclid_cost
+
     nodes = [start, *[t.position for t in ordered], end]
     total = 0.0
     for i in range(len(nodes) - 1):
@@ -66,11 +67,11 @@ class TestOrderOptimized:
         """Avec deux cibles, l'ordre optimal est vérifiable analytiquement."""
         site, _ = flat_site
         grid = build_cost_grid(site, standard_settings)
-        start = grid_lonlat(0.5, 0.05)   # gauche
-        end = grid_lonlat(0.5, 0.95)     # droite
+        start = grid_lonlat(0.5, 0.05)  # gauche
+        end = grid_lonlat(0.5, 0.95)  # droite
         # Cible A proche du départ (gauche), cible B proche de l'arrivée (droite)
-        t_a = make_target_at(0, 0.5, 0.2)   # col 0.2 = proche départ
-        t_b = make_target_at(1, 0.5, 0.8)   # col 0.8 = proche arrivée
+        t_a = make_target_at(0, 0.5, 0.2)  # col 0.2 = proche départ
+        t_b = make_target_at(1, 0.5, 0.8)  # col 0.8 = proche arrivée
         opts = RouteOptions(optimize_order=True, return_to=end)
         result = order_targets(grid, start, [t_b, t_a], opts)
         # L'ordre optimal devrait être [A, B]
@@ -106,6 +107,7 @@ class TestOrderOptimized:
         targets = [make_target_at(i, 0.5, 0.1 + i * 0.1) for i in range(8)]
         # Mélanger l'ordre
         import random
+
         shuffled = list(targets)
         random.seed(42)
         random.shuffle(shuffled)

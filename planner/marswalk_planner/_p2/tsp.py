@@ -180,6 +180,7 @@ def optimize_order(
 
     def cost_fn(a, b):
         return _euclid_cost(cost_grid, a, b)
+
     matrix = _build_cost_matrix(cost_grid, nodes, cost_fn)
 
     if n_targets <= EXACT_MAX:

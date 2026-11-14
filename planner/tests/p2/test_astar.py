@@ -86,7 +86,9 @@ class TestAstarBasic:
         cost[10:40, 20:30] = np.inf
         # Fenêtre initiale trop étroite
         path = astar_grid(
-            cost, Cell(0, 0), Cell(49, 49),
+            cost,
+            Cell(0, 0),
+            Cell(49, 49),
             window_margin_cells=5,
             max_window_expansions=4,
         )

@@ -37,11 +37,11 @@ from scipy.sparse.csgraph import dijkstra  # type: ignore[import-untyped]
 FloatGrid = NDArray[np.float32]
 
 # 8 voisins : (drow, dcol, distance_de_pas)
-_DR = np.array([-1, 1,  0, 0, -1, -1,  1, 1], dtype=np.int32)
-_DC = np.array([ 0, 0, -1, 1, -1,  1, -1, 1], dtype=np.int32)
-_DS = np.array([1.0, 1.0, 1.0, 1.0,
-                math.sqrt(2), math.sqrt(2), math.sqrt(2), math.sqrt(2)],
-               dtype=np.float64)
+_DR = np.array([-1, 1, 0, 0, -1, -1, 1, 1], dtype=np.int32)
+_DC = np.array([0, 0, -1, 1, -1, 1, -1, 1], dtype=np.int32)
+_DS = np.array(
+    [1.0, 1.0, 1.0, 1.0, math.sqrt(2), math.sqrt(2), math.sqrt(2), math.sqrt(2)], dtype=np.float64
+)
 
 _INF = float("inf")
 
@@ -102,10 +102,7 @@ def _build_graph_vectorized(cost_flat: np.ndarray, h: int, w: int) -> csr_matrix
 
         nr_idx = r_idx + dr
         nc_idx = c_idx + dc
-        valid = (
-            (nr_idx >= 0) & (nr_idx < h) &
-            (nc_idx >= 0) & (nc_idx < w)
-        )
+        valid = (nr_idx >= 0) & (nr_idx < h) & (nc_idx >= 0) & (nc_idx < w)
         flat_nb = (nr_idx * w + nc_idx).ravel()
         valid_flat = valid.ravel()
 
@@ -227,7 +224,7 @@ def astar_grid(
             return path
 
         # Sous-grille
-        sub_cost = cost[row_min:row_max + 1, col_min:col_max + 1]
+        sub_cost = cost[row_min : row_max + 1, col_min : col_max + 1]
         sr = start.row - row_min
         sc = start.col - col_min
         gr = goal.row - row_min
@@ -245,9 +242,12 @@ def astar_grid(
 
 def _solve_subgrid(
     sub_cost: FloatGrid,
-    sr: int, sc: int,
-    gr: int, gc: int,
-    row_min: int, col_min: int,
+    sr: int,
+    sc: int,
+    gr: int,
+    gc: int,
+    row_min: int,
+    col_min: int,
 ) -> list[Cell] | None:
     """Dijkstra sur sous-grille extraite (sans cache de graphe)."""
     sub_h, sub_w = sub_cost.shape
@@ -262,8 +262,10 @@ def _solve_subgrid(
         return None
 
     dist, pred = dijkstra(
-        graph, indices=start_flat,
-        return_predecessors=True, directed=False,
+        graph,
+        indices=start_flat,
+        return_predecessors=True,
+        directed=False,
     )
 
     if math.isinf(dist[goal_flat]):
@@ -274,8 +276,10 @@ def _solve_subgrid(
 
 def _solve_full_grid(
     cost: FloatGrid,
-    start: Cell, goal: Cell,
-    h: int, w: int,
+    start: Cell,
+    goal: Cell,
+    h: int,
+    w: int,
 ) -> list[Cell] | None:
     """Dijkstra sur la grille entière avec cache de graphe."""
     graph = _get_or_build_graph(cost)
@@ -284,8 +288,10 @@ def _solve_full_grid(
     goal_flat = goal.row * w + goal.col
 
     dist, pred = dijkstra(
-        graph, indices=start_flat,
-        return_predecessors=True, directed=False,
+        graph,
+        indices=start_flat,
+        return_predecessors=True,
+        directed=False,
     )
 
     if math.isinf(dist[goal_flat]):

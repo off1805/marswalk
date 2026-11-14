@@ -61,12 +61,14 @@ class TestPlanRouteBasic:
         geom = plan_route(grid, [start, end], opts)
         # Toutes les coordonnées doivent être sur des cases non interdites
         from marswalk_core.geodesy import to_analysis
+
         for pt in geom.coordinates:
             x, y = to_analysis(site, pt.lon, pt.lat)
             cell = site.xy_to_cell(x, y)
             if cell is not None:
-                assert not math.isinf(grid.cost[cell[0], cell[1]]), \
+                assert not math.isinf(grid.cost[cell[0], cell[1]]), (
                     f"Coordonnée {pt} traverse une cellule interdite"
+                )
 
     def test_narrow_corridor(self, standard_settings):
         """Un couloir d'une case de large doit permettre le passage."""
@@ -87,6 +89,7 @@ class TestPlanRouteBasic:
         opts = RouteOptions(window_margin_m=400.0)
         geom = plan_route(grid, [start, end], opts)
         from marswalk_core.geodesy import to_analysis
+
         for pt in geom.coordinates:
             x, y = to_analysis(site, pt.lon, pt.lat)
             cell = site.xy_to_cell(x, y)

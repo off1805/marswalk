@@ -95,10 +95,7 @@ class TestSmoothPath:
         # Chemin qui contourne par en dessous (lignes 15+)
         # - descend de (0,0) à (15,0) en col 0
         # - traverse horizontalement la ligne 15 de col 0 à col 19
-        path = (
-            [Cell(i, 0) for i in range(16)]
-            + [Cell(15, i) for i in range(1, 20)]
-        )
+        path = [Cell(i, 0) for i in range(16)] + [Cell(15, i) for i in range(1, 20)]
         # Vérifier que le chemin d'entrée est lui-même valide
         for cell in path:
             assert not math.isinf(cost[cell.row, cell.col])

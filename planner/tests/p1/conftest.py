@@ -17,7 +17,6 @@ import rasterio
 from affine import Affine
 
 from marswalk_core.schemas import (
-    GridInfo,
     LayerInfo,
     LayerKind,
     LayerSource,

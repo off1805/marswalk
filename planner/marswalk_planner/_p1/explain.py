@@ -94,12 +94,12 @@ def explain_cell(cost_grid: CostGrid, x: float, y: float) -> list[CostTerm]:
 
     # --- valeurs des composantes -----------------------------------------
     t_arr = cost_grid.terms.get("time")
-    R_arr = cost_grid.terms.get("risk")
-    S_arr = cost_grid.terms.get("science")
+    r_arr = cost_grid.terms.get("risk")
+    s_arr = cost_grid.terms.get("science")
 
     t_val = float(t_arr[row, col]) if t_arr is not None else 0.0
-    R_val = float(R_arr[row, col]) if R_arr is not None else 0.0
-    S_val = float(S_arr[row, col]) if S_arr is not None else 0.0
+    r_val = float(r_arr[row, col]) if r_arr is not None else 0.0
+    s_val = float(s_arr[row, col]) if s_arr is not None else 0.0
 
     # --- terme temporel --------------------------------------------------
     terms.append(CostTerm(
@@ -120,19 +120,20 @@ def explain_cell(cost_grid: CostGrid, x: float, y: float) -> list[CostTerm]:
             pen_active.append(label)
 
     risk_reason = (
-        f"R={R_val:.3f} [{', '.join(pen_active)}] → contribution {w_r * R_val:.3f}"
+        f"R={r_val:.3f} [{', '.join(pen_active)}]"
+        f" → contribution {w_r * r_val:.3f}"
         if pen_active
-        else f"R={R_val:.3f} (aucune pénalité active) → contribution {w_r * R_val:.3f}"
+        else f"R={r_val:.3f} (aucune pénalité active) → contribution {w_r * r_val:.3f}"
     )
-    terms.append(CostTerm(name="risk", value=R_val, weight=w_r, reason=risk_reason))
+    terms.append(CostTerm(name="risk", value=r_val, weight=w_r, reason=risk_reason))
 
     # --- terme scientifique (réduction) ----------------------------------
-    if S_val > 0.0:
+    if s_val > 0.0:
         sci_reason = (
-            f"S={S_val:.2f} (minéralogie CRISM) → réduction −{w_s * S_val:.3f}"
+            f"S={s_val:.2f} (minéralogie CRISM) → réduction −{w_s * s_val:.3f}"
         )
     else:
         sci_reason = "S=0 (aucune signature minéralogique détectée)"
-    terms.append(CostTerm(name="science", value=S_val, weight=-w_s, reason=sci_reason))
+    terms.append(CostTerm(name="science", value=s_val, weight=-w_s, reason=sci_reason))
 
     return terms

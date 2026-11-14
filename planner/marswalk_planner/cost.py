@@ -17,7 +17,6 @@ from __future__ import annotations
 from marswalk_core.grids import CostGrid, CostTerm
 from marswalk_core.schemas import Conditions, SafetySettings
 from marswalk_core.site_package import Site
-
 from marswalk_planner._p1.cost import compute_cost_grid
 from marswalk_planner._p1.explain import explain_cell as _explain_cell
 from marswalk_planner._p1.layers import load_layers

@@ -17,7 +17,7 @@ from marswalk_core.schemas import SafetySettings
 from marswalk_planner.cost import build_cost_grid, explain_cell
 from marswalk_planner.hazards import hazard_masks
 
-from .conftest import GRID_SIZE, RESOLUTION, make_layers, make_site
+from .conftest import make_layers, make_site
 
 
 def _flat_site(slope_deg: float) -> tuple:
@@ -107,8 +107,8 @@ def test_slope_risk_term_in_intermediate_range(standard_settings: SafetySettings
     """Entre 10° et 20°, R > 0 (pénalité de risque active)."""
     site, _ = _flat_site(15.0)
     grid = build_cost_grid(site, standard_settings)
-    R = grid.terms["risk"]
-    assert float(R[0, 0]) > 0.0
+    r_grid = grid.terms["risk"]
+    assert float(r_grid[0, 0]) > 0.0
 
 
 def test_slope_risk_zero_below_penalty(standard_settings: SafetySettings) -> None:
@@ -118,8 +118,8 @@ def test_slope_risk_zero_below_penalty(standard_settings: SafetySettings) -> Non
     # La contribution pente au risque est nulle ; le risque total peut être non-nul
     # à cause d'autres couches, mais ici toutes les couches sont à valeur nominale
     # (radio=1, illum=0.5>0, roughness=0.1<0.5) → R doit être zéro
-    R = grid.terms["risk"]
-    assert float(R[0, 0]) == pytest.approx(0.0, abs=1e-5)
+    r_grid = grid.terms["risk"]
+    assert float(r_grid[0, 0]) == pytest.approx(0.0, abs=1e-5)
 
 
 def test_slope_forbidden_causes_inf_cost(standard_settings: SafetySettings) -> None:
@@ -158,7 +158,9 @@ def test_slope_changing_threshold_changes_cost_grid() -> None:
 
     inf_20 = int(np.isinf(grid_20.cost).sum())
     inf_15 = int(np.isinf(grid_15.cost).sum())
-    assert inf_15 > inf_20, f"Plus de cellules inf avec seuil 15° ({inf_15}) vs 20° ({inf_20})"
+    assert inf_15 > inf_20, (
+        f"Plus de cellules inf avec seuil 15° ({inf_15}) vs 20° ({inf_20})"
+    )
 
 
 def test_explain_cell_slope_forbidden(standard_settings: SafetySettings) -> None:

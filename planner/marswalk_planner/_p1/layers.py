@@ -97,6 +97,13 @@ def _read_or_none(site: Site, layer_id: str, warnings_out: list[str]) -> FloatGr
     return arr.astype(np.float32, copy=False)
 
 
+def _fill_nan(arr: FloatGrid, fill: float) -> FloatGrid:
+    """Remplace les NaN par ``fill`` si nécessaire, sans copie superflue."""
+    if not bool(np.any(np.isnan(arr))):
+        return arr
+    return np.where(np.isnan(arr), fill, arr).astype(np.float32)
+
+
 def load_layers(site: Site) -> LayerBundle:
     """Charge toutes les couches nécessaires à P1 avec dégradation gracieuse.
 
@@ -112,14 +119,13 @@ def load_layers(site: Site) -> LayerBundle:
     slope_raw = _read_or_none(site, "slope", warn)
     if slope_raw is None:
         warn.append(
-            "Couche 'slope' absente : toutes les cases sont traitées comme à 90° (tout interdit)."
+            "Couche 'slope' absente : toutes les cases sont traitées comme "
+            "à 90° (tout interdit)."
         )
         slope = np.full(site.shape, 90.0, dtype=np.float32)
         degraded.append("slope")
     else:
-        # nodata → 90° (pente inconnue = terrain interdit par précaution)
-        has_nan = bool(np.any(np.isnan(slope_raw)))
-        slope = np.where(np.isnan(slope_raw), 90.0, slope_raw).astype(np.float32) if has_nan else slope_raw
+        slope = _fill_nan(slope_raw, 90.0)
         try:
             if site.layer("slope").status == LayerStatus.degraded:
                 degraded.append("slope")
@@ -135,8 +141,7 @@ def load_layers(site: Site) -> LayerBundle:
         obstacles = np.ones(site.shape, dtype=np.float32)
         degraded.append("obstacles")
     else:
-        has_nan = bool(np.any(np.isnan(obstacles_raw)))
-        obstacles = np.where(np.isnan(obstacles_raw), 1.0, obstacles_raw).astype(np.float32) if has_nan else obstacles_raw
+        obstacles = _fill_nan(obstacles_raw, 1.0)
         try:
             if site.layer("obstacles").status == LayerStatus.degraded:
                 degraded.append("obstacles")
@@ -152,8 +157,7 @@ def load_layers(site: Site) -> LayerBundle:
         scarps = np.zeros(site.shape, dtype=np.float32)
         degraded.append("scarps")
     else:
-        has_nan = bool(np.any(np.isnan(scarps_raw)))
-        scarps = np.where(np.isnan(scarps_raw), 1.0, scarps_raw).astype(np.float32) if has_nan else scarps_raw
+        scarps = _fill_nan(scarps_raw, 1.0)
         try:
             if site.layer("scarps").status == LayerStatus.degraded:
                 degraded.append("scarps")
@@ -179,8 +183,7 @@ def load_layers(site: Site) -> LayerBundle:
         loose_soil = np.full(site.shape, 3.0, dtype=np.float32)
         degraded.append("loose_soil")
     else:
-        has_nan = bool(np.any(np.isnan(loose_soil_raw)))
-        loose_soil = np.where(np.isnan(loose_soil_raw), 3.0, loose_soil_raw).astype(np.float32) if has_nan else loose_soil_raw
+        loose_soil = _fill_nan(loose_soil_raw, 3.0)
         try:
             if site.layer("loose_soil").status == LayerStatus.degraded:
                 degraded.append("loose_soil")
@@ -192,8 +195,7 @@ def load_layers(site: Site) -> LayerBundle:
     radio_raw = _read_or_none(site, "radio_coverage", warn)
     radio: FloatGrid | None = None
     if radio_raw is not None:
-        has_nan = bool(np.any(np.isnan(radio_raw)))
-        radio = np.where(np.isnan(radio_raw), 0.0, radio_raw).astype(np.float32) if has_nan else radio_raw
+        radio = _fill_nan(radio_raw, 0.0)
         try:
             if site.layer("radio_coverage").status == LayerStatus.degraded:
                 degraded.append("radio_coverage")
@@ -203,8 +205,7 @@ def load_layers(site: Site) -> LayerBundle:
     illum_raw = _read_or_none(site, "illumination", warn)
     illum: FloatGrid | None = None
     if illum_raw is not None:
-        has_nan = bool(np.any(np.isnan(illum_raw)))
-        illum = np.where(np.isnan(illum_raw), 0.0, illum_raw).astype(np.float32) if has_nan else illum_raw
+        illum = _fill_nan(illum_raw, 0.0)
         try:
             if site.layer("illumination").status == LayerStatus.degraded:
                 degraded.append("illumination")
@@ -214,8 +215,7 @@ def load_layers(site: Site) -> LayerBundle:
     roughness_raw = _read_or_none(site, "roughness", warn)
     roughness: FloatGrid | None = None
     if roughness_raw is not None:
-        has_nan = bool(np.any(np.isnan(roughness_raw)))
-        roughness = np.where(np.isnan(roughness_raw), 0.0, roughness_raw).astype(np.float32) if has_nan else roughness_raw
+        roughness = _fill_nan(roughness_raw, 0.0)
         try:
             if site.layer("roughness").status == LayerStatus.degraded:
                 degraded.append("roughness")
@@ -225,8 +225,7 @@ def load_layers(site: Site) -> LayerBundle:
     crism_raw = _read_or_none(site, "crism_minerals", warn)
     crism: FloatGrid | None = None
     if crism_raw is not None:
-        has_nan = bool(np.any(np.isnan(crism_raw)))
-        crism = np.where(np.isnan(crism_raw), 0.0, crism_raw).astype(np.float32) if has_nan else crism_raw
+        crism = _fill_nan(crism_raw, 0.0)
         try:
             if site.layer("crism_minerals").status == LayerStatus.degraded:
                 degraded.append("crism_minerals")

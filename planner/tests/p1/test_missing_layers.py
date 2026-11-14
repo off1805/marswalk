@@ -16,14 +16,12 @@ from __future__ import annotations
 import warnings as py_warnings
 
 import numpy as np
-import pytest
 
 from marswalk_core.schemas import SafetySettings
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.hazards import hazard_masks
 
 from .conftest import GRID_SIZE, make_layers, make_site
-
 
 # ---------------------------------------------------------------------------
 # Couche slope absente
@@ -97,7 +95,9 @@ def test_missing_thermal_inertia_emits_warning(standard_settings: SafetySettings
     )
 
 
-def test_missing_thermal_inertia_does_not_make_dunes_safe(standard_settings: SafetySettings) -> None:
+def test_missing_thermal_inertia_does_not_make_dunes_safe(
+    standard_settings: SafetySettings,
+) -> None:
     """Même sans thermal_inertia, les dunes dans loose_soil restent interdites."""
     layers = make_layers(has_dune=True)
     layers.pop("thermal_inertia")
@@ -107,7 +107,9 @@ def test_missing_thermal_inertia_does_not_make_dunes_safe(standard_settings: Saf
         masks = hazard_masks(site, standard_settings)
     # La zone dune doit rester interdite
     half = GRID_SIZE // 2
-    assert masks.forbidden[:half, :half].all(), "Les dunes doivent rester interdites sans thermal_inertia"
+    assert masks.forbidden[:half, :half].all(), (
+        "Les dunes doivent rester interdites sans thermal_inertia"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -188,8 +190,8 @@ def test_missing_crism_no_crash_no_science_bonus(standard_settings: SafetySettin
     with py_warnings.catch_warnings(record=True):
         py_warnings.simplefilter("always")
         grid = build_cost_grid(site, standard_settings)
-    S = grid.terms["science"]
-    assert float(S.max()) == 0.0, "S doit être 0 sans couche CRISM"
+    sci = grid.terms["science"]
+    assert float(sci.max()) == 0.0, "S doit être 0 sans couche CRISM"
 
 
 # ---------------------------------------------------------------------------

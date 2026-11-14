@@ -15,18 +15,14 @@ from __future__ import annotations
 import datetime
 
 import numpy as np
-import pytest
 
 from marswalk_core.schemas import (
     Conditions,
     SafetySettings,
-    SpaceWeather,
-    SpaceWeatherLevel,
 )
-from marswalk_planner.cost import build_cost_grid, explain_cell
+from marswalk_planner.cost import build_cost_grid
 
 from .conftest import GRID_SIZE, make_layers, make_site
-
 
 # ---------------------------------------------------------------------------
 # Forme et dtype
@@ -97,7 +93,9 @@ def test_forbidden_cells_cannot_be_passages() -> None:
         weights={"time": 0.0, "risk": 0.0, "science": 1000.0},
     )
     grid = build_cost_grid(site, settings)
-    assert np.all(np.isinf(grid.cost)), "Cellules interdites doivent rester inf même avec poids science=1000"
+    assert np.all(np.isinf(grid.cost)), (
+        "Cellules interdites doivent rester inf même avec poids science=1000"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -112,13 +110,13 @@ def test_formula_coherence_all_cells(standard_settings: SafetySettings) -> None:
     grid = build_cost_grid(site, standard_settings)
 
     t_grid = grid.terms["time"]
-    R_grid = grid.terms["risk"]
-    S_grid = grid.terms["science"]
+    r_grid = grid.terms["risk"]
+    s_grid = grid.terms["science"]
     w_t = standard_settings.weights.time
     w_r = standard_settings.weights.risk
     w_s = standard_settings.weights.science
 
-    expected = np.maximum(w_t * t_grid + w_r * R_grid - w_s * S_grid, 0.0)
+    expected = np.maximum(w_t * t_grid + w_r * r_grid - w_s * s_grid, 0.0)
     finite = ~grid.forbidden
     np.testing.assert_allclose(
         grid.cost[finite], expected[finite], rtol=1e-4,
@@ -207,10 +205,9 @@ def test_conditions_dust_increases_risk() -> None:
     cond = Conditions(utc=datetime.datetime(2026, 11, 1), dust_tau=4.0)
     grid_dust = build_cost_grid(site, settings, conditions=cond)
 
-    R_no = float(grid_no_dust.terms["risk"][0, 0])
-    R_dust = float(grid_dust.terms["risk"][0, 0])
-    assert R_dust > R_no, f"R avec poussière ({R_dust}) doit dépasser R sans ({R_no})"
-
+    r_no = float(grid_no_dust.terms["risk"][0, 0])
+    r_dust = float(grid_dust.terms["risk"][0, 0])
+    assert r_dust > r_no, f"R avec poussière ({r_dust}) doit dépasser R sans ({r_no})"
 
 def test_conditions_dose_rate_increases_risk() -> None:
     """Débit de dose élevé augmente R."""
@@ -225,9 +222,9 @@ def test_conditions_dose_rate_increases_risk() -> None:
     grid_no = build_cost_grid(site, settings)
     grid_yes = build_cost_grid(site, settings, conditions=cond)
 
-    R_no = float(grid_no.terms["risk"][0, 0])
-    R_yes = float(grid_yes.terms["risk"][0, 0])
-    assert R_yes > R_no
+    r_no = float(grid_no.terms["risk"][0, 0])
+    r_yes = float(grid_yes.terms["risk"][0, 0])
+    assert r_yes > r_no
 
 
 def test_conditions_nominal_no_effect() -> None:

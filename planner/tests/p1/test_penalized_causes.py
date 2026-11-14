@@ -9,14 +9,12 @@ Les zones pénalisées doivent :
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from marswalk_core.schemas import SafetySettings
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.hazards import hazard_masks, hazard_polygons
 
-from .conftest import GRID_SIZE, make_layers, make_site
-
+from .conftest import make_layers, make_site
 
 # ---------------------------------------------------------------------------
 # Couverture radio
@@ -41,9 +39,9 @@ def test_no_radio_increases_risk(standard_settings: SafetySettings) -> None:
     grid_cov = build_cost_grid(site_cov, standard_settings)
     grid_nocov = build_cost_grid(site_nocov, standard_settings)
 
-    R_cov = float(grid_cov.terms["risk"][0, 0])
-    R_nocov = float(grid_nocov.terms["risk"][0, 0])
-    assert R_nocov > R_cov, f"R sans radio ({R_nocov}) doit dépasser R avec radio ({R_cov})"
+    r_cov = float(grid_cov.terms["risk"][0, 0])
+    r_nocov = float(grid_nocov.terms["risk"][0, 0])
+    assert r_nocov > r_cov, f"R sans radio ({r_nocov}) doit dépasser R avec radio ({r_cov})"
 
 
 def test_radio_penalty_configurable() -> None:
@@ -57,9 +55,9 @@ def test_radio_penalty_configurable() -> None:
     grid_low = build_cost_grid(site, s_low)
     grid_high = build_cost_grid(site, s_high)
 
-    R_low = float(grid_low.terms["risk"][0, 0])
-    R_high = float(grid_high.terms["risk"][0, 0])
-    assert R_high > R_low
+    r_low = float(grid_low.terms["risk"][0, 0])
+    r_high = float(grid_high.terms["risk"][0, 0])
+    assert r_high > r_low
 
 
 def test_require_radio_still_not_forbidden(standard_settings: SafetySettings) -> None:

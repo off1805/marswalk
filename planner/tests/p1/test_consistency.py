@@ -10,14 +10,12 @@ Vérifications :
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from marswalk_core.schemas import SafetySettings
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.hazards import hazard_masks, hazard_polygons
 
-from .conftest import GRID_SIZE, make_layers, make_site
-
+from .conftest import make_layers, make_site
 
 # ---------------------------------------------------------------------------
 # Cohérence masques ↔ grille de coût

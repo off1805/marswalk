@@ -12,7 +12,6 @@ from __future__ import annotations
 from marswalk_core.grids import HazardMasks
 from marswalk_core.schemas import FeatureCollection, SafetySettings
 from marswalk_core.site_package import Site
-
 from marswalk_planner._p1.layers import load_layers
 from marswalk_planner._p1.masks import build_hazard_masks
 from marswalk_planner._p1.polygon import build_hazard_polygons

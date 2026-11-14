@@ -16,7 +16,7 @@ import pytest
 from marswalk_core.schemas import SafetySettings
 from marswalk_planner.cost import build_cost_grid, explain_cell
 
-from .conftest import GRID_SIZE, RESOLUTION, make_layers, make_site
+from .conftest import GRID_SIZE, make_layers, make_site
 
 
 def _center_xy(site) -> tuple[float, float]:
@@ -26,7 +26,7 @@ def _center_xy(site) -> tuple[float, float]:
 
 def _cell_xy(site, row: int, col: int) -> tuple[float, float]:
     """Coordonnées du centre de la cellule (row, col) en mètres."""
-    a, b, cx, d, e, f = site.transform
+    a, _b, cx, _d, e, f = site.transform
     x = cx + a * (col + 0.5)
     y = f + e * (row + 0.5)
     return float(x), float(y)
@@ -176,7 +176,7 @@ def test_explain_fictif_site_coherent(fictif_site, standard_settings: SafetySett
     step = max(1, len(fin_idx) // 50)
     sample = fin_idx[::step][:50]
 
-    a, b, cx, d, e, f = fictif_site.transform
+    a, _b, cx, _d, e, f = fictif_site.transform
     for row, col in sample:
         x = cx + a * (col + 0.5)
         y = f + e * (row + 0.5)

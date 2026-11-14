@@ -29,10 +29,10 @@ appliquent le côté sûr (pire cas), sauf si la couche n'a que des effets de p�
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
+
 from marswalk_core.grids import HazardMasks
 from marswalk_core.schemas import SafetySettings
 from marswalk_core.site_package import LayerUnavailableError, Site
@@ -45,6 +45,7 @@ BoolGrid = NDArray[np.bool_]
 # ---------------------------------------------------------------------------
 # Tampon de falaise
 # ---------------------------------------------------------------------------
+
 
 def _scarp_buffer_cells(
     site: Site,
@@ -80,6 +81,7 @@ def _dilate_mask(mask: BoolGrid, radius_cells: int) -> BoolGrid:
     if radius_cells <= 0:
         return mask
     from scipy.ndimage import maximum_filter1d
+
     size = 2 * radius_cells + 1
     dilated = maximum_filter1d(mask.astype(np.uint8), size=size, axis=0)
     dilated = maximum_filter1d(dilated, size=size, axis=1)
@@ -89,6 +91,7 @@ def _dilate_mask(mask: BoolGrid, radius_cells: int) -> BoolGrid:
 # ---------------------------------------------------------------------------
 # Masques principaux
 # ---------------------------------------------------------------------------
+
 
 def build_masks(
     layers: LayerBundle,
@@ -135,7 +138,9 @@ def build_masks(
     # 2. Sol meuble (classe avoid_loose_soil_class − 1 = meuble mais pas dune)
     soil_pen_class = settings.avoid_loose_soil_class - 1
     if soil_pen_class >= 1:
-        loose_pen: BoolGrid = (layers.loose_soil == float(soil_pen_class)) & ~dune_forbidden
+        loose_pen: BoolGrid = (
+            (layers.loose_soil == float(soil_pen_class)) & ~dune_forbidden
+        )
     else:
         loose_pen = np.zeros(shape, dtype=bool)
 
@@ -153,7 +158,9 @@ def build_masks(
 
     # 5. Rugosité excessive (pas obstacle, mais sol difficile)
     if layers.roughness is not None:
-        roughness_pen: BoolGrid = (layers.roughness > settings.max_roughness_m) & ~obstacle_forbidden
+        roughness_pen: BoolGrid = (
+            (layers.roughness > settings.max_roughness_m) & ~obstacle_forbidden
+        )
     else:
         roughness_pen = np.zeros(shape, dtype=bool)
 

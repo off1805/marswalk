@@ -11,14 +11,12 @@ Hypothèses :
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from marswalk_core.schemas import SafetySettings
 from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.hazards import hazard_masks, hazard_polygons
 
 from .conftest import GRID_SIZE, make_layers, make_site
-
 
 # ---------------------------------------------------------------------------
 # Obstacles
@@ -170,7 +168,8 @@ def test_scarp_buffer_causes_no_passage(standard_settings: SafetySettings) -> No
     scarp_forbidden = grid.terms["cause_scarp"].astype(bool)
     # Toutes les cases du tampon doivent avoir coût inf
     assert np.all(np.isinf(grid.cost[scarp_forbidden])), (
-        "Certaines cases du tampon de falaise ont un coût fini — elles ne doivent pas être traversables."
+        "Certaines cases du tampon de falaise ont un coût fini "
+        "— elles ne doivent pas être traversables."
     )
 
 

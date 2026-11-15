@@ -2,35 +2,70 @@
 # ajustées par I1). Les seuils sont des hypothèses de conception à justifier (besoins §6) :
 # la NASA n'a pas publié de normes définitives de sortie sur Mars.
 # Le paramètre `preset` de GET /api/sites/{site_id}/hazards choisit une entrée de `presets`.
+#
+# Formule de coût (P1) : C = w_t · t + w_r · R − w_s · S
+#   t : temps de traversée (s), Tobler adapté 0,38 g × facteur sol
+#   R : risque normalisé [0,1] — somme des pénalités actives
+#   S : intérêt scientifique normalisé [0,1] — CRISM (0=0, 1=0,5, 2=1,0)
+#
+# Zones INTERDITES (cost = +inf, inaccessibles à P2) :
+#   slope >= max_slope_deg
+#   obstacles == 1
+#   loose_soil >= avoid_loose_soil_class  (classe 3 = dune active)
+#   scarps == 1  dilatés du tampon scarp_buffer_m
+#
+# Zones PÉNALISÉES (R > 0, traversables mais coûteuses) :
+#   penalty_slope_deg <= slope < max_slope_deg
+#   loose_soil == avoid_loose_soil_class − 1  (classe 2 = sol meuble)
+#   radio_coverage == 0
+#   illumination <= min_illumination
+#   roughness > max_roughness_m
+#
+# Dégradation gracieuse (ENF-07) :
+#   degraded_margin_pct : marge ajoutée (informatif) quand une couche est dégradée/absente.
+#   Les données inconnues ne sont jamais traitées comme sûres (pire cas appliqué).
 default: standard
 presets:
   standard:
-    max_slope_deg: 20.0
-    penalty_slope_deg: 10.0
-    max_roughness_m: 0.5
-    obstacle_buffer_m: 2.0
-    scarp_buffer_m: 10.0
-    avoid_loose_soil_class: 3
-    require_radio: false
-    radio_penalty: 2.0
-    min_illumination: 0.0
-    min_reserve_pct: 30.0
-    max_dust_tau: 2.0
-    max_dose_usv: 1000.0
-    degraded_margin_pct: 15.0
-    weights: { time: 1.0, risk: 1.0, science: 0.5 }
+    # --- Interdiction ---
+    max_slope_deg: 20.0            # Analogie EVA lunaire (Apollo). Combinaison rigide.
+    obstacle_buffer_m: 2.0         # Tampon autour des obstacles détectés.
+    scarp_buffer_m: 10.0           # Tampon falaise = 10 m + incertitude_recalage + résolution.
+    avoid_loose_soil_class: 3      # Classe 3 = dune active (enlisement). Classe 2 = pénalité.
+    # --- Pénalité ---
+    penalty_slope_deg: 10.0        # Zone de vigilance : vitesse réduite, risque accru.
+    max_roughness_m: 0.5           # Rugosité > 0,5 m = risque de chute avec combinaison.
+    require_radio: false           # Radio obligatoire ? Non en standard.
+    radio_penalty: 2.0             # Facteur de pénalité hors couverture radio.
+    min_illumination: 0.0          # Pénalité si illumination <= ce seuil.
+    # --- Conditions ---
+    min_reserve_pct: 30.0          # Réserve minimale de consommables au retour (%).
+    max_dust_tau: 2.0              # Opacité atmosphérique limite (pénalité au-delà).
+    max_dose_usv: 1000.0           # Dose cumulée maximale acceptable (µSv).
+    # --- Dégradation gracieuse ---
+    degraded_margin_pct: 15.0      # Marge de sécurité ajoutée si couche absente/dégradée.
+    # --- Poids de la formule de coût ---
+    weights:
+      time: 1.0                    # w_t : poids du temps de traversée
+      risk: 1.0                    # w_r : poids du risque
+      science: 0.5                 # w_s : poids de l'intérêt scientifique (réduction)
+
   prudent:
-    max_slope_deg: 15.0
+    # Profil pour conditions dégradées, EVA longue ou astronaute peu entraîné.
+    max_slope_deg: 15.0            # Seuil abaissé à 15° (marge supplémentaire).
+    obstacle_buffer_m: 4.0
+    scarp_buffer_m: 20.0           # Tampon doublé pour plus de sécurité.
+    avoid_loose_soil_class: 2      # Interdit dès la classe 2 (sol meuble).
     penalty_slope_deg: 8.0
     max_roughness_m: 0.3
-    obstacle_buffer_m: 4.0
-    scarp_buffer_m: 20.0
-    avoid_loose_soil_class: 2
-    require_radio: true
+    require_radio: true            # Radio obligatoire en mode prudent.
     radio_penalty: 4.0
-    min_illumination: 0.2
+    min_illumination: 0.2          # Zone doit être éclairée à 20 % minimum.
     min_reserve_pct: 40.0
     max_dust_tau: 1.5
     max_dose_usv: 500.0
     degraded_margin_pct: 25.0
-    weights: { time: 0.5, risk: 2.0, science: 0.3 }
+    weights:
+      time: 0.5                    # Moins d'importance au temps (priorité sécurité).
+      risk: 2.0                    # Risque doublement pondéré.
+      science: 0.3                 # Science moins prioritaire.

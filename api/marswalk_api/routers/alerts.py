@@ -1,10 +1,10 @@
-"""Alertes (A3, EF-08). Bouchon T00 : exemples versionnés."""
+"""Alertes actives et acquittement (A3, EF-08)."""
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from marswalk_api.deps import load_example
+from marswalk_api.services.a3 import get_service
 from marswalk_core.schemas import Alert
 
 router = APIRouter(tags=["alerts"])
@@ -12,10 +12,14 @@ router = APIRouter(tags=["alerts"])
 
 @router.get("/api/alerts", response_model=list[Alert])
 def list_alerts(eva_id: str | None = None, active: bool = True) -> list[Alert]:
-    return [Alert.model_validate(a) for a in load_example("alerts")]
+    # Les plus graves en tête ; avec eva_id, celles de la sortie et celles du site.
+    return get_service().engine.list(eva_id, active)
 
 
 @router.post("/api/alerts/{alert_id}/ack", response_model=Alert)
 def acknowledge_alert(alert_id: str) -> Alert:
-    alert = Alert.model_validate(load_example("alerts")[0])
-    return alert.model_copy(update={"acknowledged": True})
+    # Une seule action ; le changement est diffusé par le WebSocket.
+    alert = get_service().acknowledge(alert_id)
+    if alert is None:
+        raise HTTPException(status_code=404, detail=f"Alerte inconnue : {alert_id}")
+    return alert

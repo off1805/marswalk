@@ -1,0 +1,137 @@
+{
+  "_comment": "Vecteurs de test Mars24 partagés Python/TypeScript. Sources : NASA GISS https://www.giss.nasa.gov/tools/mars24/help/algorithm.html et calculs dérivés.",
+  "vectors": [
+    {
+      "name": "GISS-1 : quasi-minuit commun Terre/Mars (2000-01-06T00:00:00Z, lon=0°)",
+      "utc": "2000-01-06T00:00:00Z",
+      "lon_east": 0.0,
+      "expected": {
+        "ls_deg": 277.188,
+        "mst": "23:59:39",
+        "lmst": "23:59:39",
+        "ltst": "23:38:54"
+      },
+      "tolerance_lmst_s": 2,
+      "source": "NASA GISS Mars24 Worked Example 1"
+    },
+    {
+      "name": "GISS-2 : atterrissage Spirit MER-A (2004-01-03T13:46:31Z, lon=184.702°W)",
+      "utc": "2004-01-03T13:46:31Z",
+      "lon_east": -184.702,
+      "expected": {
+        "ls_deg": 327.324,
+        "lmst": "00:51:07",
+        "ltst": "00:00:00"
+      },
+      "tolerance_lmst_s": 2,
+      "source": "NASA GISS Mars24 Worked Example 2 (lon 184.702°W = -184.702°E)"
+    },
+    {
+      "name": "Longitude positive haute : site fictif Jezero (77.58°E)",
+      "utc": "2026-11-14T00:00:00Z",
+      "lon_east": 77.58,
+      "expected": {
+        "lmst_offset_from_mst_h": 5.172
+      },
+      "tolerance_lmst_s": 5,
+      "source": "dérivé : LMST = MST + 77.58/15 = MST + 5.172 h"
+    },
+    {
+      "name": "Longitude négative (ouest) : -100°E",
+      "utc": "2026-11-14T12:00:00Z",
+      "lon_east": -100.0,
+      "expected": {
+        "lmst_offset_from_mst_h": -6.6667
+      },
+      "tolerance_lmst_s": 5,
+      "source": "dérivé : LMST = MST + (-100)/15 = MST - 6.667 h (mod 24)"
+    },
+    {
+      "name": "Longitude +180°E (antiméridien Est)",
+      "utc": "2026-11-14T06:00:00Z",
+      "lon_east": 180.0,
+      "expected": {
+        "lmst_offset_from_mst_h": 12.0
+      },
+      "tolerance_lmst_s": 5,
+      "source": "dérivé : LMST = MST + 180/15 = MST + 12 h"
+    },
+    {
+      "name": "Longitude -180°E (antiméridien Ouest)",
+      "utc": "2026-11-14T06:00:00Z",
+      "lon_east": -180.0,
+      "expected": {
+        "lmst_offset_from_mst_h": -12.0
+      },
+      "tolerance_lmst_s": 5,
+      "source": "dérivé : LMST = MST - 180/15 = MST - 12 h (mod 24)"
+    },
+    {
+      "name": "Parité inter-langages — instant arbitraire Jezero",
+      "utc": "2026-11-01T08:30:00Z",
+      "lon_east": 77.58,
+      "expected": {},
+      "tolerance_lmst_s": 1,
+      "source": "test de parité : même résultat Python et TypeScript à 1 s près"
+    },
+    {
+      "name": "Année bissextile terrestre 2000 (2000-02-29T12:00:00Z)",
+      "utc": "2000-02-29T12:00:00Z",
+      "lon_east": 0.0,
+      "expected": {
+        "ls_deg_range": [313.0, 325.0]
+      },
+      "tolerance_lmst_s": 60,
+      "source": "vérification fonctionnelle : pas d'erreur sur une date bissextile terrestre"
+    },
+    {
+      "name": "Année non-bissextile limite (2100-02-28T00:00:00Z)",
+      "utc": "2100-02-28T00:00:00Z",
+      "lon_east": 0.0,
+      "expected": {},
+      "tolerance_lmst_s": 60,
+      "source": "vérification fonctionnelle : calcul sans crash sur date future éloignée"
+    },
+    {
+      "name": "Frontière de sol — exactement 1 sol après l'époque",
+      "utc": "2026-11-02T00:39:36Z",
+      "lon_east": 77.58,
+      "expected": {
+        "sol_min": 2
+      },
+      "tolerance_lmst_s": 60,
+      "note": "1 sol = 88775.244 s ; 88776 s après 2026-11-01T00:00:00Z → sol 2",
+      "source": "calcul : 2026-11-01T00:00:00Z + 88776 s = 2026-11-02T00:39:36Z"
+    },
+    {
+      "name": "LMST en [0, 24) — longitude extrême +179.99°E",
+      "utc": "2026-06-15T00:00:00Z",
+      "lon_east": 179.99,
+      "expected": {
+        "lmst_hours_range": [0.0, 24.0]
+      },
+      "tolerance_lmst_s": 5,
+      "source": "robustesse : LMST ne doit pas dépasser [0, 24)"
+    },
+    {
+      "name": "LMST en [0, 24) — longitude extrême -179.99°E",
+      "utc": "2026-06-15T00:00:00Z",
+      "lon_east": -179.99,
+      "expected": {
+        "lmst_hours_range": [0.0, 24.0]
+      },
+      "tolerance_lmst_s": 5,
+      "source": "robustesse : LMST ne doit pas dépasser [0, 24)"
+    },
+    {
+      "name": "Latitude haute (mars analogique) — 85°N fictif",
+      "utc": "2026-11-14T12:00:00Z",
+      "lon_east": 0.0,
+      "expected": {
+        "lmst_hours_range": [0.0, 24.0]
+      },
+      "tolerance_lmst_s": 5,
+      "source": "robustesse : LMST valide à haute latitude (longitude seulement, pas latitude)"
+    }
+  ]
+}

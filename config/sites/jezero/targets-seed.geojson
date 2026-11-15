@@ -1,0 +1,119 @@
+{
+  "type": "FeatureCollection",
+  "crs_note": "IAU_2015:49900 (Mars 2000, planétocentrique, longitudes est)",
+  "source_note": "Cibles de la tâche S1, justifiées dans docs/science/jezero.md (numéros de sources entre crochets).",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "J1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.413,
+          18.452
+        ]
+      },
+      "properties": {
+        "name": "Front du delta (Wildcat Ridge)",
+        "kind": "science",
+        "objective": "Boues lacustres à sulfates, où SHERLOC a mesuré le plus de matière organique de la mission",
+        "measurement": "Imagerie rapprochée de la stratification, abrasion et deux carottes",
+        "work_time_s": 2400,
+        "priority": 1,
+        "layers": [
+          "crism_minerals",
+          "hirise_vis"
+        ],
+        "sources": [
+          "[4] Ehlmann 2008",
+          "[5] Goudge 2015",
+          "[9] NASA JPL 2022"
+        ],
+        "position_note": "Approximative (quelques centaines de mètres) : déduite des distances publiées au site d'atterrissage. À recaler sur hirise_vis après D1."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "J2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.442,
+          18.433
+        ]
+      },
+      "properties": {
+        "name": "Séítah, cumulat à olivine",
+        "kind": "science",
+        "objective": "Roche ignée riche en olivine et carbonates Fe-Mg déposés par une eau chargée en CO2",
+        "measurement": "Abrasion, spectroscopie de l'olivine et des carbonates, une carotte",
+        "work_time_s": 1800,
+        "priority": 2,
+        "layers": [
+          "crism_minerals",
+          "thermal_inertia"
+        ],
+        "sources": [
+          "[5] Goudge 2015",
+          "[7] Farley 2022"
+        ],
+        "position_note": "Approximative (quelques centaines de mètres) : déduite des distances publiées au site d'atterrissage. À recaler sur hirise_vis après D1."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "J3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.446,
+          18.437
+        ]
+      },
+      "properties": {
+        "name": "Contact Séítah et Máaz",
+        "kind": "science",
+        "objective": "Ordre de mise en place des deux unités ignées du plancher et sulfates d'évaporation",
+        "measurement": "Profil d'images du contact, mesure du pendage, prélèvement de part et d'autre",
+        "work_time_s": 1200,
+        "priority": 3,
+        "layers": [
+          "hirise_vis",
+          "slope"
+        ],
+        "sources": [
+          "[7] Farley 2022",
+          "[8] Sharma 2023"
+        ],
+        "position_note": "Approximative (quelques centaines de mètres) : déduite des distances publiées au site d'atterrissage. À recaler sur hirise_vis après D1."
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "J4",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.424,
+          18.42
+        ]
+      },
+      "properties": {
+        "name": "Kodiak et blocs de crue",
+        "kind": "science",
+        "objective": "Couches inclinées du delta et blocs d'environ 1 m apportés par les crues tardives",
+        "measurement": "Panorama stéréo de la butte, mesure de la taille des blocs, prélèvement d'un bloc exotique",
+        "work_time_s": 900,
+        "priority": 2,
+        "layers": [
+          "hirise_vis",
+          "obstacles"
+        ],
+        "sources": [
+          "[3] Mangold 2021"
+        ],
+        "position_note": "Approximative (quelques centaines de mètres) : déduite des distances publiées au site d'atterrissage. À recaler sur hirise_vis après D1."
+      }
+    }
+  ]
+}

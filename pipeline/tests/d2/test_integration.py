@@ -16,8 +16,14 @@ from marswalk_pipeline.derived import run_derive
 FICTIF_PACKAGE = repo_root() / "fixtures" / "sites" / "fictif"
 FICTIF_COG = FICTIF_PACKAGE / "cog"
 EXPECTED_LAYERS = [
-    "slope", "roughness", "hillshade", "obstacles",
-    "scarps", "loose_soil", "radio_coverage", "illumination",
+    "slope",
+    "roughness",
+    "hillshade",
+    "obstacles",
+    "scarps",
+    "loose_soil",
+    "radio_coverage",
+    "illumination",
 ]
 
 
@@ -115,9 +121,11 @@ class TestSlope15DegAccuracy:
         slope_m_per_m = np.tan(np.radians(slope_deg))
         cols = np.arange(size, dtype=np.float32)
         # Tableau 200×200 avec pente vers l'est
-        dem = np.broadcast_to(
-            -2500.0 + cols * slope_m_per_m * resolution_m, (size, size)
-        ).copy().astype(np.float32)
+        dem = (
+            np.broadcast_to(-2500.0 + cols * slope_m_per_m * resolution_m, (size, size))
+            .copy()
+            .astype(np.float32)
+        )
 
         slope = compute_slope(dem, resolution_m=resolution_m, nodata=-9999.0)
         interior = slope[2:-2, 2:-2]

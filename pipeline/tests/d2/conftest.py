@@ -55,7 +55,7 @@ def synthetic_ti():
     """Inertie thermique synthétique 100×100 avec zones dune/roche/mixte."""
     size = 100
     ti = np.full((size, size), 300.0, dtype=np.float32)  # roche par défaut
-    ti[:25, :] = 150.0   # zone dune (TI < 170)
+    ti[:25, :] = 150.0  # zone dune (TI < 170)
     ti[25:50, :] = 180.0  # zone meuble (TI < 200)
     ti[50:75, :] = 230.0  # zone mixte (TI < 270)
     # ti[75:, :] = 300.0  # zone roche (TI >= 270)

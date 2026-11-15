@@ -17,8 +17,9 @@ def _make_ti(val: float) -> np.ndarray:
 def _make_hi(val: float, noisy: bool = False) -> np.ndarray:
     if noisy:
         rng = np.random.default_rng(0)
-        return (np.full((SIZE, SIZE), val, dtype=np.float32)
-                + rng.normal(0, 20.0, (SIZE, SIZE)).astype(np.float32))
+        return np.full((SIZE, SIZE), val, dtype=np.float32) + rng.normal(
+            0, 20.0, (SIZE, SIZE)
+        ).astype(np.float32)
     return np.full((SIZE, SIZE), val, dtype=np.float32)
 
 

@@ -35,9 +35,14 @@ class TestEastFacingSlopeLit:
         size = 100
         # DEM montant vers l'OUEST (exposé EST) → descend vers l'est
         cols = np.arange(size, dtype=np.float32)
-        dem = np.broadcast_to(
-            -2500.0 + (size - 1 - cols) * 0.364, (size, size)  # tan(20°)
-        ).copy().astype(np.float32)
+        dem = (
+            np.broadcast_to(
+                -2500.0 + (size - 1 - cols) * 0.364,
+                (size, size),  # tan(20°)
+            )
+            .copy()
+            .astype(np.float32)
+        )
 
         # Soleil à l'est (azimut=90°, altitude=20°)
         result = compute_illumination(

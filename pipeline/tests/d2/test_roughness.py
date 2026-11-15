@@ -29,9 +29,7 @@ class TestReliefRoughness:
         center = roughness[42:58, 42:58]
         valid = center != NODATA
         if valid.any():
-            assert float(center[valid].max()) > 0.1, (
-                "Zone rugueuse devrait avoir roughness > 0.1"
-            )
+            assert float(center[valid].max()) > 0.1, "Zone rugueuse devrait avoir roughness > 0.1"
 
 
 class TestWindowSizeEffect:

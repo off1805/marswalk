@@ -29,9 +29,7 @@ class TestTiltedDem:
         valid = interior != NODATA
         assert valid.any()
         mean_slope = float(np.mean(interior[valid]))
-        assert abs(mean_slope - 15.0) < 0.1, (
-            f"Pente attendue 15.0°, obtenu {mean_slope:.4f}°"
-        )
+        assert abs(mean_slope - 15.0) < 0.1, f"Pente attendue 15.0°, obtenu {mean_slope:.4f}°"
 
 
 class TestNodataPropagation:

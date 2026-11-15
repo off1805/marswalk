@@ -52,14 +52,16 @@ class TestDirectionalSensitivity:
 
         # Pente exposée EST : DESCEND vers l'est (monte vers l'ouest)
         # dem_east_facing[r,c] = -2500 + (size-1-c) * slope
-        dem_east_facing = np.broadcast_to(
-            -2500.0 + (size - 1 - cols) * 0.577, (size, size)
-        ).copy().astype(np.float32)
+        dem_east_facing = (
+            np.broadcast_to(-2500.0 + (size - 1 - cols) * 0.577, (size, size))
+            .copy()
+            .astype(np.float32)
+        )
 
         # Pente exposée OUEST : DESCEND vers l'ouest (monte vers l'est)
-        dem_west_facing = np.broadcast_to(
-            -2500.0 + cols * 0.577, (size, size)
-        ).copy().astype(np.float32)
+        dem_west_facing = (
+            np.broadcast_to(-2500.0 + cols * 0.577, (size, size)).copy().astype(np.float32)
+        )
 
         hs_east = compute_hillshade(
             dem_east_facing, RES, sun_azimuth_deg=90.0, sun_altitude_deg=30.0, nodata=NODATA

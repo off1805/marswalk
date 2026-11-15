@@ -52,7 +52,7 @@ def compute_illumination(
     az_rad = np.radians(float(sun_azimuth_deg))
     # Direction du soleil (d'où vient la lumière) en coords image
     # Azimut 0=Nord, 90=Est => vecteur "depuis soleil" : col = sin(az), row = -cos(az)
-    sun_dc = float(np.sin(az_rad))   # col : est = positif
+    sun_dc = float(np.sin(az_rad))  # col : est = positif
     sun_dr = float(-np.cos(az_rad))  # row : nord = négatif (row 0 = haut)
 
     result = np.ones((rows, cols), dtype=np.float32)
@@ -105,8 +105,7 @@ def compute_illumination(
 
             prev_max = np.full(rows, -np.inf, dtype=np.float64)
             prev_max[both_valid] = (
-                h_lo[both_valid] * (1.0 - frac[both_valid])
-                + h_hi[both_valid] * frac[both_valid]
+                h_lo[both_valid] * (1.0 - frac[both_valid]) + h_hi[both_valid] * frac[both_valid]
             )
             prev_max[lo_only] = h_lo[lo_only]
             prev_max[hi_only] = h_hi[hi_only]
@@ -166,8 +165,7 @@ def compute_illumination(
 
             prev_max = np.full(cols, -np.inf, dtype=np.float64)
             prev_max[both_valid] = (
-                h_lo[both_valid] * (1.0 - frac[both_valid])
-                + h_hi[both_valid] * frac[both_valid]
+                h_lo[both_valid] * (1.0 - frac[both_valid]) + h_hi[both_valid] * frac[both_valid]
             )
             prev_max[lo_only] = h_lo[lo_only]
             prev_max[hi_only] = h_hi[hi_only]

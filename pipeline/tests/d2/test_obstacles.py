@@ -76,6 +76,7 @@ class TestBinaryOutput:
     def test_binary_output(self, dem_with_pit):
         """Seules les valeurs 0.0, 1.0 et nodata."""
         from marswalk_pipeline.derived.roughness import compute_roughness
+
         roughness = compute_roughness(dem_with_pit, window_m=3.0, resolution_m=RES, nodata=NODATA)
         result = compute_obstacles(
             roughness, threshold_m=0.4, buffer_m=2.0, resolution_m=RES, nodata=NODATA

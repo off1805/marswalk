@@ -14,6 +14,7 @@ class TestFlatNoScarps:
     def test_flat_no_scarps(self, flat_dem):
         """DEM plat → pente=0 → aucune falaise."""
         from marswalk_pipeline.derived.slope import compute_slope
+
         slope = compute_slope(flat_dem, RES, nodata=NODATA)
         result = compute_scarps(
             slope, threshold_deg=30.0, buffer_m=0.0, resolution_m=RES, nodata=NODATA
@@ -27,6 +28,7 @@ class TestCliffDetected:
     def test_cliff_detected(self, dem_with_cliff):
         """Falaise > threshold → 1."""
         from marswalk_pipeline.derived.slope import compute_slope
+
         slope = compute_slope(dem_with_cliff, RES, nodata=NODATA)
         result = compute_scarps(
             slope, threshold_deg=30.0, buffer_m=0.0, resolution_m=RES, nodata=NODATA
@@ -77,6 +79,7 @@ class TestBinaryOutput:
     def test_binary_output(self, dem_with_cliff):
         """Seules les valeurs 0.0, 1.0 et nodata."""
         from marswalk_pipeline.derived.slope import compute_slope
+
         slope = compute_slope(dem_with_cliff, RES, nodata=NODATA)
         result = compute_scarps(
             slope, threshold_deg=30.0, buffer_m=5.0, resolution_m=RES, nodata=NODATA

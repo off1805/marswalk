@@ -12,7 +12,7 @@ import { buildSections, type DockPanel, type Section } from "./dock";
 import { Icon, type IconName } from "./icons";
 import { MapView } from "./MapView";
 import { registry } from "./registry";
-import { SitePicker } from "./SitePicker";
+import { SitePicker, useSites } from "./SitePicker";
 import { Slot } from "./Slot";
 import { Tour, useAutoTour } from "./Tour";
 import { useConsole } from "./uiStore";
@@ -44,7 +44,7 @@ const GAP = 12;
 const HEADER = 60;
 const RAIL = 56;
 const SHEET_CLOSED = 44;
-const SHEET_OPEN = 260;
+const SHEET_OPEN = 300;
 
 interface Geometry {
   drawer: CSSProperties;
@@ -69,13 +69,24 @@ function geometry(size: Size, drawerOpen: boolean, evaCollapsed: boolean, profil
   const drawerW = wide ? 380 : 340;
   const evaW = wide ? 344 : 312;
   const top = HEADER + 8;
+  const railRight = GAP + RAIL + 8;
   const left = GAP + RAIL + (drawerOpen ? 8 + drawerW : 0) + GAP;
   const pinned = size === "desktop";
   const evaRight = pinned ? GAP + evaW + GAP : GAP;
+  // An open profile takes the whole width beside the rail; the drawer stops above it,
+  // so the chart is never squeezed by an open tool.
+  const above = GAP + sheetH + 8;
   return {
-    drawer: { top, bottom: GAP, left: GAP + RAIL + 8, width: drawerW },
-    eva: pinned ? { top, right: GAP, width: evaW, maxHeight: `calc(100% - ${top + GAP}px)` } : null,
-    sheet: { left, right: evaCollapsed ? GAP : evaRight, bottom: GAP, height: sheetH },
+    drawer: { top, bottom: profileOpen ? above : GAP, left: railRight, width: drawerW },
+    eva: pinned
+      ? { top, right: GAP, width: evaW, maxHeight: `calc(100% - ${top + (profileOpen ? above : GAP)}px)` }
+      : null,
+    sheet: {
+      left: profileOpen ? railRight : left,
+      right: evaCollapsed || profileOpen ? GAP : evaRight,
+      bottom: GAP,
+      height: sheetH,
+    },
     stage: { top, right: evaRight, bottom: GAP + sheetH + GAP, left },
   };
 }
@@ -161,7 +172,7 @@ function MarsClock({ compact }: { compact?: boolean }) {
         <span className="font-mono text-lg text-[var(--text)] tabular-nums">{clock.data.sol}</span>
       </span>
       {!compact && (
-        <span className="flex items-baseline gap-1.5">
+        <span className="hidden items-baseline gap-1.5 lg:flex">
           <span className="font-mono text-lg text-[var(--text)] tabular-nums">{clock.data.lmst}</span>
           <span className="label-caps">LMST</span>
         </span>
@@ -186,6 +197,7 @@ function LinkStatus() {
 
 function TopBar({ overlay, size }: { overlay: boolean; size: Size }) {
   const site = useSiteManifest();
+  const multiSite = (useSites().data?.length ?? 0) > 1;
   const [theme, toggleTheme] = useTheme();
   const setTourOpen = useConsole((s) => s.setTourOpen);
   const phone = size === "phone";
@@ -207,9 +219,12 @@ function TopBar({ overlay, size }: { overlay: boolean; size: Size }) {
           <strong className="text-[13px] font-semibold tracking-[0.24em] text-[var(--text)]">MARSWALK</strong>
         </span>
         {!phone && (
-          <span className="flex min-w-0 items-center gap-2 border-l border-[var(--border)] pl-3">
-            <span className="truncate text-[13px] text-[var(--text-muted)]">{site.data?.name ?? "Loading site…"}</span>
-            <SitePicker />
+          <span className="flex min-w-0 max-w-[12rem] items-center gap-2 border-l border-[var(--border)] pl-3 lg:max-w-[20rem]">
+            {multiSite ? (
+              <SitePicker />
+            ) : (
+              <span className="truncate text-[13px] text-[var(--text-muted)]">{site.data?.name ?? "Loading site…"}</span>
+            )}
           </span>
         )}
       </div>
@@ -307,7 +322,7 @@ function Drawer({ sections, style }: { sections: Section[]; style: CSSProperties
       aria-hidden={!section}
       inert={!section}
       data-tour="drawer"
-      className={`pane absolute z-20 flex flex-col overflow-hidden transition-[opacity,transform,filter] duration-[380ms] ease-[var(--ease-out-expo)] ${
+      className={`pane absolute z-20 flex flex-col overflow-hidden transition-[opacity,transform,filter,bottom] duration-[380ms] ease-[var(--ease-out-expo)] ${
         section ? "translate-x-0 opacity-100 blur-0" : "pointer-events-none -translate-x-3 opacity-0 blur-[2px]"
       }`}
       style={style}
@@ -479,12 +494,15 @@ export function MapLayout() {
 export function Terrain3dLayout() {
   const size = useSize();
   const route = registry.flatMap((f) => f.routes).find((r) => r.path === "/3d");
+  // MapLibre's controls sit above the flyover bar.
+  const vars = { "--stage-t": "68px", "--stage-r": "12px", "--stage-b": size === "phone" ? "150px" : "84px" } as CSSProperties;
   return (
-    <div data-mode="3d" className="flex h-full flex-col">
-      <TopBar overlay={false} size={size} />
-      <div className="relative min-h-0 flex-1">
+    <div data-mode="3d" className="relative h-full overflow-hidden bg-[var(--bg)]" style={vars}>
+      <div className="absolute inset-0">
         {route ? <route.component /> : <p className="p-4">3D view coming soon (F6).</p>}
       </div>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-28 bg-gradient-to-b from-[var(--scrim)] to-transparent" />
+      <TopBar overlay size={size} />
       <Tour sections={[]} phone={size === "phone"} evaInRail={size !== "desktop"} />
     </div>
   );

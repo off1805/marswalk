@@ -110,7 +110,9 @@ tasks:
       - api/marswalk_api/routers/sites.py
       - api/marswalk_api/routers/query.py
       - api/marswalk_api/routers/tiles.py
+      - api/marswalk_api/services/site_layers/**
       - api/marswalk_api/services/a1/**
+      - api/tests/site_layers/**
       - api/tests/a1/**
   A2:
     title: API cibles, itinéraires et persistance
@@ -118,7 +120,9 @@ tasks:
       - api/marswalk_api/routers/targets.py
       - api/marswalk_api/routers/plans.py
       - api/marswalk_api/routers/hazards.py
+      - api/marswalk_api/services/mission_planning/**
       - api/marswalk_api/services/a2/**
+      - api/tests/mission_planning/**
       - api/tests/a2/**
   A3:
     title: Alertes et temps réel

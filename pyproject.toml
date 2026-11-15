@@ -67,8 +67,16 @@ explicit_package_bases = true
 exclude = ["(^|/)migrations/versions/", "(^|/)web/", "(^|/)node_modules/"]
 
 [[tool.mypy.overrides]]
-module = ["rasterio.*", "affine.*", "geoalchemy2.*", "shapely.*"]
+module = ["rasterio.*", "affine.*", "geoalchemy2.*", "shapely.*", "scipy.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "marswalk_planner._p1.masks",
+    "marswalk_planner._p2.astar",
+    "tests.p1.test_performance",
+]
+warn_unused_ignores = false
 
 [tool.pytest.ini_options]
 testpaths = ["packages/core/tests", "pipeline/tests", "planner/tests", "conditions/tests", "api/tests", "tools/tests"]

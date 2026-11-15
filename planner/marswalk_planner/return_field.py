@@ -83,6 +83,28 @@ def _build_graph(cost: np.ndarray) -> scipy.sparse.csr_matrix:
     return scipy.sparse.csr_matrix((all_data, (all_rows, all_cols)), shape=(n, n), dtype=np.float64)
 
 
+MAX_FIELD_CELLS = 1_000_000
+"""Au-delà, le champ est calculé sur une grille agrégée (Jezero : 2 500 × 2 500 cases à 2 m,
+soit plus de 7 s et plusieurs Go pour le graphe ; agrégé à 6 m, environ 1 s). Le temps de
+retour sert aux budgets et au point de non-retour : une maille de 6 m suffit."""
+
+
+def _coarsen_cost(cost: np.ndarray, k: int) -> np.ndarray:
+    """Coût d'une case agrégée k × k : k fois la moyenne des cases franchissables, inf si
+    aucune ne l'est (une case de k fois la taille prend k fois plus de temps à traverser)."""
+    height, width = cost.shape
+    h, w = -(-height // k), -(-width // k)
+    padded = np.full((h * k, w * k), np.inf, dtype=np.float64)
+    padded[:height, :width] = cost
+    blocks = padded.reshape(h, k, w, k)
+    finite = np.isfinite(blocks)
+    n = finite.sum(axis=(1, 3))
+    total = np.where(finite, blocks, 0.0).sum(axis=(1, 3))
+    with np.errstate(invalid="ignore", divide="ignore"):
+        out = np.where(n > 0, k * total / np.maximum(n, 1), np.inf)
+    return out
+
+
 def return_field(cost_grid: CostGrid, habitat: LonLat, suit: SuitModel) -> ReturnField:
     """Temps de retour le plus court vers l'habitat depuis chaque case (en secondes).
 
@@ -113,9 +135,12 @@ def return_field(cost_grid: CostGrid, habitat: LonLat, suit: SuitModel) -> Retur
         )
 
     h_row, h_col = h_cell
-    source_node = h_row * width + h_col
+    k = max(1, math.ceil(math.sqrt(height * width / MAX_FIELD_CELLS)))
+    work = _coarsen_cost(np.asarray(cost, dtype=np.float64), k) if k > 1 else cost
+    w_width = work.shape[1]
+    source_node = (h_row // k) * w_width + (h_col // k)
 
-    graph = _build_graph(cost)
+    graph = _build_graph(work)
 
     # Dijkstra depuis le nœud source (direction : habitat → reste de la grille)
     # On veut le temps de retour de chaque case vers l'habitat, soit la distance
@@ -128,7 +153,9 @@ def return_field(cost_grid: CostGrid, habitat: LonLat, suit: SuitModel) -> Retur
         return_predecessors=False,
     )
 
-    seconds = dist_array.reshape(height, width).astype(np.float32)
+    seconds = dist_array.reshape(work.shape).astype(np.float32)
+    if k > 1:
+        seconds = np.repeat(np.repeat(seconds, k, axis=0), k, axis=1)[:height, :width]
 
     return ReturnField(
         site=site,

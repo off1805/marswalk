@@ -5,6 +5,11 @@ Lancement : ``uv run uvicorn marswalk_api.main:app --reload``.
 
 from __future__ import annotations
 
+import logging
+import threading
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -46,8 +51,49 @@ ROUTERS = [
 ]
 
 
+logger = logging.getLogger(__name__)
+
+
+def _warm_up(site_id: str) -> None:
+    """Lit les couches et calcule un plan sur toutes les cibles proposées du site : les
+    grilles de coût des trois variantes, le champ de retour et les tronçons restent en
+    cache pour les requêtes suivantes."""
+    from marswalk_api.services.mission_planning.deps import (
+        get_plan_computation_service,
+        get_plan_repository,
+        get_safety_settings_repository,
+        get_target_repository,
+    )
+    from marswalk_core.schemas import PlanCreate
+    from marswalk_core.site_package import load_site
+
+    try:
+        site = load_site(site_id)
+        for layer_id in site.raster_layer_ids():
+            if site.has_layer(layer_id):
+                site.read_layer(layer_id)
+        targets = get_target_repository().list_by_site(site_id)
+        if targets:
+            service = get_plan_computation_service(
+                get_target_repository(), get_plan_repository(), get_safety_settings_repository()
+            )
+            plan = service.compute_plan(site_id, PlanCreate(target_ids=[t.id for t in targets]))
+            logger.info("Préchauffage de %s : plan calculé en %s ms", site_id, plan.compute_time_ms)
+    except Exception:  # le préchauffage ne doit jamais empêcher l'API de démarrer
+        logger.exception("Préchauffage de %s impossible", site_id)
+
+
+@asynccontextmanager
+async def _lifespan(_: FastAPI) -> AsyncIterator[None]:
+    settings = get_settings()
+    if settings.warmup:
+        threading.Thread(target=_warm_up, args=(settings.default_site,), daemon=True).start()
+    yield
+
+
 def create_app() -> FastAPI:
     app = FastAPI(
+        lifespan=_lifespan,
         title="Marswalk API",
         version=__version__,
         description=(

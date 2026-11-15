@@ -8,6 +8,7 @@ de ces classes d'implémentation sans toucher au reste de l'API.
 
 from __future__ import annotations
 
+import json
 import threading
 import uuid
 from datetime import UTC, datetime
@@ -18,6 +19,8 @@ from marswalk_api.services.mission_planning.interfaces import (
     ISafetySettingsRepository,
     ITargetRepository,
 )
+from marswalk_core.config import load_safety_settings
+from marswalk_core.paths import config_dir
 from marswalk_core.schemas import (
     Plan,
     PlanUpdate,
@@ -45,6 +48,17 @@ class InMemoryTargetRepository(ITargetRepository):
                 self._targets[t.id] = t
         except Exception:
             pass
+        # Sites réels : cibles proposées de config/sites/<site_id>/targets-seed.geojson
+        # (Jezero : J1 à J4, de S1). Le site fictif garde les exemples des contrats.
+        for path in sorted(config_dir().glob("sites/*/targets-seed.geojson")):
+            site_id = path.parent.name
+            if site_id == "fictif":
+                continue
+            try:
+                for t in _targets_from_seed(site_id, path.read_text(encoding="utf-8")):
+                    self._targets.setdefault(t.id, t)
+            except Exception:
+                continue
 
     def list_by_site(self, site_id: str) -> list[Target]:
         with self._lock:
@@ -84,6 +98,38 @@ class InMemoryTargetRepository(ITargetRepository):
     def delete(self, target_id: str) -> bool:
         with self._lock:
             return self._targets.pop(target_id, None) is not None
+
+
+def _targets_from_seed(site_id: str, text: str) -> list[Target]:
+    now = datetime.now(UTC)
+    out: list[Target] = []
+    for feature in json.loads(text).get("features", []):
+        props = feature.get("properties") or {}
+        lon, lat = feature["geometry"]["coordinates"][:2]
+        out.append(
+            Target.model_validate(
+                {
+                    "id": str(feature["id"]),
+                    "site_id": site_id,
+                    "created_at": now,
+                    "updated_at": now,
+                    "position": [lon, lat],
+                    **{
+                        k: props[k]
+                        for k in (
+                            "name",
+                            "kind",
+                            "objective",
+                            "measurement",
+                            "work_time_s",
+                            "priority",
+                        )
+                        if k in props
+                    },
+                }
+            )
+        )
+    return out
 
 
 class InMemoryPlanRepository(IPlanRepository):
@@ -136,6 +182,10 @@ class InMemorySafetySettingsRepository(ISafetySettingsRepository):
         with self._lock:
             if site_id not in self._settings_by_site:
                 try:
+                    if site_id != "fictif":
+                        # Sites réels : préréglage par défaut de config/safety.yaml (I1).
+                        self._settings_by_site[site_id] = load_safety_settings()
+                        return self._settings_by_site[site_id]
                     raw = load_example("settings")
                     self._settings_by_site[site_id] = SafetySettings.model_validate(raw)
                 except Exception:

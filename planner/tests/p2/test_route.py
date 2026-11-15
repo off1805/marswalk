@@ -147,3 +147,19 @@ class TestPlanRouteEdgeCases:
         # Extrémités préservées
         assert geom.coordinates[0].lon == pytest.approx(pts[0].lon, abs=1e-5)
         assert geom.coordinates[-1].lon == pytest.approx(pts[-1].lon, abs=1e-5)
+
+
+def test_segment_breaks_point_at_the_waypoints(
+    flat_site: tuple[Site, Path],
+    standard_settings: SafetySettings,
+    default_options: RouteOptions,
+) -> None:
+    """Chaque tronçon commence au point de passage précédent (pas un point plus loin)."""
+    site, _ = flat_site
+    grid = build_cost_grid(site, standard_settings)
+    pts = [grid_lonlat(0.1, 0.1), grid_lonlat(0.5, 0.2), grid_lonlat(0.9, 0.9)]
+    geom = plan_route(grid, pts, default_options)
+    for brk, pt in zip(geom.segment_breaks, pts[:-1], strict=True):
+        c = geom.coordinates[brk]
+        assert c.lon == pytest.approx(pt.lon, abs=1e-4)
+        assert c.lat == pytest.approx(pt.lat, abs=1e-4)

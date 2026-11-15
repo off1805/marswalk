@@ -12,7 +12,8 @@ def compute_roughness(
     resolution_m: float,
     nodata: float = -9999.0,
 ) -> np.ndarray:
-    """Calcule la rugosité comme l'écart-type local par fenêtre glissante carrée.
+    """Calcule la rugosité : écart quadratique moyen, dans une fenêtre carrée, du relief
+    autour de sa moyenne locale (la pente régionale ne compte pas).
 
     Algorithme efficace : sqrt(E[x²] - E[x]²) via uniform_filter.
     Les pixels nodata en entrée → nodata en sortie, et propagation aux voisins.
@@ -43,28 +44,26 @@ def compute_roughness(
     if win_px % 2 == 0:
         win_px += 1
 
-    # Travailler avec une copie en remplaçant nodata par nan
-    work = dem.copy()
-    work[nodata_mask] = np.nan
+    # Calcul en float64 et sur l'écart au relief moyen local : en float32, E[x²] - E[x]²
+    # sur des altitudes de l'ordre de -2 500 m perd toute précision (rugosité quantifiée
+    # à 0 ou 1 m sur Jezero), et l'écart type brut compte la pente régionale comme de la
+    # rugosité (un plan à 10° donne déjà 0,5 m sur 10 m). On retire donc d'abord la
+    # moyenne locale (un plan est alors exactement nul), puis on prend l'écart quadratique
+    # moyen du résidu dans la fenêtre.
+    valid = (~nodata_mask).astype(np.float64)
+    ref = float(np.mean(dem[~nodata_mask])) if np.any(~nodata_mask) else 0.0
+    work_filled = np.where(nodata_mask, 0.0, dem.astype(np.float64) - ref)
 
-    # Approche : mask-based E[x] et E[x²]
-    # On remplace nan par 0 et on utilise un masque de comptage
-    valid = (~nodata_mask).astype(np.float32)
-    work_filled = np.where(nodata_mask, 0.0, work)
-
-    # Somme de x et x² dans la fenêtre, et nombre de valides
-    sum_x = uniform_filter(work_filled, size=win_px, mode="reflect") * (win_px * win_px)
-    sum_x2 = uniform_filter(work_filled**2, size=win_px, mode="reflect") * (win_px * win_px)
-    count = uniform_filter(valid, size=win_px, mode="reflect") * (win_px * win_px)
-
-    # Éviter division par zéro
+    count = uniform_filter(valid, size=win_px, mode="reflect")
     with np.errstate(invalid="ignore", divide="ignore"):
-        mean_x = np.where(count > 0, sum_x / count, 0.0)
-        mean_x2 = np.where(count > 0, sum_x2 / count, 0.0)
-        variance = mean_x2 - mean_x**2
-        # Clamp numérique pour éviter sqrt de valeurs négatives minuscules
-        variance = np.maximum(variance, 0.0)
-        roughness = np.sqrt(variance).astype(np.float32)
+        local_mean = np.where(
+            count > 0, uniform_filter(work_filled, size=win_px, mode="reflect") / count, 0.0
+        )
+        residual = np.where(nodata_mask, 0.0, work_filled - local_mean)
+        mean_r2 = np.where(
+            count > 0, uniform_filter(residual**2, size=win_px, mode="reflect") / count, 0.0
+        )
+        roughness = np.sqrt(np.maximum(mean_r2, 0.0)).astype(np.float32)
 
     # Propager nodata : un pixel nodata en entrée → nodata en sortie
     # + propager aux voisins (toute fenêtre contenant un nodata → nodata)

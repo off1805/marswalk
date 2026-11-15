@@ -9,11 +9,21 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import Session
 
-from marswalk_core.paths import repo_root
+from marswalk_core.paths import find_package, repo_root
 from marswalk_core.site_package import Site, load_site
+
+
+def _installed_default_site() -> str:
+    """Jezero quand son paquet est installé (data/packages/jezero), sinon le site fictif."""
+    try:
+        find_package("jezero")
+    except FileNotFoundError:
+        return "fictif"
+    return "jezero"
 
 
 class Settings(BaseSettings):
@@ -23,7 +33,12 @@ class Settings(BaseSettings):
     """URL SQLAlchemy de PostGIS, par ex. postgresql+psycopg://marswalk:marswalk@db:5432/marswalk.
     Sans valeur, l'API tourne sans base (bouchons et tests)."""
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
-    default_site: str = "fictif"
+    default_site: str = Field(default_factory=_installed_default_site)
+    """Site des sorties et alertes par défaut (``MARSWALK_DEFAULT_SITE``)."""
+    warmup: bool = False
+    """Au démarrage, prépare en arrière-plan les grilles du site par défaut
+    (``MARSWALK_WARMUP=true``). Sur Jezero, le premier plan passe ainsi d'environ 11 s
+    à moins de 5 s."""
 
 
 @cache

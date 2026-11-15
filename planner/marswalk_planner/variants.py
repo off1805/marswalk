@@ -18,7 +18,7 @@ import copy
 
 from marswalk_core.config import load_suit
 from marswalk_core.geodesy import to_analysis
-from marswalk_core.grids import CostGrid, RouteOptions
+from marswalk_core.grids import CostGrid, ReturnField, RouteOptions
 from marswalk_core.schemas import (
     Consumption,
     LineStringGeometry,
@@ -30,6 +30,7 @@ from marswalk_core.schemas import (
     RouteVariant,
     SafetySettings,
     SegmentExplanation,
+    SuitModel,
     Target,
 )
 from marswalk_core.site_package import Site
@@ -51,14 +52,20 @@ def _make_route(
     end: LonLat,
     options: RouteOptions,
     variant: RouteVariant,
+    field: ReturnField | None = None,
 ) -> Route:
-    """Calcule une variante et l'assemble en objet Route."""
+    """Calcule une variante et l'assemble en objet Route.
+
+    ``field`` : champ de retour déjà calculé pour ce plan (il ne dépend que de l'habitat
+    et du terrain, on le calcule une fois pour les trois variantes).
+    """
     suit = options.suit or load_suit()
 
     waypoints = [LonLat(*start), *[t.position for t in ordered], LonLat(*end)]
     geom = plan_route(cost_grid, waypoints, options)
     est = estimate_route(site, geom, ordered, suit, options.conditions)
-    field = return_field(cost_grid, LonLat(*site.manifest.habitat), suit)
+    if field is None:
+        field = return_field(cost_grid, LonLat(*site.manifest.habitat), suit)
 
     breaks = [*geom.segment_breaks, len(geom.coordinates) - 1]
     segments: list[RouteSegment] = []
@@ -142,6 +149,37 @@ def _make_route(
     )
 
 
+_FIELD_CACHE: dict[str, ReturnField] = {}
+
+
+def _cached_return_field(
+    site: Site,
+    settings: SafetySettings,
+    options: RouteOptions,
+    cost_grid: CostGrid,
+    suit: SuitModel,
+) -> ReturnField:
+    """Champ de retour, réutilisé tant que le site, les réglages et les conditions ne
+    changent pas (déplacer une cible ne le recalcule pas)."""
+    habitat = LonLat(*site.manifest.habitat)
+    key = "|".join(
+        [
+            str(id(cost_grid.site)),
+            settings.model_dump_json(),
+            options.conditions.model_dump_json() if options.conditions else "",
+            suit.model_dump_json(),
+            f"{habitat.lon},{habitat.lat}",
+        ]
+    )
+    field = _FIELD_CACHE.get(key)
+    if field is None:
+        if len(_FIELD_CACHE) >= 4:
+            _FIELD_CACHE.clear()
+        field = return_field(cost_grid, habitat, suit)
+        _FIELD_CACHE[key] = field
+    return field
+
+
 def plan_variants(
     site: Site,
     settings: SafetySettings,
@@ -174,6 +212,7 @@ def plan_variants(
     }
 
     routes: list[Route] = []
+    field: ReturnField | None = None
     for variant in options.variants:
         v_settings = _variant_settings.get(variant, settings)
         cost_grid = build_cost_grid(site, v_settings, options.conditions)
@@ -187,8 +226,13 @@ def plan_variants(
             else list(targets)
         )
 
+        if field is None:
+            # Calculé sur la grille de la première variante (la plus sûre par défaut).
+            field = _cached_return_field(
+                site, v_settings, options, cost_grid, v_options.suit or load_suit()
+            )
         route = _make_route(
-            site, cost_grid, ordered, LonLat(*start), LonLat(*end), v_options, variant
+            site, cost_grid, ordered, LonLat(*start), LonLat(*end), v_options, variant, field
         )
         routes.append(route)
 

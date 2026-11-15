@@ -30,8 +30,12 @@ services:
     environment:
       MARSWALK_DATABASE_URL: postgresql+psycopg://marswalk:marswalk@db:5432/marswalk
       MARSWALK_CORS_ORIGINS: '["http://localhost:5173"]'
+      MARSWALK_WARMUP: "true"
     ports:
       - "8000:8000"
+    volumes:
+      # Paquets des sites réels (make site SITE=jezero), exclus de l'image par .dockerignore.
+      - ../data/packages:/app/data/packages:ro
     depends_on:
       db:
         condition: service_healthy

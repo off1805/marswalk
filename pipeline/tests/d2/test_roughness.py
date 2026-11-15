@@ -60,3 +60,21 @@ class TestOutputDimsAndCrs:
         roughness = compute_roughness(flat_dem, window_m=5.0, resolution_m=RES, nodata=NODATA)
         assert roughness.shape == flat_dem.shape
         assert roughness.dtype == np.float32
+
+
+class TestRealisticDem:
+    def test_tilted_plane_at_mars_altitude_is_smooth(self) -> None:
+        """Un plan incliné à 10° vers -2 500 m : rugosité nulle (ni pente ni perte de précision)."""
+        _y, x = np.mgrid[0:200, 0:200].astype(np.float64)
+        dem = (-2500.0 + np.tan(np.radians(10.0)) * x).astype(np.float32)
+        r = compute_roughness(dem, window_m=10.0, resolution_m=RES, nodata=NODATA)
+        inner = r[20:-20, 20:-20]
+        assert float(inner.max()) < 0.01
+
+    def test_boulder_on_slope_is_detected(self) -> None:
+        _y, x = np.mgrid[0:200, 0:200].astype(np.float64)
+        dem = (-2500.0 + np.tan(np.radians(10.0)) * x).astype(np.float32)
+        dem[100:102, 100:102] += 1.5
+        r = compute_roughness(dem, window_m=10.0, resolution_m=RES, nodata=NODATA)
+        assert float(r[101, 101]) > 0.25
+        assert float(r[20, 20]) < 0.01

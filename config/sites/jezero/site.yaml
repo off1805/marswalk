@@ -51,6 +51,9 @@ ingest:
   # Emprise en degrés (calculée à partir de center ± size_m/2)
   # À vérifier après recalage par D1.
   bbox_buffer_m: 500         # tampon au-delà de size_m pour le recalage
+  # grid_includes_buffer: false → grille cible = 5000×5000 px (sans buffer).
+  # Mettre à true + bbox_buffer_m=500 pour une grille de 6000×6000 px.
+  grid_includes_buffer: false
   hirise_target_res_m: 1.0
   ctx_target_res_m: 6.0
   mola_target_res_m: 463.0

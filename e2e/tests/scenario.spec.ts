@@ -50,8 +50,8 @@ test.afterAll(async ({ request }) => {
 /** First unacknowledged danger alert caused by the solar eruption (not by slope, for example). */
 const solarAlert = () =>
   page.locator('[data-level="danger"][data-acknowledged="false"]').filter({ hasText: /solaire/i }).first();
-const right = () => page.getByLabel("Panneau cibles et itinéraire");
-const safety = () => page.getByRole("region", { name: "Sécurité", exact: true });
+const right = () => page.getByLabel("Targets and route panel");
+const safety = () => page.getByRole("region", { name: "Safety", exact: true });
 
 test("1. Open Marswalk on the site", async () => {
   const tile = page.waitForResponse((r) => r.url().includes(`/tiles/${SITE}/`) && r.status() === 200, {
@@ -64,11 +64,11 @@ test("1. Open Marswalk on the site", async () => {
   await expect(header).toContainText(/Sol \d+ · \d{2}:\d{2}:\d{2} LMST/);
   // Imagery: the base layer of the package is served as tiles
   expect((await tile).ok()).toBeTruthy();
-  await expect(page.getByLabel("État de l'API")).toContainText("●");
+  await expect(page.getByLabel("API status")).toContainText("●");
 });
 
-test("2. Select the Safety preset", async () => {
-  const presets = page.getByRole("radiogroup", { name: "Préréglages" });
+test("2. Choisir le préréglage « Sécurité »", async () => {
+  const presets = page.getByRole("radiogroup", { name: "Presets" });
   await presets.getByRole("radio", { name: "Navigation" }).click();
   await expect(presets.getByRole("radio", { name: "Navigation" })).toBeChecked();
   await presets.getByRole("radio", { name: "Sécurité" }).click();
@@ -96,7 +96,7 @@ test("3. Click on the edge of the dunes", async ({ request }) => {
       Math.abs(Number(new URL(r.url()).searchParams.get("lon")) - habitat[0]) < 1e-6 &&
       Math.abs(Number(new URL(r.url()).searchParams.get("lat")) - habitat[1]) < 1e-6,
   );
-  await page.getByRole("button", { name: "Activer l'interrogation" }).click();
+  await page.getByRole("button", { name: "Enable query mode" }).click();
   await atHabitat;
   const at = await screenPoint(page, bbox, dunes.position);
   const query = page.waitForResponse(
@@ -106,12 +106,12 @@ test("3. Click on the edge of the dunes", async ({ request }) => {
   );
   await page.mouse.click(at.x, at.y);
   await query;
-  const panel = page.getByRole("region", { name: "Interrogation au sol (EF-07)" });
+  const panel = page.getByRole("region", { name: "Ground query (EF-07)" });
   for (const label of ["Altitude", "Pente", "Classe de sol", "Inertie thermique", "Minéralogie"]) {
     await expect(panel).toContainText(label);
   }
   await expect(panel).toContainText("±");
-  await expect(panel).toContainText("Temps de retour estimé");
+  await expect(panel).toContainText("Estimated return time");
 });
 
 test("4. Display hazard zones", async () => {

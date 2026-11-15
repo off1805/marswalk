@@ -251,25 +251,25 @@ describe("panneau du profil", () => {
 
   it("invite à ajouter des cibles sans plan", () => {
     renderPanel(null);
-    expect(screen.getByText(/Ajoutez des cibles/)).toBeTruthy();
+    expect(screen.getByText(/Add targets/)).toBeTruthy();
   });
 
   it("affiche les totaux de la variante et la durée de chaque tronçon", () => {
     useShared.setState({ activeRouteId: SAFEST.id });
     renderPanel();
     const totals = screen.getByTestId("profile-totals").textContent!;
-    expect(totals).toContain(`Durée ${formatDuration(SAFEST.totals.duration_s)}`);
-    expect(screen.getByTestId("totals-check").textContent).toContain("conformes");
+    expect(totals).toContain(`Duration ${formatDuration(SAFEST.totals.duration_s)}`);
+    expect(screen.getByTestId("totals-check").textContent).toContain("consistent");
     SAFEST.segments.forEach((s) => {
       expect(screen.getByTestId(`segment-${s.index}`).textContent).toContain(formatDuration(s.duration_s));
     });
     expect(screen.getByTestId("segment-0").textContent).toContain("Habitat → Front du delta");
-    expect(screen.queryByText(/Aperçu/)).toBeNull();
+    expect(screen.queryByText(/Preview/)).toBeNull();
   });
 
   it("signale l'aperçu quand aucune variante n'est choisie, sans en choisir une", () => {
     renderPanel();
-    expect(screen.getByText(/Aperçu : aucune variante choisie/)).toBeTruthy();
+    expect(screen.getByText(/Preview: no variant selected/)).toBeTruthy();
     expect(useShared.getState().activeRouteId).toBeNull();
   });
 

@@ -52,13 +52,13 @@ export function FlyoverControls({
   return (
     <div
       className="flex flex-col gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-xs"
-      aria-label="Contrôles du survol 3D"
+      aria-label="3D flyover controls"
     >
       {/* Lecture / pause / rembobinage */}
       <div className="flex items-center gap-2">
         <Button
           onClick={onRewind}
-          aria-label="Rembobiner au début"
+          aria-label="Rewind to start"
           className="px-2 py-1 text-xs"
         >
           ⏮
@@ -67,7 +67,7 @@ export function FlyoverControls({
           <Button
             onClick={onPause}
             variant="primary"
-            aria-label="Mettre en pause"
+            aria-label="Pause"
             className="px-2 py-1 text-xs"
           >
             ⏸ Pause
@@ -76,11 +76,11 @@ export function FlyoverControls({
           <Button
             onClick={onPlay}
             variant="primary"
-            aria-label="Lancer le survol"
+            aria-label="Start flyover"
             className="px-2 py-1 text-xs"
             disabled={totalDistanceM === 0}
           >
-            ▶ Survol
+            ▶ Flyover
           </Button>
         )}
         <span className="ml-auto text-[var(--text-muted)]">
@@ -97,7 +97,7 @@ export function FlyoverControls({
           aria-valuenow={Math.round(percent)}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label="Progression du survol"
+          aria-label="Flyover progress"
         >
           <div
             className="h-full rounded-full bg-[var(--color-info)] transition-all"
@@ -108,8 +108,8 @@ export function FlyoverControls({
 
       {/* Vitesse */}
       <div className="flex items-center gap-1.5">
-        <span className="text-[var(--text-muted)]">Vitesse</span>
-        <div className="flex gap-1" role="radiogroup" aria-label="Vitesse du survol">
+        <span className="text-[var(--text-muted)]">Speed</span>
+        <div className="flex gap-1" role="radiogroup" aria-label="Flyover speed">
           {SPEED_STEPS.map((s) => (
             <button
               key={s}
@@ -131,11 +131,11 @@ export function FlyoverControls({
 
       {/* Exagération verticale */}
       <div className="flex items-center gap-1.5">
-        <span className="text-[var(--text-muted)]">Exagération</span>
+        <span className="text-[var(--text-muted)]">Exaggeration</span>
         <div
           className="flex gap-1"
           role="radiogroup"
-          aria-label="Exagération verticale"
+          aria-label="Vertical exaggeration"
         >
           {EXAGGERATION_STEPS.map((e) => (
             <button

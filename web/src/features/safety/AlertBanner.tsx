@@ -24,7 +24,7 @@ function AlertRow({ alert, onAck, pending }: { alert: Alert; onAck: (id: string)
   const measured =
     alert.value != null
       ? `${formatNumber(alert.value, 1)}${unitLabel(alert.unit)}` +
-        (alert.threshold != null ? ` (seuil ${formatNumber(alert.threshold, 1)}${unitLabel(alert.unit)})` : "")
+        (alert.threshold != null ? ` (threshold ${formatNumber(alert.threshold, 1)}${unitLabel(alert.unit)})` : "")
       : null;
   return (
     <li
@@ -57,15 +57,15 @@ function AlertRow({ alert, onAck, pending }: { alert: Alert; onAck: (id: string)
         Sol {alert.sol} · {alert.lmst} LMST · {formatUtc(alert.utc)}
       </span>
       {alert.acknowledged ? (
-        <span className="text-sm font-semibold">✓ Acquittée</span>
+        <span className="text-sm font-semibold">✓ Acknowledged</span>
       ) : (
         <Button
           variant={alert.level === "danger" ? "danger" : "secondary"}
           onClick={() => onAck(alert.id)}
           disabled={pending}
-          aria-label={`Acquitter : ${alert.title}`}
+          aria-label={`Acknowledge: ${alert.title}`}
         >
-          Acquitter
+          Acknowledge
         </Button>
       )}
     </li>
@@ -82,10 +82,10 @@ export function AlertBanner() {
   const hidden = sorted.length - shown.length;
 
   return (
-    <section aria-label="Alertes" className="border-b border-[var(--border)] bg-[var(--surface-2)]">
+    <section aria-label="Alerts" className="border-b border-[var(--border)] bg-[var(--surface-2)]">
       {sorted.length === 0 ? (
         <p className="px-4 py-1 text-sm" role="status">
-          {alerts.isError ? "○ Alertes indisponibles" : "✓ Aucune alerte active"}
+          {alerts.isError ? "○ Alerts unavailable" : "✓ No active alerts"}
         </p>
       ) : (
         <ul className="flex flex-col gap-px">
@@ -96,7 +96,7 @@ export function AlertBanner() {
       )}
       {(hidden > 0 || expanded) && sorted.length > VISIBLE && (
         <button type="button" className="px-4 py-1 text-sm underline" onClick={() => setExpanded((v) => !v)}>
-          {expanded ? "Réduire" : `+ ${hidden} autre${hidden > 1 ? "s" : ""} alerte${hidden > 1 ? "s" : ""}`}
+          {expanded ? "Show less" : `+ ${hidden} more alert${hidden > 1 ? "s" : ""}`}
         </button>
       )}
     </section>

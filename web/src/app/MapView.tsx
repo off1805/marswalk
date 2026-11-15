@@ -120,5 +120,5 @@ export function MapView({ manifest }: { manifest: SiteManifest }) {
     overlayRef.current?.setProps({ layers: registry.flatMap((f) => f.mapLayers?.(ctx) ?? []) });
   }, [manifest, zoom, state, ready]);
 
-  return <div ref={container} className="h-full w-full" data-testid="map" aria-label="Carte du site" />;
+  return <div ref={container} className="h-full w-full" data-testid="map" aria-label="Site map" />;
 }

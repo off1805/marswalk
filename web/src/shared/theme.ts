@@ -14,7 +14,7 @@ export const colors = {
 /** Icône et libellé de chaque niveau : la couleur n'est jamais le seul indice (ENF-06). */
 export const alertLevels: Record<AlertLevel, { color: string; icon: string; label: string }> = {
   info: { color: colors.info, icon: "ⓘ", label: "Information" },
-  caution: { color: colors.caution, icon: "▲", label: "Attention" },
+  caution: { color: colors.caution, icon: "▲", label: "Caution" },
   danger: { color: colors.danger, icon: "⛔", label: "Danger" },
 };
 

@@ -62,7 +62,7 @@ export function useGroundImages() {
       const { data, error } = await api.GET("/api/sites/{site_id}/ground-images", {
         params: { path: { site_id: siteId } },
       });
-      if (error || !data) throw new Error("Images au sol indisponibles");
+      if (error || !data) throw new Error("Ground images unavailable");
       return toImages(data as FeatureCollection);
     },
     staleTime: Infinity,

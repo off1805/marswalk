@@ -19,22 +19,22 @@ function TopBar() {
       <span>{site.data?.name ?? "…"}</span>
       <SitePicker />
       {clock.data && (
-        <span aria-label="Heure martienne">
+        <span aria-label="Martian time">
           Sol {clock.data.sol} · {clock.data.lmst} LMST
         </span>
       )}
-      <span aria-label="État de l'API" className="text-sm text-[var(--text-muted)]">
-        {apiOk ? "● API" : "○ API hors ligne"}
+      <span aria-label="API status" className="text-sm text-[var(--text-muted)]">
+        {apiOk ? "● API" : "○ API offline"}
       </span>
-      <nav className="ml-auto flex gap-3" aria-label="Vues">
-        <Link to="/">Carte</Link>
+      <nav className="ml-auto flex gap-3" aria-label="Views">
+        <Link to="/">Map</Link>
         <Link to="/3d">3D</Link>
       </nav>
       <span className="flex gap-1">
-        <button type="button" onClick={() => applyTheme("day")} aria-label="Thème plein soleil">
+        <button type="button" onClick={() => applyTheme("day")} aria-label="Day theme">
           ☀
         </button>
-        <button type="button" onClick={() => applyTheme("night")} aria-label="Thème basse lumière">
+        <button type="button" onClick={() => applyTheme("night")} aria-label="Night theme">
           ☾
         </button>
       </span>
@@ -44,8 +44,8 @@ function TopBar() {
 
 function MapArea() {
   const site = useSiteManifest();
-  if (site.isError) return <p className="p-4">Site indisponible : {String(site.error)}</p>;
-  if (!site.data) return <p className="p-4">Chargement du site…</p>;
+  if (site.isError) return <p className="p-4">Site unavailable: {String(site.error)}</p>;
+  if (!site.data) return <p className="p-4">Loading site…</p>;
   return (
     <div className="relative h-full w-full">
       <MapView manifest={site.data} />
@@ -80,13 +80,13 @@ export function MapLayout() {
   );
 }
 
-/** Vue 3D : rendue par la route /3d d'une fonctionnalité (F6), sinon un message. */
+/** 3D view: rendered by the /3d route of a feature (F6), otherwise a placeholder. */
 export function Terrain3dLayout() {
   const route = registry.flatMap((f) => f.routes).find((r) => r.path === "/3d");
   return (
     <Frame mode="3d">
       <TopBar />
-      <div className="min-h-0 flex-1">{route ? <route.component /> : <p className="p-4">Vue 3D à venir (F6).</p>}</div>
+      <div className="min-h-0 flex-1">{route ? <route.component /> : <p className="p-4">3D view coming soon (F6).</p>}</div>
     </Frame>
   );
 }

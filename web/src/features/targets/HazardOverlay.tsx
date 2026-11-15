@@ -9,7 +9,7 @@ export function HazardLegend() {
   return (
     <div
       className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 text-xs"
-      aria-label="Légende des zones de risque"
+      aria-label="Hazard zone legend"
     >
       <p className="mb-1 font-semibold text-[var(--text-muted)] uppercase tracking-wide text-[10px]">
         Zones
@@ -21,7 +21,7 @@ export function HazardLegend() {
             style={{ backgroundColor: "rgba(213,94,0,0.6)", border: "1.5px solid rgba(213,94,0,0.9)" }}
             aria-hidden="true"
           />
-          <span>⛔ Interdite</span>
+          <span>⛔ Forbidden</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span
@@ -29,7 +29,7 @@ export function HazardLegend() {
             style={{ backgroundColor: "rgba(230,159,0,0.4)", border: "1.5px solid rgba(230,159,0,0.7)" }}
             aria-hidden="true"
           />
-          <span>▲ Pénalisée</span>
+          <span>▲ Penalized</span>
         </div>
       </div>
     </div>
@@ -43,7 +43,7 @@ export function HazardHoverTooltip({ cause }: { cause: string | null }) {
       className="pointer-events-none rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs shadow-lg"
       role="tooltip"
     >
-      <span className="font-semibold">Cause :</span> {cause}
+      <span className="font-semibold">Cause:</span> {cause}
     </div>
   );
 }

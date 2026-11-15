@@ -7,13 +7,13 @@ import { usePresets } from "../hooks/usePresets";
 import type { LayerKind, LayerKindGroup } from "../types";
 
 const KIND_TITLES: Record<LayerKind, string> = {
-  imagery: "Imagerie de surface",
-  dem: "Modèles numériques de terrain",
-  derived: "Couches dérivées & Risques",
-  thermal: "Inertie thermique",
-  spectral: "Minéralogie & Spectrométrie",
-  vector: "Vecteurs & Traverses",
-  ground: "Observations au sol",
+  imagery: "Surface imagery",
+  dem: "Digital elevation models",
+  derived: "Derived layers & Hazards",
+  thermal: "Thermal inertia",
+  spectral: "Mineralogy & Spectrometry",
+  vector: "Vectors & Traverses",
+  ground: "Ground observations",
 };
 
 const KIND_ORDER: LayerKind[] = [
@@ -52,22 +52,22 @@ export function LayerPanel() {
 
   if (isLoading || !manifest) {
     return (
-      <Panel title="Couches cartographiques">
+      <Panel title="Map layers">
         <p className="text-xs text-[var(--text-muted)] animate-pulse">
-          Chargement des couches du site…
+          Loading site layers…
         </p>
       </Panel>
     );
   }
 
   return (
-    <Panel title="Couches cartographiques">
-      {/* Sélecteur de préréglages */}
+    <Panel title="Map layers">
+      {/* Preset selector */}
       <div className="mb-3">
         <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
-          Préréglages d'affichage
+          Display presets
         </label>
-        <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Préréglages">
+        <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Presets">
           {presets.map((p) => {
             const isActive = currentPreset === p.id;
             return (

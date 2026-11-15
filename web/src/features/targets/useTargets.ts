@@ -26,7 +26,7 @@ export function useTargets() {
       const { data, error } = await api.GET("/api/sites/{site_id}/targets", {
         params: { path: { site_id: siteId } },
       });
-      if (error || !data) throw new Error("Cibles indisponibles");
+      if (error || !data) throw new Error("Targets unavailable");
       return data as Target[];
     },
     staleTime: 30_000,
@@ -41,7 +41,7 @@ export function usePlan(planId: string | null) {
       const { data, error } = await api.GET("/api/plans/{plan_id}", {
         params: { path: { plan_id: planId } },
       });
-      if (error || !data) throw new Error("Plan indisponible");
+      if (error || !data) throw new Error("Plan unavailable");
       return data;
     },
     enabled: Boolean(planId),
@@ -58,7 +58,7 @@ export function useHazards() {
       const { data, error } = await api.GET("/api/sites/{site_id}/hazards", {
         params: { path: { site_id: siteId }, query: { preset } },
       });
-      if (error || !data) throw new Error("Zones de risque indisponibles");
+      if (error || !data) throw new Error("Hazard zones unavailable");
       return data;
     },
     staleTime: 60_000,
@@ -80,7 +80,7 @@ export function useCreateTarget() {
         params: { path: { site_id: siteId } },
         body,
       });
-      if (error || !data) throw new Error("Échec de la création de la cible");
+      if (error || !data) throw new Error("Failed to create target");
       return data as Target;
     },
     onSuccess: () => invalidateTargets(qc, siteId),
@@ -99,7 +99,7 @@ export function useUpdateTarget() {
         params: { path: { target_id: id } },
         body: patch,
       });
-      if (error || !data) throw new Error("Échec de la mise à jour de la cible");
+      if (error || !data) throw new Error("Failed to update target");
       return data as Target;
     },
     onSuccess: () => invalidateTargets(qc, siteId),
@@ -114,7 +114,7 @@ export function useDeleteTarget() {
       const { error } = await api.DELETE("/api/targets/{target_id}", {
         params: { path: { target_id: id } },
       });
-      if (error) throw new Error("Échec de la suppression de la cible");
+      if (error) throw new Error("Failed to delete target");
     },
     onSuccess: () => invalidateTargets(qc, siteId),
   });
@@ -133,7 +133,7 @@ export function useCreatePlan() {
           variants: ["safest", "fastest", "science"],
         },
       });
-      if (error || !data) throw new Error("Échec du calcul du plan");
+      if (error || !data) throw new Error("Failed to compute plan");
       return data;
     },
     onSuccess: (plan) => {
@@ -156,7 +156,7 @@ export function useSelectRoute() {
         params: { path: { plan_id: planId } },
         body: { selected_route_id: routeId },
       });
-      if (error || !data) throw new Error("Échec de la sélection de variante");
+      if (error || !data) throw new Error("Failed to select variant");
       return data;
     },
     onSuccess: (plan) => {

@@ -26,18 +26,18 @@ export function NetworkBadge({ status, pendingCount }: Props) {
       }`}
       role="status"
       aria-live="polite"
-      aria-label={online ? "En ligne" : "Hors ligne"}
+      aria-label={online ? "Online" : "Offline"}
       data-testid="network-badge"
     >
       {/* Icône (ENF-06 : pas de couleur seule) */}
       <span aria-hidden="true">{online ? "●" : "○"}</span>
-      <span>{online ? "En ligne" : "Hors ligne"}</span>
+      <span>{online ? "Online" : "Offline"}</span>
 
-      {/* Badge de file d'attente */}
+      {/* Queue badge */}
       {!online && pendingCount > 0 && (
         <span
           className="ml-0.5 rounded-full bg-[var(--color-caution)] px-1 text-[10px] text-white"
-          aria-label={`${pendingCount} opération${pendingCount > 1 ? "s" : ""} en attente`}
+          aria-label={`${pendingCount} operation${pendingCount > 1 ? "s" : ""} pending`}
         >
           {pendingCount}
         </span>

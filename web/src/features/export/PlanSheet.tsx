@@ -51,7 +51,7 @@ function RouteMap({ route, stops, habitat }: { route: Route; stops: Stop[]; habi
   return (
     <svg
       role="img"
-      aria-label="Carte du tracé"
+      aria-label="Route map"
       viewBox={`0 0 ${MAP_W} ${MAP_H}`}
       className="w-full max-w-3xl rounded border border-[var(--border)] bg-white"
     >
@@ -89,11 +89,11 @@ function RouteMap({ route, stops, habitat }: { route: Route; stops: Stop[]; habi
 
 function Profile({ route }: { route: Route }) {
   const p = profilePath(route.profile, PROFILE_W, PROFILE_H);
-  if (!p) return <p>Profil d'altitude indisponible (pas de modèle de terrain).</p>;
+  if (!p) return <p>Elevation profile unavailable (no terrain model).</p>;
   return (
     <svg
       role="img"
-      aria-label="Profil d'altitude"
+      aria-label="Elevation profile"
       viewBox={`0 0 ${PROFILE_W} ${PROFILE_H}`}
       className="w-full max-w-3xl rounded border border-[var(--border)] bg-white"
     >
@@ -115,10 +115,10 @@ export function PlanSheet() {
   const { planId = "" } = useParams();
   const plan = usePlan(planId);
   const geo = usePlanGeojson(planId);
-  if (plan.isError || geo.isError) return <p className="p-6">Plan {planId} indisponible.</p>;
-  if (!plan.data || !geo.data) return <p className="p-6">Chargement du plan…</p>;
+  if (plan.isError || geo.isError) return <p className="p-6">Plan {planId} unavailable.</p>;
+  if (!plan.data || !geo.data) return <p className="p-6">Loading plan…</p>;
   const route = plan.data.routes.find((r) => r.id === plan.data.selected_route_id) ?? plan.data.routes[0];
-  if (!route) return <p className="p-6">Ce plan n'a pas d'itinéraire.</p>;
+  if (!route) return <p className="p-6">This plan has no route.</p>;
   const stops = stopsOf(geo.data.features ?? []);
   const name = (id: string | null | undefined) =>
     id ? (stops.find((s) => s.id === id)?.name ?? id) : "Habitat";
@@ -130,41 +130,41 @@ export function PlanSheet() {
     <article className="mx-auto flex max-w-4xl flex-col gap-4 p-6">
       <nav className="flex flex-wrap gap-2 print:hidden">
         <Link to="/" className="underline">
-          ← Retour à la carte
+          ← Back to map
         </Link>
         <Button variant="primary" onClick={() => window.print()}>
-          🖶 Imprimer ou enregistrer en PDF
+          🖶 Print or save as PDF
         </Button>
         <a className="underline" href={planGeojsonUrl(planId)} download={`marswalk-${planId}.geojson`}>
           ⤓ GeoJSON
         </a>
       </nav>
       <header>
-        <h1 className="text-2xl font-bold">Plan de sortie {plan.data.name ?? plan.data.id}</h1>
+        <h1 className="text-2xl font-bold">EVA plan {plan.data.name ?? plan.data.id}</h1>
         <p>
-          Site {plan.data.site_id} · variante {route.variant} · {stops.length} cibles
-          {plan.data.departure_utc ? ` · départ ${plan.data.departure_utc}` : ""}
+          Site {plan.data.site_id} · variant {route.variant} · {stops.length} targets
+          {plan.data.departure_utc ? ` · departure ${plan.data.departure_utc}` : ""}
         </p>
       </header>
-      <section aria-label="Totaux">
+      <section aria-label="Totals">
         <dl className="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-4">
           <dt>Distance</dt>
           <dd>{formatDistance(t.distance_m)}</dd>
-          <dt>Durée totale</dt>
+          <dt>Total duration</dt>
           <dd>{formatDuration(t.duration_s)}</dd>
-          <dt>Marche</dt>
+          <dt>Walk time</dt>
           <dd>{formatDuration(t.walk_time_s)}</dd>
-          <dt>Travail aux cibles</dt>
+          <dt>Work at targets</dt>
           <dd>{formatDuration(t.work_time_s)}</dd>
-          <dt>Dénivelé</dt>
+          <dt>Elevation change</dt>
           <dd>
             +{Math.round(t.ascent_m)} m / −{Math.round(t.descent_m)} m
           </dd>
-          <dt>Pente maximale</dt>
+          <dt>Maximum slope</dt>
           <dd>{t.max_slope_deg.toFixed(1)}°</dd>
-          <dt>Dose prévue</dt>
+          <dt>Planned dose</dt>
           <dd>{t.consumption.dose_usv.toFixed(1)} µSv</dd>
-          <dt>Réserve au retour</dt>
+          <dt>Reserve on return</dt>
           <dd>
             {rc.reserve_at_return_pct.toFixed(0)} % ({rc.limiting_consumable}, {rc.status})
           </dd>
@@ -173,19 +173,19 @@ export function PlanSheet() {
       <RouteMap route={route} stops={stops} habitat={plan.data.start as LonLat} />
       <Profile route={route} />
       <table className="w-full border-collapse text-sm [&_td]:py-1 [&_td]:pr-3 [&_th]:pr-3">
-        <caption className="mb-1 text-left font-bold">Tronçons</caption>
+        <caption className="mb-1 text-left font-bold">Segments</caption>
         <thead>
           <tr className="border-b border-black text-left">
             <th>#</th>
-            <th>De</th>
-            <th>À</th>
+            <th>From</th>
+            <th>To</th>
             <th>Distance</th>
-            <th>Marche</th>
-            <th>Travail</th>
-            <th>D+</th>
-            <th>Pente max</th>
+            <th>Walk</th>
+            <th>Work</th>
+            <th>Ascent</th>
+            <th>Max slope</th>
             <th>O₂</th>
-            <th>Pourquoi ce tracé</th>
+            <th>Why this route</th>
           </tr>
         </thead>
         <tbody>
@@ -206,8 +206,8 @@ export function PlanSheet() {
         </tbody>
       </table>
       {(route.warnings ?? []).length > 0 && (
-        <section aria-label="Avertissements">
-          <h2 className="font-bold">Avertissements</h2>
+        <section aria-label="Warnings">
+          <h2 className="font-bold">Warnings</h2>
           <ul className="list-disc pl-5">
             {(route.warnings ?? []).map((w) => (
               <li key={w}>{w}</li>
@@ -215,7 +215,7 @@ export function PlanSheet() {
           </ul>
         </section>
       )}
-      <footer className="text-xs">Coordonnées en degrés planétocentriques est, Mars 2000 (IAU_2015:49900).</footer>
+      <footer className="text-xs">Coordinates in planetocentric degrees east, Mars 2000 (IAU_2015:49900).</footer>
     </article>
     </div>
   );

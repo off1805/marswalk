@@ -50,7 +50,7 @@ export function TargetCard({ target, onClose }: Props) {
     <div
       className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-sm"
       role="region"
-      aria-label={`Fiche cible : ${target.name}`}
+      aria-label={`Target card: ${target.name}`}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         {editing ? (
@@ -58,7 +58,7 @@ export function TargetCard({ target, onClose }: Props) {
             className="flex-1 rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-sm"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            aria-label="Nom de la cible"
+            aria-label="Target name"
           />
         ) : (
           <strong className="flex-1 truncate">{target.name}</strong>
@@ -70,30 +70,30 @@ export function TargetCard({ target, onClose }: Props) {
                 variant="primary"
                 onClick={() => void save()}
                 disabled={updateTarget.isPending}
-                aria-label="Enregistrer"
+                aria-label="Save"
               >
                 ✓
               </Button>
-              <Button onClick={() => setEditing(false)} aria-label="Annuler">
+              <Button onClick={() => setEditing(false)} aria-label="Cancel">
                 ✕
               </Button>
             </>
           ) : (
             <>
-              <Button onClick={() => setEditing(true)} aria-label="Modifier la fiche">
+              <Button onClick={() => setEditing(true)} aria-label="Edit target">
                 ✎
               </Button>
               <Button
                 variant="danger"
                 onClick={() => void remove()}
                 disabled={deleteTarget.isPending}
-                aria-label="Supprimer la cible"
+                aria-label="Delete target"
               >
                 🗑
               </Button>
             </>
           )}
-          <Button onClick={onClose} aria-label="Fermer la fiche">
+          <Button onClick={onClose} aria-label="Close card">
             ×
           </Button>
         </div>
@@ -113,30 +113,30 @@ export function TargetCard({ target, onClose }: Props) {
           <>
             <div>
               <label className="font-semibold text-[var(--text-muted)]">
-                Objectif scientifique
+                Scientific objective
               </label>
               <textarea
                 className="mt-0.5 w-full rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs"
                 rows={2}
                 value={objective}
                 onChange={(e) => setObjective(e.target.value)}
-                aria-label="Objectif scientifique"
+                aria-label="Scientific objective"
               />
             </div>
             <div>
               <label className="font-semibold text-[var(--text-muted)]">
-                Mesure
+                Measurement
               </label>
               <input
                 className="mt-0.5 w-full rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs"
                 value={measurement}
                 onChange={(e) => setMeasurement(e.target.value)}
-                aria-label="Mesure"
+                aria-label="Measurement"
               />
             </div>
             <div>
               <label className="font-semibold text-[var(--text-muted)]">
-                Temps de travail (min)
+                Work time (min)
               </label>
               <input
                 type="number"
@@ -145,7 +145,7 @@ export function TargetCard({ target, onClose }: Props) {
                 className="mt-0.5 w-full rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-xs"
                 value={workMin}
                 onChange={(e) => setWorkMin(Number(e.target.value))}
-                aria-label="Temps de travail en minutes"
+                aria-label="Work time in minutes"
               />
             </div>
           </>
@@ -154,7 +154,7 @@ export function TargetCard({ target, onClose }: Props) {
             {objective && (
               <div>
                 <dt className="font-semibold text-[var(--text-muted)]">
-                  Objectif
+                  Objective
                 </dt>
                 <dd>{objective}</dd>
               </div>
@@ -162,14 +162,14 @@ export function TargetCard({ target, onClose }: Props) {
             {measurement && (
               <div>
                 <dt className="font-semibold text-[var(--text-muted)]">
-                  Mesure
+                  Measurement
                 </dt>
                 <dd>{measurement}</dd>
               </div>
             )}
             <div>
               <dt className="font-semibold text-[var(--text-muted)]">
-                Temps de travail
+                Work time
               </dt>
               <dd>
                 {workH > 0 ? `${workH} h ` : ""}

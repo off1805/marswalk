@@ -12,7 +12,7 @@ export async function fetchPlan(planId: string): Promise<Plan> {
   const { data, error } = await api.GET("/api/plans/{plan_id}", {
     params: { path: { plan_id: planId } },
   });
-  if (error || !data) throw new Error("Plan indisponible");
+  if (error || !data) throw new Error("Plan unavailable");
   return data as Plan;
 }
 
@@ -33,7 +33,7 @@ export function useTargetNames(siteId: string): Record<string, string> {
       const { data, error } = await api.GET("/api/sites/{site_id}/targets", {
         params: { path: { site_id: siteId } },
       });
-      if (error || !data) throw new Error("Cibles indisponibles");
+      if (error || !data) throw new Error("Targets unavailable");
       return data as Target[];
     },
     staleTime: 10_000,

@@ -146,7 +146,7 @@ export function buildLayers(
             if (info.object) {
               const props = (info.object as Feature<Geometry, GeoJsonProperties>).properties;
               const cause = (props as Record<string, unknown> | null)?.["cause"] as string | undefined;
-              callbacks.onHazardHover(cause ?? "Zone pénalisée");
+              callbacks.onHazardHover(cause ?? "Penalized zone");
             } else {
               callbacks.onHazardHover(null);
             }

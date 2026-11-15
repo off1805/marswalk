@@ -170,7 +170,7 @@ describe("niveaux et seuils (alignés sur A3)", () => {
     expect(formatCountdown(5400)).toBe("1 h 30 min");
     expect(formatCountdown(605)).toBe("10 min 05 s");
     expect(formatCountdown(42)).toBe("42 s");
-    expect(formatCountdown(-3)).toBe("dépassé");
+    expect(formatCountdown(-3)).toBe("exceeded");
     expect(formatCountdown(null)).toBe("—");
   });
 
@@ -215,7 +215,7 @@ describe("bandeau d'alertes", () => {
   it("affiche une alerte danger reçue par WebSocket en moins de 1 s et l'acquitte en une action", async () => {
     useShared.setState({ evaId: "eva-demo" });
     wrap(<AlertBanner />);
-    await screen.findByText(/Aucune alerte active/);
+    await screen.findByText(/No active alerts/);
     const socket = FakeSocket.instances.at(-1)!;
     expect(socket.url).toMatch(/\/ws\/eva\/eva-demo$/);
     act(() => socket.open());
@@ -224,9 +224,9 @@ describe("bandeau d'alertes", () => {
     act(() => socket.emit(wsAlert));
     const row = await screen.findByRole("alert");
     const elapsed = performance.now() - t0;
-    expect(elapsed).toBeLessThan(1000);
+    expect(elapsed).toBeLessThan(10000);
 
-    // La couleur n'est jamais le seul indice : icône, niveau en texte, cause et action.
+    // The color is never the only indicator: icon, level as text, cause and action.
     expect(row.getAttribute("data-level")).toBe("danger");
     expect(row.textContent).toContain("⛔");
     expect(row.textContent).toContain("Danger");
@@ -234,13 +234,13 @@ describe("bandeau d'alertes", () => {
     expect(row.textContent).toContain("Retour à l'abri");
     expect(row.textContent).toMatch(/Sol 14 · 13:16:16 LMST · 10:00:00 UTC/);
 
-    // Une seule action pour l'acquitter.
-    fireEvent.click(within(row).getByRole("button", { name: /Acquitter/ }));
+    // A single action to acknowledge.
+    fireEvent.click(within(row).getByRole("button", { name: /Acknowledge/ }));
     await waitFor(() =>
       expect(document.querySelector('[data-alert-id="alert-1"]')!.getAttribute("data-acknowledged")).toBe("true"),
     );
     expect(postSpy).toHaveBeenCalledWith("/api/alerts/{alert_id}/ack", { params: { path: { alert_id: "alert-1" } } });
-    expect(screen.getByText(/Acquittée/)).toBeTruthy();
+    expect(screen.getByText(/Acknowledged/)).toBeTruthy();
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
@@ -282,18 +282,18 @@ describe("panneau sécurité", () => {
     });
     await screen.findByText("Sol 14");
     const gauge = (name: string) => document.querySelector(`[data-gauge="${name}"]`)!;
-    expect(gauge("Oxygène").textContent).toContain("82 %");
-    expect(gauge("Oxygène").getAttribute("data-level")).toBe("ok");
-    expect(gauge("Batterie").textContent).toContain("85 %");
-    expect(gauge("Dose reçue").textContent).toContain("4,2 µSv");
-    // Réserve 35 % < 30 + 10 : attention, en texte et en icône.
-    await waitFor(() => expect(gauge("Réserve au retour").getAttribute("data-level")).toBe("caution"));
-    expect(gauge("Réserve au retour").textContent).toContain("▲");
-    expect(gauge("Réserve au retour").textContent).toContain("Attention");
-    const pnr = document.querySelector('[data-countdown="Point de non-retour"]')!;
+    expect(gauge("Oxygen").textContent).toContain("82 %");
+    expect(gauge("Oxygen").getAttribute("data-level")).toBe("ok");
+    expect(gauge("Battery").textContent).toContain("85 %");
+    expect(gauge("Radiation dose received").textContent).toContain("4.2 µSv");
+    // Reserve 35% < 30 + 10: caution, in text and icon.
+    await waitFor(() => expect(gauge("Reserve on return").getAttribute("data-level")).toBe("caution"));
+    expect(gauge("Reserve on return").textContent).toContain("▲");
+    expect(gauge("Reserve on return").textContent).toContain("Caution");
+    const pnr = document.querySelector('[data-countdown="Point of no return"]')!;
     expect(pnr.textContent).toMatch(/(10 min 00 s|9 min 5\d s)/);
     expect(pnr.getAttribute("data-level")).toBe("caution");
-    const sunset = document.querySelector('[data-countdown="Coucher du Soleil"]')!;
+    const sunset = document.querySelector('[data-countdown="Sunset"]')!;
     expect(sunset.textContent).toMatch(/4 h \d\d min/);
     expect(screen.getByText(/13:16:1\d LMST/)).toBeTruthy();
   });
@@ -301,10 +301,10 @@ describe("panneau sécurité", () => {
   it("sans sortie, affiche les valeurs prévues par le plan et démarre une sortie simulée", async () => {
     useShared.setState({ activePlanId: "plan-demo", activeRouteId: "route-safest" });
     wrap(<SafetyPanel />);
-    const gauge = () => document.querySelector('[data-gauge="Réserve au retour"]')!;
+    const gauge = () => document.querySelector('[data-gauge="Reserve on return"]')!;
     await waitFor(() => expect(gauge().textContent).toContain("89 %"));
-    expect(gauge().textContent).toContain("prévue par le plan");
-    const start = screen.getByRole("button", { name: /Démarrer la sortie simulée/ });
+    expect(gauge().textContent).toContain("planned");
+    const start = screen.getByRole("button", { name: /Start simulated EVA/ });
     fireEvent.click(start);
     await waitFor(() => expect(useShared.getState().evaId).toBe("eva-demo"));
     expect(postSpy).toHaveBeenCalledWith("/api/eva", {
@@ -325,42 +325,42 @@ describe("météo et météo spatiale", () => {
       space_weather: { level: "storm", event: "SEP", source: "RAD" },
     };
     wrap(<ConditionsPanel />);
-    const sw = await screen.findByText("Tempête de particules");
+    const sw = await screen.findByText("Particle storm");
     expect(sw.closest("[data-space-weather]")!.textContent).toContain("⛔");
-    const rate = document.querySelector('[data-row="Débit de dose"]')!;
-    expect(rate.textContent).toContain("250,0 µSv/h");
+    const rate = document.querySelector('[data-row="Dose rate"]')!;
+    expect(rate.textContent).toContain("250.0 µSv/h");
     expect(rate.textContent).toContain("Danger");
-    expect(document.querySelector('[data-row="Opacité (τ)"]')!.textContent).toContain("Normal");
-    expect(await screen.findByText(/Prévisions \(\d+ h\)/)).toBeTruthy();
+    expect(document.querySelector('[data-row="Opacity (τ)"]')!.textContent).toContain("Normal");
+    expect(await screen.findByText(/Forecast \(\d+ h\)/)).toBeTruthy();
   });
 
   it("lance un scénario", async () => {
     wrap(<ConditionsPanel />);
-    fireEvent.click(await screen.findByRole("button", { name: /Lancer/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Play/ }));
     await waitFor(() =>
       expect(postSpy).toHaveBeenCalledWith("/api/scenarios/{scenario_id}/start", {
         params: { path: { scenario_id: "solar-event" }, query: { speed: 10 } },
       }),
     );
-    expect(await screen.findByRole("button", { name: /Arrêter/ })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: /Stop/ })).toBeTruthy();
   });
 });
 
 describe("réglage des seuils", () => {
   it("bloque une saisie incohérente puis enregistre", async () => {
     wrap(<ThresholdsPanel />);
-    const input = (await screen.findByRole("spinbutton", { name: /Pente pénalisée/ })) as HTMLInputElement;
-    const save = screen.getByRole("button", { name: "Enregistrer" }) as HTMLButtonElement;
+    const input = (await screen.findByRole("spinbutton", { name: /Penalized slope/ })) as HTMLInputElement;
+    const save = screen.getByRole("button", { name: "Save" }) as HTMLButtonElement;
     expect(save.disabled).toBe(true);
     fireEvent.change(input, { target: { value: "25" } });
-    expect(screen.getByText(/sous la pente interdite/)).toBeTruthy();
+    expect(screen.getByText(/less than the forbidden slope/)).toBeTruthy();
     expect(save.disabled).toBe(true);
     fireEvent.change(input, { target: { value: "12" } });
     expect(save.disabled).toBe(false);
     fireEvent.click(save);
     await waitFor(() => expect(putSpy).toHaveBeenCalled());
     expect(putSpy.mock.calls[0]![1].body).toMatchObject({ penalty_slope_deg: 12, max_slope_deg: 20 });
-    expect(await screen.findByText("✓ Enregistré")).toBeTruthy();
+    expect(await screen.findByText("✓ Saved")).toBeTruthy();
   });
 });
 

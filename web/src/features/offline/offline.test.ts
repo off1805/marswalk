@@ -189,7 +189,7 @@ describe("OperationQueue.replayAll — échec", () => {
 
     expect(queue.size()).toBe(0);
     expect(results[0]?.kind).toBe("failure");
-    expect(results[0] && "reason" in results[0] && results[0].reason).toContain("Abandonné");
+    expect(results[0] && "reason" in results[0] && results[0].reason).toContain("Abandoned");
   });
 
   it("retire et signale une opération sans handler", async () => {

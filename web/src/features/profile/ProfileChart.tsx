@@ -109,7 +109,7 @@ export function ProfileChart(props: Props) {
       ref={el}
       className="h-full min-h-0 w-full"
       role="img"
-      aria-label="Profil d'altitude et de pente le long de l'itinéraire"
+      aria-label="Elevation and slope profile along the route"
       data-testid="profile-chart"
     />
   );

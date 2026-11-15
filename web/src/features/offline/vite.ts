@@ -64,7 +64,7 @@ export function offlineVitePlugins(): PluginOption[] {
           name: "Marswalk",
           short_name: "Marswalk",
           description:
-            "Planification de sorties à pied sur Mars — cratère Jezero",
+            "EVA planning and simulation on Mars — Jezero Crater",
           theme_color: "#0b0d10",
           background_color: "#0b0d10",
           display: "standalone",

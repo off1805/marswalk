@@ -12,7 +12,7 @@ export function usePlan(planId: string | null) {
       const { data, error } = await api.GET("/api/plans/{plan_id}", {
         params: { path: { plan_id: planId! } },
       });
-      if (error || !data) throw new Error(`Plan ${planId} indisponible`);
+      if (error || !data) throw new Error(`Plan ${planId} unavailable`);
       return data as Plan;
     },
   });
@@ -26,7 +26,7 @@ export function usePlanGeojson(planId: string | null) {
       const { data, error } = await api.GET("/api/plans/{plan_id}/export.geojson", {
         params: { path: { plan_id: planId! } },
       });
-      if (error || !data) throw new Error(`Export du plan ${planId} indisponible`);
+      if (error || !data) throw new Error(`Plan export ${planId} unavailable`);
       return data as FeatureCollection;
     },
   });
@@ -41,7 +41,7 @@ export function useLogbook(evaId: string | null, refetchMs?: number) {
       const { data, error } = await api.GET("/api/eva/{eva_id}/logbook", {
         params: { path: { eva_id: evaId! } },
       });
-      if (error || !data) throw new Error(`Carnet de ${evaId} indisponible`);
+      if (error || !data) throw new Error(`Logbook for ${evaId} unavailable`);
       return data as Logbook;
     },
   });

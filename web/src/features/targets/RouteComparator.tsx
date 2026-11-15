@@ -10,8 +10,8 @@ import { colors } from "@/shared/theme";
 import { useSelectRoute } from "./useTargets";
 
 const VARIANT_LABEL: Record<string, string> = {
-  safest: "Plus sûre",
-  fastest: "Plus rapide",
+  safest: "Safest",
+  fastest: "Fastest",
   science: "Science",
 };
 
@@ -48,8 +48,8 @@ function ReturnBadge({ route }: ReturnBadgeProps) {
   const icon =
     rc.status === "ok" ? "✓" : rc.status === "marginal" ? "▲" : "⛔";
   return (
-    <span className={`text-xs font-semibold ${color}`} aria-label={`Retour : ${rc.status}`}>
-      {icon} Retour {rc.reserve_at_return_pct.toFixed(0)}%
+    <span className={`text-xs font-semibold ${color}`} aria-label={`Return: ${rc.status}`}>
+      {icon} Return {rc.reserve_at_return_pct.toFixed(0)}%
     </span>
   );
 }
@@ -63,7 +63,7 @@ function SegmentExplanations({ route }: SegmentExplanationProps) {
   return (
     <details className="mt-1">
       <summary className="cursor-pointer text-xs text-[var(--text-muted)] hover:text-[var(--text)]">
-        Explication par tronçon ({route.explanation.length})
+        Segment explanation ({route.explanation.length})
       </summary>
       <ul className="mt-1 space-y-0.5 text-xs">
         {route.explanation.map((ex) => (
@@ -119,7 +119,7 @@ function RouteCard({ route, plan, isActive, onSelect }: RouteCardProps) {
         </span>
         {isActive && (
           <span className="ml-auto rounded bg-[var(--color-info)] px-1 py-0.5 text-[10px] text-white">
-            Choisie
+            Selected
           </span>
         )}
       </div>
@@ -128,13 +128,13 @@ function RouteCard({ route, plan, isActive, onSelect }: RouteCardProps) {
       <dl className="mb-2 grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs">
         <dt className="text-[var(--text-muted)]">Distance</dt>
         <dd>{formatDistance(route.totals.distance_m)}</dd>
-        <dt className="text-[var(--text-muted)]">Durée totale</dt>
+        <dt className="text-[var(--text-muted)]">Total duration</dt>
         <dd>{formatDuration(route.totals.duration_s)}</dd>
-        <dt className="text-[var(--text-muted)]">Dose rayonnement</dt>
+        <dt className="text-[var(--text-muted)]">Radiation dose</dt>
         <dd>{route.totals.consumption.dose_usv.toFixed(0)} µSv</dd>
-        <dt className="text-[var(--text-muted)]">Oxygène</dt>
+        <dt className="text-[var(--text-muted)]">Oxygen</dt>
         <dd>{route.totals.consumption.oxygen_kg.toFixed(2)} kg</dd>
-        <dt className="text-[var(--text-muted)]">Cibles</dt>
+        <dt className="text-[var(--text-muted)]">Targets</dt>
         <dd>{route.segments.filter((s) => s.to_target_id).length}</dd>
       </dl>
 
@@ -157,11 +157,11 @@ function RouteCard({ route, plan, isActive, onSelect }: RouteCardProps) {
       {/* Point de non-retour */}
       {route.return_check.point_of_no_return && (
         <p className="mt-1 text-xs text-[var(--text-muted)]">
-          Point de non-retour :{" "}
+          Point of no return:{" "}
           {route.return_check.point_of_no_return_time_s !== null
             ? formatDuration(route.return_check.point_of_no_return_time_s ?? 0)
             : "—"}{" "}
-          depuis le départ
+          from departure
         </p>
       )}
 
@@ -170,7 +170,7 @@ function RouteCard({ route, plan, isActive, onSelect }: RouteCardProps) {
         route.return_check.targets_to_cut &&
         route.return_check.targets_to_cut.length > 0 && (
           <p className="mt-1 text-xs font-semibold text-[var(--color-danger)]">
-            ⛔ Pour tenir la réserve, couper :{" "}
+            ⛔ To meet the reserve, skip:{" "}
             {route.return_check.targets_to_cut.join(", ")}
           </p>
         )}
@@ -181,9 +181,9 @@ function RouteCard({ route, plan, isActive, onSelect }: RouteCardProps) {
           className="mt-2 w-full text-xs"
           onClick={() => void handleSelect()}
           disabled={selectRoute.isPending}
-          aria-label={`Choisir la variante ${VARIANT_LABEL[route.variant] ?? route.variant}`}
+          aria-label={`Select variant ${VARIANT_LABEL[route.variant] ?? route.variant}`}
         >
-          Choisir cette variante
+          Select this variant
         </Button>
       )}
     </div>
@@ -200,15 +200,14 @@ export function RouteComparator({ plan }: Props) {
 
   if (!plan.routes.length) {
     return (
-      <p className="text-xs text-[var(--text-muted)]">Aucune variante calculée.</p>
+      <p className="text-xs text-[var(--text-muted)]">No route variants computed.</p>
     );
   }
 
   return (
-    <div className="space-y-2" aria-label="Comparateur de variantes">
+    <div className="space-y-2" aria-label="Route comparator">
       <p className="text-xs text-[var(--text-muted)]">
-        Comparez les variantes et choisissez celle qui convient. Aucune n'est
-        imposée.
+        Compare variants and choose the one that fits. None is imposed.
       </p>
       {plan.routes.map((route) => (
         <RouteCard

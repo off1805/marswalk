@@ -40,7 +40,7 @@ export function MarsScaleBar({ zoom = 14 }: { zoom?: number }) {
     <div
       data-testid="mars-scale-bar"
       className="absolute bottom-3 left-3 pointer-events-auto rounded bg-black/75 px-2 py-1 text-white shadow backdrop-blur-sm select-none"
-      aria-label={`Échelle martienne : ${displayDistance}`}
+      aria-label={`Mars scale: ${displayDistance}`}
     >
       <div className="flex items-center justify-between text-[10px] font-mono leading-none">
         <span>0</span>

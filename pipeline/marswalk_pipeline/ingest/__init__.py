@@ -112,7 +112,7 @@ def _crs_needs_reprojection(src_crs: rasterio.crs.CRS, dst_crs: rasterio.crs.CRS
     try:
         return not src_crs.equals(dst_crs)
     except Exception:
-        return src_crs.to_proj4() != dst_crs.to_proj4()
+        return str(src_crs.to_proj4()) != str(dst_crs.to_proj4())
 
 
 def _describe_crs(crs: rasterio.crs.CRS | None) -> str:

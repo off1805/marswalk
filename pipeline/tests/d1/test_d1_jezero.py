@@ -291,7 +291,7 @@ class TestSourceCRS:
 
 
 class TestCoverage:
-    def _grid_params(self) -> tuple:
+    def _grid_params(self) -> tuple[rasterio.transform.Affine, int, int, rasterio.crs.CRS]:
         transform, width, height, crs_str = _jezero_grid()
         dst_crs = _analysis_crs_obj(crs_str)
         return transform, width, height, dst_crs

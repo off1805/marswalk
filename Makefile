@@ -1,6 +1,7 @@
 # Commandes courantes de Marswalk. `make help` pour la liste.
 .PHONY: help install dev dev-mock down test test-py test-web lint typecheck contracts \
-        contracts-check api-client fictif examples validate ownership db-test
+        contracts-check api-client fictif examples validate ownership db-test \
+        site site-package
 
 help:
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -52,6 +53,18 @@ fictif: ## Régénère le paquet du site fictif (fixtures/sites/fictif)
 
 examples: ## Régénère contracts/examples (changement de contrat seulement)
 	uv run python tools/make_examples.py
+
+SITE ?= jezero
+
+site: ## Paquet d'un site réel (make site SITE=jezero) : ingest (D1), derive (D2), package (D3)
+	uv run marswalk-ingest $(SITE)
+	$(MAKE) site-package SITE=$(SITE)
+
+site-package: ## Comme `site` sans refaire l'ingestion (rasters déjà dans data/work/<site>/aligned)
+	mkdir -p data/work/$(SITE)/layers
+	if [ -d config/sites/$(SITE)/layers ]; then cp config/sites/$(SITE)/layers/*.json data/work/$(SITE)/layers/; fi
+	uv run python -m marswalk_pipeline.derived $(SITE)
+	uv run python -m marswalk_pipeline.package $(SITE)
 
 validate: ## Valide le paquet du site fictif
 	uv run python tools/validate_site_package.py fixtures/sites/fictif --max-mb 30

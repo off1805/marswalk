@@ -166,7 +166,9 @@ def plan_route(
             options,
             variant_name,
         )
-        segment_breaks.append(len(all_coords))
+        # Indice du premier point du tronçon i : le point de jonction, partagé avec la
+        # fin du tronçon précédent (dont on ne recopie pas le doublon ci-dessous).
+        segment_breaks.append(max(len(all_coords) - 1, 0))
         if i == 0:
             all_coords.extend(segment_coords)
         else:

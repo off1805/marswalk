@@ -12,6 +12,9 @@ from __future__ import annotations
 import json
 import time
 
+import numpy as np
+import pytest
+
 from marswalk_core.config import load_safety_settings, load_suit
 from marswalk_core.grids import RouteOptions
 from marswalk_core.paths import repo_root
@@ -380,3 +383,23 @@ def test_hypotheses_marche_exists() -> None:
     assert "Tobler" in content
     assert "Waligora" in content
     assert "Apollo" in content
+
+
+def test_return_field_on_coarse_grid_keeps_shape_and_order(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Grande grille (Jezero) : champ calculé sur une maille agrégée, même forme en sortie."""
+    import marswalk_planner.return_field as rf_mod
+
+    site = load_site("fictif")
+    grid = build_cost_grid(site, load_safety_settings(), None)
+    habitat = LonLat(*site.manifest.habitat)
+    fine = return_field(grid, habitat, _suit())
+    monkeypatch.setattr(rf_mod, "MAX_FIELD_CELLS", grid.cost.size // 9)
+    coarse = return_field(grid, habitat, _suit())
+    assert coarse.seconds.shape == fine.seconds.shape
+    t0 = return_time_at(coarse, habitat.lon, habitat.lat)
+    assert t0 is not None and t0 < 10.0
+    both = np.isfinite(fine.seconds) & np.isfinite(coarse.seconds) & (fine.seconds > 300)
+    ratio = coarse.seconds[both] / fine.seconds[both]
+    assert 0.7 < float(np.median(ratio)) < 1.3

@@ -14,12 +14,16 @@ Cellules interdites : cost[forbidden] = +inf, identifiables via CostGrid.forbidd
 
 from __future__ import annotations
 
+import dataclasses
+from collections import OrderedDict
+
 from marswalk_core.grids import CostGrid, CostTerm
 from marswalk_core.schemas import Conditions, SafetySettings
 from marswalk_core.site_package import Site
 from marswalk_planner._p1.cost import compute_cost_grid
 from marswalk_planner._p1.explain import explain_cell as _explain_cell
 from marswalk_planner._p1.layers import load_layers
+from marswalk_planner._p1.planning_site import planning_site
 
 
 def build_cost_grid(
@@ -53,8 +57,38 @@ def build_cost_grid(
     5 × 5 km à 2 m (2500 × 2500) < 1 s sur l'environnement de référence.
     Toutes les opérations sont vectorisées avec NumPy.
     """
-    layers = load_layers(site)
-    return compute_cost_grid(layers, settings, site, conditions)
+    site = planning_site(site)  # grille de 2 m même quand le paquet est à 1 m
+    key = (
+        id(site),
+        settings.model_dump_json(),
+        conditions.model_dump_json() if conditions is not None else "",
+    )
+    grid = _GRID_CACHE.get(key)
+    if grid is None:
+        layers = load_layers(site)
+        grid = compute_cost_grid(layers, settings, site, conditions)
+        _GRID_CACHE[key] = grid
+        while len(_GRID_CACHE) > _GRID_CACHE_SIZE:
+            _GRID_CACHE.popitem(last=False)
+    else:
+        _GRID_CACHE.move_to_end(key)
+    # Copie des tableaux modifiables : l'appelant peut y ajouter un obstacle signalé.
+    return dataclasses.replace(
+        grid,
+        cost=grid.cost.copy(),
+        forbidden=grid.forbidden.copy(),
+        warnings=list(grid.warnings),
+    )
+
+
+# Grilles déjà construites (sur Jezero, 0,5 s par grille et trois grilles par plan) :
+# déplacer une cible ne reconstruit pas les grilles des trois variantes.
+_GRID_CACHE: OrderedDict[tuple[int, str, str], CostGrid] = OrderedDict()
+_GRID_CACHE_SIZE = 8
+
+
+def clear_cost_grid_cache() -> None:
+    _GRID_CACHE.clear()
 
 
 def explain_cell(cost_grid: CostGrid, x: float, y: float) -> list[CostTerm]:

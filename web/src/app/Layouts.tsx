@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { MapView } from "./MapView";
 import { registry } from "./registry";
+import { SitePicker } from "./SitePicker";
 import { Slot } from "./Slot";
 import { useHealth, useMarsClock, useSiteManifest } from "@/shared/hooks";
 import { applyTheme } from "@/shared/theme";
@@ -16,6 +17,7 @@ function TopBar() {
     <header className="flex flex-wrap items-center gap-4 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2">
       <strong className="text-lg">Marswalk</strong>
       <span>{site.data?.name ?? "…"}</span>
+      <SitePicker />
       {clock.data && (
         <span aria-label="Heure martienne">
           Sol {clock.data.sol} · {clock.data.lmst} LMST

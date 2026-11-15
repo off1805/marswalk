@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import { MapLayout, Terrain3dLayout } from "./Layouts";
 import { registry } from "./registry";
+import { SiteSync } from "./SitePicker";
 import { useShared, type Mode } from "@/shared/store";
 
 export const queryClient = new QueryClient({
@@ -25,6 +26,7 @@ export function AppRoutes() {
   return (
     <>
       <ModeSync />
+      <SiteSync />
       <Routes>
         <Route path="/" element={<MapLayout />} />
         <Route path="/3d" element={<Terrain3dLayout />} />

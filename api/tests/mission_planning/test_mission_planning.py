@@ -113,3 +113,18 @@ def test_repositories_direct_unit() -> None:
     deleted = repo.delete(t.id)
     assert deleted is True
     assert repo.get(t.id) is None
+
+
+def test_real_sites_get_their_seed_targets_and_safety_yaml() -> None:
+    """Jezero : cibles J1 à J4 de targets-seed.geojson et préréglage de safety.yaml (I1)."""
+    from marswalk_api.services.mission_planning.memory_repo import (
+        InMemorySafetySettingsRepository,
+        InMemoryTargetRepository,
+    )
+    from marswalk_core.config import load_safety_settings
+
+    targets = InMemoryTargetRepository().list_by_site("jezero")
+    assert {t.id for t in targets} >= {"J1", "J2", "J3", "J4"}
+    j1 = next(t for t in targets if t.id == "J1")
+    assert j1.work_time_s == 2400 and j1.position[0] > 77.0
+    assert InMemorySafetySettingsRepository().get("jezero") == load_safety_settings()

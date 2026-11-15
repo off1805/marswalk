@@ -11,7 +11,7 @@ def compute_radio_coverage(
     antenna_height_m: float,
     resolution_m: float,
     nodata: float = -9999.0,
-    n_angles: int = 3600,
+    n_angles: int | None = None,
     observer_eye_height_m: float = 1.8,
 ) -> np.ndarray:
     """Calcule le viewshed depuis l'habitat par balayage angulaire (R2V).
@@ -70,7 +70,10 @@ def compute_radio_coverage(
     # Nombre maximal de pas
     max_dist = int(np.ceil(np.sqrt(rows**2 + cols**2))) + 2
 
-    # Directions angulaires
+    # Directions angulaires : assez de rayons pour qu'à la distance maximale deux rayons
+    # voisins restent à moins d'un pixel l'un de l'autre (sinon la couverture est mitée).
+    if n_angles is None:
+        n_angles = max(360, int(np.ceil(2.0 * np.pi * max_dist)))
     angles = np.linspace(0.0, 2.0 * np.pi, n_angles, endpoint=False)
     sin_a = np.sin(angles)
     cos_a = np.cos(angles)
@@ -120,8 +123,10 @@ def compute_radio_coverage(
             visible[vis_r, vis_c] = 1.0
 
         # Mettre à jour max_elev_angle (que pour les rayons dans la grille et non-nodata)
+        # L'horizon se calcule sur le sol, pas sur la tête de l'observateur.
         active = in_bounds & ~is_nd
-        max_elev_angle = np.where(active, np.maximum(max_elev_angle, elev_angle), max_elev_angle)
+        ground_angle = (elevs - hab_elev) / dist_m
+        max_elev_angle = np.where(active, np.maximum(max_elev_angle, ground_angle), max_elev_angle)
 
     visible[nodata_mask] = nodata
     return visible

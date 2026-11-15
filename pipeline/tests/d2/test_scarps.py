@@ -11,7 +11,7 @@ RES = 1.0
 
 
 class TestFlatNoScarps:
-    def test_flat_no_scarps(self, flat_dem):
+    def test_flat_no_scarps(self, flat_dem: np.ndarray) -> None:
         """DEM plat → pente=0 → aucune falaise."""
         from marswalk_pipeline.derived.slope import compute_slope
 
@@ -25,7 +25,7 @@ class TestFlatNoScarps:
 
 
 class TestCliffDetected:
-    def test_cliff_detected(self, dem_with_cliff):
+    def test_cliff_detected(self, dem_with_cliff: np.ndarray) -> None:
         """Falaise > threshold → 1."""
         from marswalk_pipeline.derived.slope import compute_slope
 
@@ -45,7 +45,7 @@ class TestCliffDetected:
 
 
 class TestBufferApplied:
-    def test_buffer_applied(self):
+    def test_buffer_applied(self) -> None:
         """buffer > 0 → zone falaise plus large."""
         # DEM avec une falaise ponctuelle
         size = 50
@@ -65,7 +65,7 @@ class TestBufferApplied:
 
 
 class TestNodataPropagation:
-    def test_nodata_propagation(self):
+    def test_nodata_propagation(self) -> None:
         """Pixels nodata en entrée → nodata en sortie."""
         slope = np.full((50, 50), 10.0, dtype=np.float32)
         slope[10, 10] = NODATA
@@ -76,7 +76,7 @@ class TestNodataPropagation:
 
 
 class TestBinaryOutput:
-    def test_binary_output(self, dem_with_cliff):
+    def test_binary_output(self, dem_with_cliff: np.ndarray) -> None:
         """Seules les valeurs 0.0, 1.0 et nodata."""
         from marswalk_pipeline.derived.slope import compute_slope
 

@@ -11,7 +11,7 @@ def _make_disk(radius_px: float) -> np.ndarray:
     r = int(np.ceil(radius_px))
     y, x = np.ogrid[-r : r + 1, -r : r + 1]
     disk = (x**2 + y**2) <= radius_px**2
-    return disk
+    return np.asarray(disk)
 
 
 def compute_scarps(
@@ -60,4 +60,4 @@ def compute_scarps(
     result = scarp.astype(np.float32)
     result[nodata_mask] = nodata
 
-    return result
+    return np.asarray(result, dtype=np.float32)

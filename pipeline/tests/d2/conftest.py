@@ -7,14 +7,14 @@ import pytest
 
 
 @pytest.fixture
-def flat_dem():
+def flat_dem() -> np.ndarray:
     """DEM plat à -2500m, 100×100 px."""
     size = 100
     return np.full((size, size), -2500.0, dtype=np.float32)
 
 
 @pytest.fixture
-def tilted_dem():
+def tilted_dem() -> np.ndarray:
     """Plan incliné de 15° dans la direction Est (colonnes = est).
 
     slope_deg = 15, size = 100×100 px, résolution = 1m/px.
@@ -30,7 +30,7 @@ def tilted_dem():
 
 
 @pytest.fixture
-def dem_with_cliff():
+def dem_with_cliff() -> np.ndarray:
     """DEM 100×100 avec une falaise abrupte (saut de 50m sur 2 pixels au milieu)."""
     size = 100
     dem = np.full((size, size), -2500.0, dtype=np.float32)
@@ -40,7 +40,7 @@ def dem_with_cliff():
 
 
 @pytest.fixture
-def dem_with_pit():
+def dem_with_pit() -> np.ndarray:
     """DEM 100×100 avec une dépression rugueuse (zone irrégulière)."""
     rng = np.random.default_rng(42)
     size = 100
@@ -51,7 +51,7 @@ def dem_with_pit():
 
 
 @pytest.fixture
-def synthetic_ti():
+def synthetic_ti() -> np.ndarray:
     """Inertie thermique synthétique 100×100 avec zones dune/roche/mixte."""
     size = 100
     ti = np.full((size, size), 300.0, dtype=np.float32)  # roche par défaut

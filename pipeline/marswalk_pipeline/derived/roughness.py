@@ -74,4 +74,4 @@ def compute_roughness(
     propagated_mask = nodata_mask | (nodata_count > 0)
     roughness[propagated_mask] = nodata
 
-    return roughness
+    return np.asarray(roughness, dtype=np.float32)

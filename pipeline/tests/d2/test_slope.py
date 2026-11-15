@@ -11,7 +11,7 @@ RES = 1.0  # m/px
 
 
 class TestFlatDem:
-    def test_flat_dem_gives_zero_slope(self, flat_dem):
+    def test_flat_dem_gives_zero_slope(self, flat_dem: np.ndarray) -> None:
         slope = compute_slope(flat_dem, RES, nodata=NODATA)
         valid = slope != NODATA
         assert valid.any(), "Aucun pixel valide"
@@ -21,7 +21,7 @@ class TestFlatDem:
 
 
 class TestTiltedDem:
-    def test_tilted_dem_slope_accuracy(self, tilted_dem):
+    def test_tilted_dem_slope_accuracy(self, tilted_dem: np.ndarray) -> None:
         """Plan incliné 15° → pente retrouvée à 0.1° près (pixels intérieurs)."""
         slope = compute_slope(tilted_dem, RES, nodata=NODATA)
         # Exclure les bords (1 pixel) où le gradient est moins précis
@@ -33,7 +33,7 @@ class TestTiltedDem:
 
 
 class TestNodataPropagation:
-    def test_nodata_propagation(self, flat_dem):
+    def test_nodata_propagation(self, flat_dem: np.ndarray) -> None:
         """Les pixels nodata en entrée → nodata en sortie."""
         dem = flat_dem.copy()
         dem[10, 10] = NODATA
@@ -45,7 +45,7 @@ class TestNodataPropagation:
 
 
 class TestSlopeRange:
-    def test_slope_range(self, dem_with_cliff):
+    def test_slope_range(self, dem_with_cliff: np.ndarray) -> None:
         """Toutes les valeurs valides ∈ [0, 90]."""
         slope = compute_slope(dem_with_cliff, RES, nodata=NODATA)
         valid = slope != NODATA
@@ -55,7 +55,7 @@ class TestSlopeRange:
 
 
 class TestSlopeDimsAndCrs:
-    def test_slope_crs_and_dims(self, flat_dem):
+    def test_slope_crs_and_dims(self, flat_dem: np.ndarray) -> None:
         """Le raster de sortie a les bonnes dimensions."""
         slope = compute_slope(flat_dem, RES, nodata=NODATA)
         assert slope.shape == flat_dem.shape

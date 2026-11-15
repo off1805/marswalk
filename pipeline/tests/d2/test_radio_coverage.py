@@ -11,7 +11,7 @@ RES = 1.0
 
 
 class TestFlatAllVisible:
-    def test_flat_all_visible(self):
+    def test_flat_all_visible(self) -> None:
         """DEM plat → tout visible depuis l'habitat."""
         size = 50
         dem = np.full((size, size), -2500.0, dtype=np.float32)
@@ -27,7 +27,7 @@ class TestFlatAllVisible:
 
 
 class TestBehindHillInvisible:
-    def test_behind_hill_invisible(self):
+    def test_behind_hill_invisible(self) -> None:
         """Obstacle derrière une colline → 0."""
         size = 100
         dem = np.full((size, size), -2500.0, dtype=np.float32)
@@ -49,7 +49,7 @@ class TestBehindHillInvisible:
 
 
 class TestHabitatItselfVisible:
-    def test_habitat_itself_visible(self):
+    def test_habitat_itself_visible(self) -> None:
         """Le pixel de l'habitat → 1."""
         size = 50
         dem = np.full((size, size), -2500.0, dtype=np.float32)
@@ -61,7 +61,7 @@ class TestHabitatItselfVisible:
 
 
 class TestNodataPropagation:
-    def test_nodata_propagation(self):
+    def test_nodata_propagation(self) -> None:
         """Pixels nodata en entrée → nodata en sortie."""
         size = 50
         dem = np.full((size, size), -2500.0, dtype=np.float32)
@@ -74,7 +74,7 @@ class TestNodataPropagation:
 
 
 class TestBinaryOutput:
-    def test_binary_output(self):
+    def test_binary_output(self) -> None:
         """Seules les valeurs 0.0, 1.0 et nodata."""
         size = 50
         dem = np.full((size, size), -2500.0, dtype=np.float32)

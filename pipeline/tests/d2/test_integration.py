@@ -32,7 +32,7 @@ def _has_fictif_dem() -> bool:
 
 
 @pytest.fixture(scope="module")
-def fictif_derived_dir(tmp_path_factory):
+def fictif_derived_dir(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, dict[str, str]]:
     """Exécute run_derive une seule fois et retourne le répertoire de sortie."""
     if not _has_fictif_dem():
         pytest.skip("DEM fictif absent")
@@ -46,7 +46,7 @@ def fictif_derived_dir(tmp_path_factory):
 
 
 class TestDeriveOnFictifSite:
-    def test_derive_on_fictif_site(self, fictif_derived_dir):
+    def test_derive_on_fictif_site(self, fictif_derived_dir: tuple[Path, dict[str, str]]) -> None:
         """run_derive('fictif') produit les 8 couches."""
         derived_dir, results = fictif_derived_dir
 
@@ -55,7 +55,7 @@ class TestDeriveOnFictifSite:
             path = derived_dir / f"{layer}.tif"
             assert path.exists(), f"Fichier {layer}.tif non produit"
 
-    def test_no_error_in_results(self, fictif_derived_dir):
+    def test_no_error_in_results(self, fictif_derived_dir: tuple[Path, dict[str, str]]) -> None:
         """Aucun statut d'erreur dans les résultats."""
         _, results = fictif_derived_dir
         errors = {k: v for k, v in results.items() if v.startswith("error")}
@@ -63,7 +63,9 @@ class TestDeriveOnFictifSite:
 
 
 class TestDerivedFilesHaveCorrectGrid:
-    def test_derived_files_have_correct_grid(self, fictif_derived_dir):
+    def test_derived_files_have_correct_grid(
+        self, fictif_derived_dir: tuple[Path, dict[str, str]]
+    ) -> None:
         """Toutes les sorties ont exactement la même grille que dem.tif."""
         derived_dir, _results = fictif_derived_dir
 
@@ -86,7 +88,9 @@ class TestDerivedFilesHaveCorrectGrid:
                     f"{layer}: origin x {ds.transform.c} ≠ {ref_tf.c}"
                 )
 
-    def test_derived_files_are_float32(self, fictif_derived_dir):
+    def test_derived_files_are_float32(
+        self, fictif_derived_dir: tuple[Path, dict[str, str]]
+    ) -> None:
         """Toutes les sorties sont en float32."""
         derived_dir, _results = fictif_derived_dir
         for layer in EXPECTED_LAYERS:
@@ -96,7 +100,9 @@ class TestDerivedFilesHaveCorrectGrid:
             with rasterio.open(path) as ds:
                 assert ds.dtypes[0] == "float32", f"{layer}: dtype {ds.dtypes[0]} ≠ float32"
 
-    def test_derived_files_have_nodata(self, fictif_derived_dir):
+    def test_derived_files_have_nodata(
+        self, fictif_derived_dir: tuple[Path, dict[str, str]]
+    ) -> None:
         """Toutes les sorties ont nodata=-9999."""
         derived_dir, _results = fictif_derived_dir
         for layer in EXPECTED_LAYERS:
@@ -111,7 +117,7 @@ class TestDerivedFilesHaveCorrectGrid:
 
 
 class TestSlope15DegAccuracy:
-    def test_slope_15deg_accuracy_on_tilted_dem(self):
+    def test_slope_15deg_accuracy_on_tilted_dem(self) -> None:
         """Critère d'acceptation : plan incliné 15° → pente à 0.1° près."""
         from marswalk_pipeline.derived.slope import compute_slope
 
@@ -138,7 +144,7 @@ class TestSlope15DegAccuracy:
 
 
 class TestTotalRuntime:
-    def test_total_runtime(self):
+    def test_total_runtime(self) -> None:
         """Le calcul complet sur le site fictif tient en moins de 5 minutes."""
         if not _has_fictif_dem():
             pytest.skip("DEM fictif absent")

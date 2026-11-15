@@ -74,4 +74,4 @@ def compute_hillshade(
     nan_mask = nodata_mask | ~np.isfinite(hillshade)
     hillshade[nan_mask] = nodata
 
-    return hillshade
+    return np.asarray(hillshade, dtype=np.float32)

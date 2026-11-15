@@ -48,4 +48,4 @@ def compute_slope(
     nan_mask = nodata_mask | ~np.isfinite(slope_deg)
     slope_deg[nan_mask] = nodata
 
-    return slope_deg
+    return np.asarray(slope_deg, dtype=np.float32)

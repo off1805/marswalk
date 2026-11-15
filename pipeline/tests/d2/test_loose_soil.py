@@ -24,7 +24,7 @@ def _make_hi(val: float, noisy: bool = False) -> np.ndarray:
 
 
 class TestHighTiGivesRock:
-    def test_high_ti_gives_rock(self):
+    def test_high_ti_gives_rock(self) -> None:
         """TI=400 → classe 0 (roche)."""
         ti = _make_ti(400.0)
         hi = _make_hi(128.0)
@@ -37,7 +37,7 @@ class TestHighTiGivesRock:
 
 
 class TestLowTiLoose:
-    def test_low_ti_loose(self):
+    def test_low_ti_loose(self) -> None:
         """TI=180 → classe 2 (meuble)."""
         ti = _make_ti(180.0)
         # Texture élevée pour éviter la classification dune
@@ -52,7 +52,7 @@ class TestLowTiLoose:
 
 
 class TestDuneCondition:
-    def test_dune_condition(self):
+    def test_dune_condition(self) -> None:
         """TI=150 + texture faible → classe 3 (dune)."""
         ti = _make_ti(150.0)
         hi = _make_hi(128.0, noisy=False)  # texture=0 → classe dune
@@ -71,7 +71,7 @@ class TestDuneCondition:
 
 
 class TestNodataPropagation:
-    def test_nodata_propagation(self):
+    def test_nodata_propagation(self) -> None:
         """Pixels nodata TI ou hirise_vis → nodata en sortie."""
         ti = _make_ti(300.0)
         hi = _make_hi(128.0)
@@ -83,7 +83,7 @@ class TestNodataPropagation:
 
 
 class TestClassesInRange:
-    def test_classes_in_range(self, synthetic_ti):
+    def test_classes_in_range(self, synthetic_ti: np.ndarray) -> None:
         """Valeurs ∈ {0,1,2,3,-9999}."""
         hi = np.full(synthetic_ti.shape, 128.0, dtype=np.float32)
         result = compute_loose_soil(synthetic_ti, hi, nodata=NODATA)

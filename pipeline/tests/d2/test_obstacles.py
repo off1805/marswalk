@@ -10,13 +10,13 @@ NODATA = -9999.0
 RES = 1.0
 
 
-def _make_roughness(size=50, center_val=0.0):
+def _make_roughness(size: int = 50, center_val: float = 0.0) -> np.ndarray:
     """Crée un tableau de roughness uniforme."""
     return np.full((size, size), center_val, dtype=np.float32)
 
 
 class TestSmoothTerrain:
-    def test_smooth_terrain_no_obstacles(self):
+    def test_smooth_terrain_no_obstacles(self) -> None:
         """roughness < threshold → 0 partout."""
         roughness = _make_roughness(50, center_val=0.1)
         result = compute_obstacles(
@@ -28,7 +28,7 @@ class TestSmoothTerrain:
 
 
 class TestRoughZoneFlagged:
-    def test_rough_zone_flagged(self):
+    def test_rough_zone_flagged(self) -> None:
         """Zone rugueuse → 1 avec tampon."""
         roughness = _make_roughness(50, center_val=0.0)
         roughness[20:30, 20:30] = 0.8  # zone rugueuse
@@ -42,7 +42,7 @@ class TestRoughZoneFlagged:
 
 
 class TestBufferExpands:
-    def test_buffer_expands_obstacle_zone(self):
+    def test_buffer_expands_obstacle_zone(self) -> None:
         """buffer > 0 → zone obstacle plus large."""
         roughness = _make_roughness(50, center_val=0.0)
         roughness[25, 25] = 0.8  # obstacle ponctuel
@@ -62,7 +62,7 @@ class TestBufferExpands:
 
 
 class TestNodataPropagation:
-    def test_nodata_propagation(self):
+    def test_nodata_propagation(self) -> None:
         """Les pixels nodata en entrée → nodata en sortie."""
         roughness = _make_roughness(50, center_val=0.0)
         roughness[10, 10] = NODATA
@@ -73,7 +73,7 @@ class TestNodataPropagation:
 
 
 class TestBinaryOutput:
-    def test_binary_output(self, dem_with_pit):
+    def test_binary_output(self, dem_with_pit: np.ndarray) -> None:
         """Seules les valeurs 0.0, 1.0 et nodata."""
         from marswalk_pipeline.derived.roughness import compute_roughness
 

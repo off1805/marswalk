@@ -11,7 +11,7 @@ RES = 1.0
 
 
 class TestFlatDem:
-    def test_flat_dem_gives_uniform_hillshade(self, flat_dem):
+    def test_flat_dem_gives_uniform_hillshade(self, flat_dem: np.ndarray) -> None:
         """DEM plat → hillshade uniforme (même valeur partout)."""
         hs = compute_hillshade(
             flat_dem, RES, sun_azimuth_deg=315.0, sun_altitude_deg=45.0, nodata=NODATA
@@ -26,7 +26,7 @@ class TestFlatDem:
 
 
 class TestRange:
-    def test_range_0_255(self, dem_with_cliff):
+    def test_range_0_255(self, dem_with_cliff: np.ndarray) -> None:
         """Toutes les valeurs ∈ [0, 255]."""
         hs = compute_hillshade(
             dem_with_cliff, RES, sun_azimuth_deg=315.0, sun_altitude_deg=30.0, nodata=NODATA
@@ -38,7 +38,7 @@ class TestRange:
 
 
 class TestDirectionalSensitivity:
-    def test_south_facing_slope_darker_eastward_sun(self):
+    def test_south_facing_slope_darker_eastward_sun(self) -> None:
         """Pente exposée est plus lumineuse avec Soleil à l'est.
 
         Convention : une pente "exposée est" descend vers l'est (normal pointant est).
@@ -81,7 +81,7 @@ class TestDirectionalSensitivity:
 
 
 class TestNodataPropagation:
-    def test_nodata_propagation(self, flat_dem):
+    def test_nodata_propagation(self, flat_dem: np.ndarray) -> None:
         """Les pixels nodata en entrée → nodata en sortie."""
         dem = flat_dem.copy()
         dem[30, 30] = NODATA

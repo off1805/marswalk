@@ -75,7 +75,7 @@ def _read_layer(path: Path, nodata: float = NODATA) -> np.ndarray:
         if nd is not None and not np.isclose(nd, nodata):
             mask = np.isclose(data, float(nd), rtol=0, atol=1.0)
             data[mask] = nodata
-    return data
+    return np.asarray(data, dtype=np.float32)
 
 
 def _write_derived(
@@ -407,4 +407,4 @@ def _resample_to_dem(
             resampling=rasterio.enums.Resampling.bilinear,
             dst_nodata=NODATA,
         )
-    return dst
+    return np.asarray(dst, dtype=np.float32)

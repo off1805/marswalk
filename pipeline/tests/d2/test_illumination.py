@@ -11,7 +11,7 @@ RES = 1.0
 
 
 class TestFlatAllLit:
-    def test_flat_all_lit(self):
+    def test_flat_all_lit(self) -> None:
         """DEM plat → tout éclairé (aucune ombre)."""
         size = 100
         dem = np.full((size, size), -2500.0, dtype=np.float32)
@@ -26,7 +26,7 @@ class TestFlatAllLit:
 
 
 class TestEastFacingSlopeLit:
-    def test_east_facing_slope_lit_by_east_sun(self):
+    def test_east_facing_slope_lit_by_east_sun(self) -> None:
         """Pente exposée est → éclairée avec Soleil à l'est.
 
         Note : une pente exposée EST descend vers l'est (monte vers l'ouest).
@@ -60,7 +60,7 @@ class TestEastFacingSlopeLit:
 
 
 class TestDeepValleyShadowed:
-    def test_deep_valley_shadowed(self):
+    def test_deep_valley_shadowed(self) -> None:
         """Vallée profonde derrière une colline → en ombre."""
         size = 100
         dem = np.full((size, size), -2500.0, dtype=np.float32)
@@ -85,7 +85,7 @@ class TestDeepValleyShadowed:
 
 
 class TestBinaryOutput:
-    def test_binary_output(self):
+    def test_binary_output(self) -> None:
         """Seules les valeurs 0.0, 1.0 et nodata."""
         size = 50
         dem = np.full((size, size), -2500.0, dtype=np.float32)

@@ -11,7 +11,7 @@ RES = 1.0
 
 
 class TestFlatDem:
-    def test_flat_dem_gives_zero_roughness(self, flat_dem):
+    def test_flat_dem_gives_zero_roughness(self, flat_dem: np.ndarray) -> None:
         """DEM plat → roughness=0."""
         roughness = compute_roughness(flat_dem, window_m=5.0, resolution_m=RES, nodata=NODATA)
         valid = roughness != NODATA
@@ -22,7 +22,7 @@ class TestFlatDem:
 
 
 class TestReliefRoughness:
-    def test_roughness_increases_with_relief(self, dem_with_pit):
+    def test_roughness_increases_with_relief(self, dem_with_pit: np.ndarray) -> None:
         """DEM avec relief → roughness > 0 dans les zones rugueuses."""
         roughness = compute_roughness(dem_with_pit, window_m=5.0, resolution_m=RES, nodata=NODATA)
         # Zone rugueuse centrale (après propagation des nodata)
@@ -33,7 +33,7 @@ class TestReliefRoughness:
 
 
 class TestWindowSizeEffect:
-    def test_window_size_effect(self, dem_with_pit):
+    def test_window_size_effect(self, dem_with_pit: np.ndarray) -> None:
         """Fenêtre plus grande → valeurs de roughness différentes."""
         r_small = compute_roughness(dem_with_pit, window_m=3.0, resolution_m=RES, nodata=NODATA)
         r_large = compute_roughness(dem_with_pit, window_m=15.0, resolution_m=RES, nodata=NODATA)
@@ -46,7 +46,7 @@ class TestWindowSizeEffect:
 
 
 class TestNodataPropagation:
-    def test_nodata_propagation(self, flat_dem):
+    def test_nodata_propagation(self, flat_dem: np.ndarray) -> None:
         """Les pixels nodata en entrée → nodata en sortie."""
         dem = flat_dem.copy()
         dem[50, 50] = NODATA
@@ -55,7 +55,7 @@ class TestNodataPropagation:
 
 
 class TestOutputDimsAndCrs:
-    def test_output_dims_and_crs(self, flat_dem):
+    def test_output_dims_and_crs(self, flat_dem: np.ndarray) -> None:
         """Les dimensions de sortie correspondent à l'entrée."""
         roughness = compute_roughness(flat_dem, window_m=5.0, resolution_m=RES, nodata=NODATA)
         assert roughness.shape == flat_dem.shape

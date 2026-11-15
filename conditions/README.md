@@ -1,51 +1,69 @@
 # Conditions martiennes et scénarios (K1)
 
-Ce module implémente le package Python `marswalk_conditions` dédié à la simulation, la prévision et le rejeu des conditions environnementales martiennes (météo atmosphérique MEDA, rayonnement cosmique et éruptions solaires RAD, météo spatiale DONKI).
+Paquet Python `marswalk_conditions` : conditions du moment et prévisions à Jezero, réelles
+(MEDA, RAD), rejouées (scénario `solar-event`) ou en direct (DONKI). Interface gelée :
+`get_provider(mode, scenario_id)` et `list_scenarios()` (section 7 de `taches-agents.md`).
 
-## Architecture & Principes SOLID
+## Importer les données réelles
 
-- **Single Responsibility Principle (SRP)** :
-  - `MedaClimatologyEngine` : Modèle physique et sinusoïdal des cycles diurnes de température, pression, vent et UV sur Jezero.
-  - `HistoricalProvider` : Fourniture des séries chronologiques historiques MEDA / RAD.
-  - `ScenarioProvider` & `ScenarioManager` : Moteur d'exécution des scénarios accélérés et reproductibles (dont `solar-event`).
-  - `LiveProvider` & `DonkiClient` : Gestion du flux direct DONKI et résilience hors-ligne.
-- **Open/Closed Principle (OCP)** :
-  - Les interfaces `IMedaRadSource`, `ISpaceWeatherSource` et `ICacheStore` permettent d'ajouter de nouvelles sources de données (ex: lecture de tables Parquet PDS, API REST tierce) sans modifier les fournisseurs.
-- **Liskov Substitution Principle (LSP)** :
-  - Tous les fournisseurs implémentent fidèlement le protocole `ConditionsProvider`.
-- **Interface Segregation Principle (ISP)** :
-  - Séparation nette entre `ConditionsProvider`, `IMedaRadSource`, `ISpaceWeatherSource` et `ICacheStore`.
-- **Dependency Inversion Principle (DIP)** :
-  - Les fournisseurs dépendent de protocoles abstraits plutôt que de clients concrets ou de fichiers sur disque.
+Les fichiers bruts sont téléchargés par D0 dans `data/raw/jezero/meda/` et
+`data/raw/jezero/rad_may2024/`. L'import en tire un jeu compact (quelques centaines de Ko au
+plus), hors Git comme toutes les données réelles :
 
-## Modes de fonctionnement
-
-1. **`historical`** :
-   - Rejoue les conditions météorologiques MEDA (température diurne de -75°C à -18°C, pression semi-diurne autour de 845 Pa, vent thermique d'après-midi, UV solaire) et débit de dose cosmique nominal (~10 µSv/h).
-2. **`scenario` (`solar-event`)** :
-   - Rejoue l'événement solaire majeur (fondé sur l'événement de mai 2024 observé par Curiosity/RAD).
-   - Déclenche un pic de dose critique supérieur à 1 000 µSv/h entre $t=1200$s et $t=2400$s avec alerte `storm`, entraînant les alertes de sécurité requises pour la démo.
-3. **`live`** :
-   - Client connecté à la météo spatiale NASA DONKI.
-   - En cas d'absence de réseau (mode autonome / hors-ligne ENF-01), bascule immédiatement sur le cache local en retournant la dernière mesure avec son horodatage `cached_at`.
-
-## Utilisation
-
-```python
-from datetime import datetime, UTC
-from marswalk_conditions import get_provider, list_scenarios
-
-# 1. Mode historique
-prov_hist = get_provider("historical")
-now = datetime.now(UTC)
-current_cond = prov_hist.current(now)
-forecast_12h = prov_hist.forecast(now, hours=12)
-
-# 2. Mode scénario (solar-event)
-prov_scen = get_provider("scenario", scenario_id="solar-event")
-cond_at_peak = prov_scen.current(now)
-
-# 3. Mode direct avec cache
-prov_live = get_provider("live")
-live_cond = prov_live.current(now)
+```bash
+uv run python -m marswalk_pipeline.fetch jezero --only meda,rad_may2024   # si besoin (D0)
+uv run python -m marswalk_conditions import      # écrit data/work/conditions/jezero.json
+uv run python -m marswalk_conditions show        # résumé : sols, fond, début et pic RAD
 ```
+
+`MARSWALK_CONDITIONS_FILE` change l'emplacement du jeu compact. Sans ce fichier, tout
+fonctionne sur des modèles de repli, et chaque `Conditions.source` le dit.
+
+| Donnée | Produit (D0) | Ce qui est retenu |
+| --- | --- | --- |
+| Température de l'air | MEDA `CAL_ATS` | moyenne des capteurs 1 à 3 du mât, K vers °C |
+| Pression | MEDA `CAL_PS` | `BAROCAP1_PRESSURE` (transducteur actif), Pa |
+| Vent | MEDA `CAL_WS` | moyenne des deux mâts, vitesse horizontale, m/s |
+| Débit de dose | MSL RAD RDR (Curiosity, Gale) | `DOSIMETRY_TOTAL_DOSE_E` (plastique, proche du tissu), µGy/h, daté au milieu de la pose |
+
+Les mesures MEDA sont moyennées par demi-heure d'heure solaire locale (LMST) et par sol. Pour
+chaque fichier, la version de produit la plus récente l'emporte (`P02` plutôt que `P01`). Les
+poses RAD interrompues (dose effondrée par rapport aux deux voisines) sont écartées.
+
+## Modes
+
+1. **`historical`** : rejoue le sol MEDA importé qui correspond au sol de mission (les sols
+   importés tournent en boucle), à l'heure locale de Jezero. Une grandeur absente ce sol-là
+   (le vent n'existe que pour les sols 36 à 39) est prise dans la climatologie. Le débit de
+   dose est le fond RAD mesuré avant l'événement, converti en dose équivalente.
+   `forecast` donne la climatologie MEDA : moyenne de chaque demi-heure sur tous les sols.
+2. **`scenario`** (`solar-event`) : rejoue l'événement à particules solaires du 20 mai 2024
+   vu par RAD. Le début de l'événement tombe à t = 1 200 s, le pic quelques dizaines de
+   secondes plus tard (instant exact dans l'événement `peak` de `list_scenarios()`). Une
+   seconde de scénario vaut 54 s réelles : le rejeu couvre 18 h avant le début et 36 h après.
+   Même entrée, même courbe : le rejeu est reproductible.
+3. **`live`** : météo spatiale DONKI (clé `NASA_API_KEY`, `DEMO_KEY` par défaut), écrite à
+   chaque réponse dans `data/cache/donki.json` (`MARSWALK_DONKI_CACHE`). Sans réseau, la
+   dernière valeur en cache est renvoyée avec sa date `cached_at`, même après un redémarrage.
+
+L'horloge du scénario : `get_scenario_manager().start(...)` la démarre explicitement. Sinon,
+le fournisseur s'ancre sur le premier instant reçu, ce que fait A3 en faisant avancer
+lui-même l'instant simulé ; un instant qui recule ou dépasse la fin repart de zéro.
+
+## Hypothèses (à dire dans le pitch)
+
+- **Transposition** : Perseverance n'a pas de RAD ; la dose vient de Curiosity à Gale.
+- **Dose équivalente** : fond × 3,05 (facteur de qualité moyen mesuré au sol par RAD,
+  Hassler et al. 2014) ; excès solaire × 1 (protons).
+- **Modélisés** : l'indice UV et l'opacité de la poussière (absents des produits calibrés de
+  D0), et en mode `live` le débit de dose déduit du niveau DONKI (DONKI décrit l'espace
+  proche de la Terre, pas le sol martien).
+
+## Tests
+
+```bash
+uv run pytest conditions
+```
+
+Les tests fabriquent des fichiers au format exact du PDS avec des valeurs inventées ; aucune
+donnée réelle n'est versionnée.

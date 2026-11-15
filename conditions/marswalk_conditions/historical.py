@@ -1,9 +1,12 @@
 """Fournisseur de conditions historiques (MEDA / RAD).
 
-Architecture SOLID :
-- HistoricalProvider implémente ConditionsProvider.
-- Dépendance vers l'interface IMedaRadSource (DIP).
-- MockMedaRadSource fournit les données en l'absence des fichiers PDS bruts (LSP).
+- ``current`` rejoue le sol MEDA importé correspondant au sol de mission (les sols importés
+  tournent en boucle), à l'heure solaire locale de Jezero, avec le fond de dose RAD.
+- ``forecast`` donne la climatologie MEDA : moyenne de chaque demi-heure locale sur tous les
+  sols importés.
+
+Sans jeu importé (``python -m marswalk_conditions import``), le repli est un modèle diurne,
+et ``Conditions.source`` le dit.
 """
 
 from __future__ import annotations
@@ -11,13 +14,13 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 from marswalk_conditions.climatology import MedaClimatologyEngine
+from marswalk_conditions.dataset import ConditionsDataset
 from marswalk_conditions.interfaces import ConditionsProvider, IMedaRadSource
-from marswalk_core.marstime import mars_time
 from marswalk_core.schemas import Conditions
 
 
-class MockMedaRadSource(IMedaRadSource):
-    """Source de données mockée reproduisant les variations mesurées par MEDA et RAD."""
+class PdsMedaRadSource(IMedaRadSource):
+    """Mesures MEDA et RAD importées depuis le PDS (jeu compact de ``dataset.py``)."""
 
     def __init__(self, climatology: MedaClimatologyEngine | None = None) -> None:
         self._climatology = climatology or MedaClimatologyEngine()
@@ -28,30 +31,10 @@ class MockMedaRadSource(IMedaRadSource):
         lmst_hours: float,
         utc: datetime,
     ) -> Conditions | None:
-        # Génère une condition cohérente avec le sol demandé et une légère variance
-        cond = self._climatology.compute_conditions(
-            utc=utc,
-            mode="historical",
-            source_note=f"Rejeu historique MEDA sol {sol} (Jezero) / RAD (Curiosity)",
-        )
-        return cond
-
-
-class PdsMedaRadSource(IMedaRadSource):
-    """Source de données lisant les tables réelles de séries MEDA/RAD importées depuis le PDS."""
-
-    def __init__(self, data_dir: str | None = None) -> None:
-        self._data_dir = data_dir
-        self._cache: dict[tuple[int, int], Conditions] = {}
-
-    def get_measurements(
-        self,
-        sol: int,
-        lmst_hours: float,
-        utc: datetime,
-    ) -> Conditions | None:
-        # Implémentation prête pour lecture des CSV/Parquet PDS dès leur rapatriement par D0
-        return None
+        ds = self._climatology.dataset
+        if ds is None or not ds.meda:
+            return None
+        return self._climatology.compute_conditions(utc=utc, mode="historical", basis="sol")
 
 
 class HistoricalProvider(ConditionsProvider):
@@ -61,37 +44,29 @@ class HistoricalProvider(ConditionsProvider):
         self,
         source: IMedaRadSource | None = None,
         climatology: MedaClimatologyEngine | None = None,
+        dataset: ConditionsDataset | None = None,
     ) -> None:
-        self._climatology = climatology or MedaClimatologyEngine()
-        self._source = source or MockMedaRadSource(self._climatology)
+        self._climatology = climatology or MedaClimatologyEngine(dataset=dataset)
+        self._source = source or PdsMedaRadSource(self._climatology)
 
     def current(self, utc: datetime) -> Conditions:
         if utc.tzinfo is None:
             utc = utc.replace(tzinfo=UTC)
-
-        mtime = mars_time(utc, self._climatology.lon_east, self._climatology.epoch_utc)
-        result = self._source.get_measurements(mtime.sol, mtime.lmst_hours, utc)
+        result = self._source.get_measurements(0, 0.0, utc)
         if result is not None:
             return result
-
-        return self._climatology.compute_conditions(
-            utc=utc,
-            mode="historical",
-            source_note="Climatologie MEDA (repli historique)",
-        )
+        return self._climatology.compute_conditions(utc=utc, mode="historical")
 
     def forecast(self, utc: datetime, hours: int) -> list[Conditions]:
-        """Génère la prévision horaire pour les N prochaines heures via la climatologie."""
+        """Prévision horaire pour les N prochaines heures : climatologie MEDA."""
         if utc.tzinfo is None:
             utc = utc.replace(tzinfo=UTC)
-
-        forecasts: list[Conditions] = []
-        for h in range(hours):
-            t = utc + timedelta(hours=h)
-            cond = self._climatology.compute_conditions(
-                utc=t,
+        return [
+            self._climatology.compute_conditions(
+                utc=utc + timedelta(hours=h),
                 mode="historical",
-                source_note="Prévision climatologique MEDA",
+                source_note="Prévision climatologique",
+                basis="climatology",
             )
-            forecasts.append(cond)
-        return forecasts
+            for h in range(hours)
+        ]

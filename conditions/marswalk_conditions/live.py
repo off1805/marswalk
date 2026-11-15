@@ -1,16 +1,22 @@
-"""Client DONKI et fournisseur de conditions en mode direct (live).
+"""Client DONKI et fournisseur de conditions en mode direct (``live``).
 
-Architecture SOLID :
-- ISpaceWeatherSource et ICacheStore assurent le découplage et la testabilité (DIP).
-- DonkiCache assure la résilience hors-ligne (ENF-01) : sans réseau, la dernière
-  valeur en cache est retournée avec sa date `cached_at`.
+- La météo spatiale vient de DONKI (NASA), seulement dans ce mode. La clé est lue dans
+  ``NASA_API_KEY`` (``DEMO_KEY`` par défaut, limitée à quelques requêtes par heure).
+- Chaque réponse est écrite dans un cache sur disque (``data/cache/donki.json`` ou
+  ``MARSWALK_DONKI_CACHE``). Sans réseau, la dernière valeur en cache est renvoyée avec sa
+  date dans ``cached_at`` (ENF-01), y compris après un redémarrage.
+- Le reste des conditions (MEDA, fond de dose) vient de la climatologie, comme en historique.
 """
 
 from __future__ import annotations
 
 import json
+import os
+import urllib.parse
 import urllib.request
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from typing import Any
 
 from marswalk_conditions.climatology import MedaClimatologyEngine
 from marswalk_conditions.interfaces import (
@@ -18,69 +24,131 @@ from marswalk_conditions.interfaces import (
     ICacheStore,
     ISpaceWeatherSource,
 )
+from marswalk_core.paths import repo_root
 from marswalk_core.schemas import (
     Conditions,
     SpaceWeather,
     SpaceWeatherLevel,
 )
 
+DONKI_URL = "https://api.nasa.gov/DONKI/notifications"
+
+# Multiplicateur du fond de dose selon le niveau DONKI (ordre de grandeur, hypothèse :
+# DONKI décrit l'espace proche de la Terre et du Soleil, pas le sol martien).
+LEVEL_DOSE_FACTOR = {
+    SpaceWeatherLevel.quiet: 1.0,
+    SpaceWeatherLevel.watch: 2.0,
+    SpaceWeatherLevel.warning: 8.0,
+    SpaceWeatherLevel.storm: 70.0,
+}
+
+
+def default_cache_path() -> Path:
+    env = os.environ.get("MARSWALK_DONKI_CACHE")
+    if env:
+        return Path(env)
+    return repo_root() / "data" / "cache" / "donki.json"
+
 
 class InMemoryCacheStore(ICacheStore):
-    """Stockage de cache en mémoire (avec possibilité de sauvegarde disque)."""
+    """Cache en mémoire, vide par défaut (tests)."""
 
     def __init__(
         self,
         initial_weather: SpaceWeather | None = None,
         initial_cached_at: datetime | None = None,
     ) -> None:
-        self._weather = initial_weather or SpaceWeather(
-            level=SpaceWeatherLevel.quiet,
-            event="Flux solaire nominal (base de secours)",
-            source="DONKI Cache local",
-        )
-        self._cached_at = initial_cached_at or datetime(2026, 11, 14, 8, 0, 0, tzinfo=UTC)
+        self._entry: tuple[SpaceWeather, datetime] | None = None
+        if initial_weather is not None and initial_cached_at is not None:
+            self._entry = (initial_weather, initial_cached_at)
 
     def get(self) -> tuple[SpaceWeather, datetime] | None:
-        return self._weather, self._cached_at
+        return self._entry
 
     def set(self, data: SpaceWeather, cached_at: datetime) -> None:
-        self._weather = data
-        self._cached_at = cached_at
+        self._entry = (data, cached_at)
+
+
+class JsonFileCacheStore(ICacheStore):
+    """Cache persistant : un petit fichier JSON, écrit de façon atomique."""
+
+    def __init__(self, path: Path | None = None) -> None:
+        self.path = path or default_cache_path()
+
+    def get(self) -> tuple[SpaceWeather, datetime] | None:
+        try:
+            data = json.loads(self.path.read_text(encoding="utf-8"))
+            return (
+                SpaceWeather.model_validate(data["space_weather"]),
+                datetime.fromisoformat(data["cached_at"]),
+            )
+        except (OSError, ValueError, KeyError, TypeError):
+            return None
+
+    def set(self, data: SpaceWeather, cached_at: datetime) -> None:
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = self.path.with_name(self.path.name + ".part")
+            payload = {"space_weather": data.model_dump(mode="json"), "cached_at": cached_at}
+            tmp.write_text(json.dumps(payload, default=str), encoding="utf-8")
+            tmp.replace(self.path)
+        except OSError:
+            pass  # un cache non écrit ne doit pas casser le mode direct
+
+
+def classify(notifications: list[dict[str, Any]]) -> SpaceWeather:
+    """Niveau de météo spatiale d'après la notification DONKI la plus récente."""
+    if not notifications:
+        return SpaceWeather(level=SpaceWeatherLevel.quiet, source="NASA DONKI")
+    latest = max(notifications, key=lambda n: str(n.get("messageIssueTime", "")))
+    kind = str(latest.get("messageType", ""))
+    level = SpaceWeatherLevel.watch
+    if kind in {"SEP", "RBE"}:
+        level = SpaceWeatherLevel.storm
+    elif kind in {"FLR", "CME", "IPS", "GST"}:
+        level = SpaceWeatherLevel.warning
+    return SpaceWeather(
+        level=level,
+        event=f"{kind} {latest.get('messageID', '')}".strip(),
+        source="NASA DONKI",
+    )
 
 
 class DonkiClient(ISpaceWeatherSource):
-    """Client interrogeant l'API DONKI de la NASA avec gestion d'erreurs et timeout court."""
+    """Client de l'API DONKI (notifications des 3 derniers jours), timeout court."""
 
-    def __init__(self, api_url: str = "https://api.nasa.gov/DONKI/notifications") -> None:
+    def __init__(
+        self,
+        api_url: str = DONKI_URL,
+        api_key: str | None = None,
+        timeout_s: float = 3.0,
+        days: int = 3,
+    ) -> None:
         self.api_url = api_url
+        self.api_key = api_key or os.environ.get("NASA_API_KEY", "DEMO_KEY")
+        self.timeout_s = timeout_s
+        self.days = days
+
+    def url(self, now: datetime | None = None) -> str:
+        now = now or datetime.now(UTC)
+        params = {
+            "startDate": (now - timedelta(days=self.days)).strftime("%Y-%m-%d"),
+            "endDate": now.strftime("%Y-%m-%d"),
+            "type": "all",
+            "api_key": self.api_key,
+        }
+        return f"{self.api_url}?{urllib.parse.urlencode(params)}"
 
     def fetch_current(self) -> SpaceWeather:
-        """Tente de requêter l'API DONKI. Sans réseau, lève une exception."""
-        req = urllib.request.Request(
-            f"{self.api_url}?type=all",
-            headers={"User-Agent": "Marswalk-Conditions/0.1.0"},
-        )
-        with urllib.request.urlopen(req, timeout=1.5) as resp:
+        """Interroge DONKI. Sans réseau, lève une exception (gérée par LiveProvider)."""
+        req = urllib.request.Request(self.url(), headers={"User-Agent": "marswalk-conditions"})
+        with urllib.request.urlopen(req, timeout=self.timeout_s) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            if isinstance(data, list) and len(data) > 0:
-                latest = data[0]
-                message_type = latest.get("messageType", "")
-                level = SpaceWeatherLevel.quiet
-                if "SEP" in message_type or "CME" in message_type:
-                    level = SpaceWeatherLevel.storm
-                elif "FLR" in message_type:
-                    level = SpaceWeatherLevel.warning
-
-                return SpaceWeather(
-                    level=level,
-                    event=latest.get("messageID", "Notification DONKI"),
-                    source="NASA DONKI Live",
-                )
-            return SpaceWeather(level=SpaceWeatherLevel.quiet, source="NASA DONKI Live")
+        return classify(data if isinstance(data, list) else [])
 
 
 class LiveProvider(ConditionsProvider):
-    """Fournisseur de conditions en mode 'live' avec secours automatique sur cache."""
+    """Mode direct : DONKI si le réseau répond, sinon la dernière valeur en cache."""
 
     def __init__(
         self,
@@ -89,58 +157,62 @@ class LiveProvider(ConditionsProvider):
         climatology: MedaClimatologyEngine | None = None,
     ) -> None:
         self._client = client or DonkiClient()
-        self._cache = cache_store or InMemoryCacheStore()
+        self._cache = cache_store or JsonFileCacheStore()
         self._climatology = climatology or MedaClimatologyEngine()
+
+    def space_weather(self, utc: datetime) -> tuple[SpaceWeather, datetime | None, str]:
+        try:
+            sw = self._client.fetch_current()
+        except Exception:  # réseau absent, quota, réponse illisible : même repli
+            cached = self._cache.get()
+            if cached:
+                sw, at = cached
+                return (
+                    sw,
+                    at,
+                    f"DONKI hors ligne : dernière valeur en cache du {at:%Y-%m-%d %H:%M} UTC",
+                )
+            return (
+                SpaceWeather(level=SpaceWeatherLevel.quiet, source="aucune donnée DONKI"),
+                None,
+                "DONKI hors ligne et aucun cache",
+            )
+        self._cache.set(sw, utc)
+        return sw, utc, "DONKI en direct"
+
+    def _build(self, utc: datetime, sw: SpaceWeather, at: datetime | None, note: str) -> Conditions:
+        dose = self._climatology.baseline_dose_usv_h() * LEVEL_DOSE_FACTOR[sw.level]
+        return self._climatology.compute_conditions(
+            utc=utc,
+            mode="live",
+            dose_rate_override=dose,
+            space_weather_override=sw,
+            source_note=note,
+            cached_at=at,
+        )
 
     def current(self, utc: datetime) -> Conditions:
         if utc.tzinfo is None:
             utc = utc.replace(tzinfo=UTC)
-
-        space_weather: SpaceWeather
-        cached_at: datetime | None = None
-        source_note: str
-
-        try:
-            # Tentative de récupération en direct
-            space_weather = self._client.fetch_current()
-            cached_at = utc
-            self._cache.set(space_weather, cached_at)
-            source_note = "Données DONKI en direct"
-        except Exception:
-            # Repli sur le cache local en l'absence de réseau (ENF-01)
-            cached_data = self._cache.get()
-            if cached_data:
-                space_weather, cached_at = cached_data
-                source_note = "DONKI (mode hors ligne - dernière valeur en cache)"
-            else:
-                space_weather = SpaceWeather(level=SpaceWeatherLevel.quiet)
-                cached_at = utc
-                source_note = "DONKI (valeur de secours par défaut)"
-
-        # Ajustement du débit de dose selon le niveau d'alerte météo spatiale
-        dose_rate = 10.0
-        if space_weather.level == SpaceWeatherLevel.storm:
-            dose_rate = 1200.0
-        elif space_weather.level == SpaceWeatherLevel.warning:
-            dose_rate = 150.0
-        elif space_weather.level == SpaceWeatherLevel.watch:
-            dose_rate = 30.0
-
-        return self._climatology.compute_conditions(
-            utc=utc,
-            mode="live",
-            dose_rate_override=dose_rate,
-            space_weather_override=space_weather,
-            source_note=source_note,
-            cached_at=cached_at,
-        )
+        return self._build(utc, *self.space_weather(utc))
 
     def forecast(self, utc: datetime, hours: int) -> list[Conditions]:
+        """Météo spatiale du moment (une seule requête) et climatologie MEDA."""
         if utc.tzinfo is None:
             utc = utc.replace(tzinfo=UTC)
-
-        forecasts: list[Conditions] = []
+        sw, at, note = self.space_weather(utc)
+        out: list[Conditions] = []
         for h in range(hours):
             t = utc + timedelta(hours=h)
-            forecasts.append(self.current(t))
-        return forecasts
+            c = self._build(t, sw, at, note)
+            clim = self._climatology.compute_conditions(t, mode="live", basis="climatology")
+            out.append(
+                c.model_copy(
+                    update={
+                        "temperature_c": clim.temperature_c,
+                        "pressure_pa": clim.pressure_pa,
+                        "wind_mps": clim.wind_mps,
+                    }
+                )
+            )
+        return out

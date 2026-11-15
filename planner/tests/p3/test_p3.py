@@ -293,7 +293,7 @@ class TestEstimateRoute:
             for i in range(1, len(dists)):
                 assert dists[i] >= dists[i - 1] - 1e-3, (
                     f"Distance non monotone à l'échantillon {i}: "
-                    f"{dists[i-1]:.2f} → {dists[i]:.2f}"
+                    f"{dists[i - 1]:.2f} → {dists[i]:.2f}"
                 )
 
     def test_totals_consistent(self) -> None:

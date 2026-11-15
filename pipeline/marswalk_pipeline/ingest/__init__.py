@@ -187,8 +187,12 @@ def _make_analysis_transform(
     # Coin supérieur-gauche : X = -half (lon_0 est le centre, donc x_center=0)
     # Y = y_center + half (Y décroît vers le bas, donc le coin haut est y_center + half)
     transform = rasterio.transform.Affine(
-        res_m, 0.0, -half,
-        0.0, -res_m, y_center + half,
+        res_m,
+        0.0,
+        -half,
+        0.0,
+        -res_m,
+        y_center + half,
     )
     return transform, n_w, n_h
 
@@ -522,10 +526,7 @@ def _check_coverage(
 
     b = src_bounds
     covers = (
-        b.left <= src_left
-        and b.right >= src_right
-        and b.bottom <= src_bottom
-        and b.top >= src_top
+        b.left <= src_left and b.right >= src_right and b.bottom <= src_bottom and b.top >= src_top
     )
 
     if covers:
@@ -599,7 +600,7 @@ def ingest_layer(
         if fraction < 0.5:
             # Moins de 50% de couverture : passer à la source suivante
             print(
-                f"[D1] {layer_id}: {key} couvre {fraction*100:.0f}% de l'emprise, "
+                f"[D1] {layer_id}: {key} couvre {fraction * 100:.0f}% de l'emprise, "
                 f"essai de la source suivante"
             )
             continue
@@ -651,7 +652,7 @@ def ingest_layer(
             if key != source_keys[0]:
                 note_parts.append(f"repli sur '{key}' (fichier préféré manquant)")
             if fraction < 1.0:
-                note_parts.append(f"couverture partielle ({fraction*100:.0f}%)")
+                note_parts.append(f"couverture partielle ({fraction * 100:.0f}%)")
 
             # Documenter la reprojection si le CRS source diffère
             src_crs_desc = meta["crs_str"]

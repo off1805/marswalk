@@ -59,8 +59,7 @@ skip_if_no_data = pytest.mark.skipif(
 _FILES = {
     "hirise_dtm": RAW_DIR
     / "JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif",
-    "hirise_ortho": RAW_DIR
-    / "JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first_dd.tif",
+    "hirise_ortho": RAW_DIR / "JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first_dd.tif",
     "ctx_ortho": RAW_DIR / "JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif",
     "ctx_dem": RAW_DIR / "M20_JezeroCrater_CTXDEM_20m.tif",
     "mola_dem": RAW_DIR / "Mars_MGS_MOLA_DEM_mosaic_global_463m.tif",
@@ -138,6 +137,7 @@ class TestJezeroGrid:
     def test_grid_origin_centered(self) -> None:
         """L'origine X de la grille est -2500 m ; Y est décalé par y_center du site."""
         import math
+
         transform, _width, _height, _ = _jezero_grid()
         cfg = load_site_config("jezero")
         lat_center = float(cfg["center"]["lat"])
@@ -218,6 +218,7 @@ class TestSourceCRS:
             pytest.skip()
         meta = _probe_raster(path)
         from marswalk_pipeline.ingest import _crs_is_geographic
+
         assert _crs_is_geographic(meta["crs"]), (
             f"HiRISE ortho attendu géographique, obtenu : {meta['crs_str']}"
         )
@@ -270,9 +271,7 @@ class TestSourceCRS:
         if not path.exists():
             pytest.skip()
         meta = _probe_raster(path)
-        assert meta["nodata"] == 0.0, (
-            f"NoData thermal inattendu : {meta['nodata']} (attendu 0.0)"
-        )
+        assert meta["nodata"] == 0.0, f"NoData thermal inattendu : {meta['nodata']} (attendu 0.0)"
 
     @skip_if_no_data
     def test_hirise_dtm_nodata_is_float32_max(self) -> None:
@@ -321,9 +320,7 @@ class TestCoverage:
         covers, fraction = _check_coverage(
             meta["bounds"], meta["crs"], transform, width, height, dst_crs
         )
-        assert covers or fraction >= 0.9, (
-            f"CTX ortho couvre {fraction*100:.0f}% (attendu ≥ 90%)"
-        )
+        assert covers or fraction >= 0.9, f"CTX ortho couvre {fraction * 100:.0f}% (attendu ≥ 90%)"
 
     @skip_if_no_data
     def test_ctx_dem_coverage_after_crs_transform(self) -> None:
@@ -338,7 +335,7 @@ class TestCoverage:
             meta["bounds"], meta["crs"], transform, width, height, dst_crs
         )
         assert fraction >= 0.5, (
-            f"CTX DEM couvre {fraction*100:.0f}% après transformation (attendu ≥ 50%)"
+            f"CTX DEM couvre {fraction * 100:.0f}% après transformation (attendu ≥ 50%)"
         )
 
     @skip_if_no_data
@@ -408,9 +405,7 @@ class TestReprojectionUnits:
                 valid = np.sum(np.isfinite(data) & ~np.isclose(data, nd, rtol=0, atol=1.0))
                 assert valid > 0, "Aucun pixel valide après reprojection HiRISE DTM"
                 valid_pct = valid / data.size * 100
-                assert valid_pct >= 50.0, (
-                    f"Couverture HiRISE DTM trop faible : {valid_pct:.1f}%"
-                )
+                assert valid_pct >= 50.0, f"Couverture HiRISE DTM trop faible : {valid_pct:.1f}%"
 
     @skip_if_no_data
     def test_hirise_ortho_reproject_geographic_to_eqc(self) -> None:
@@ -576,9 +571,7 @@ class TestValidateAlignedRaster:
         with tempfile.TemporaryDirectory() as tmpdir:
             out = Path(tmpdir) / "hirise_dtm_aligned.tif"
             reproject_to_analysis(path, out, crs_str, transform, width, height)
-            result = validate_aligned_raster(
-                "dem", out, dst_crs, transform, width, height
-            )
+            result = validate_aligned_raster("dem", out, dst_crs, transform, width, height)
             assert result.ok, f"Validation échouée : {result.issues}"
             assert result.metrics["valid_pct"] >= 50.0
 
@@ -609,9 +602,7 @@ class TestValidateAlignedRaster:
             out = Path(tmpdir) / "hirise_dtm_aligned.tif"
             reproject_to_analysis(path, out, crs_str, transform, width, height)
             # Valider avec des dimensions incorrectes (attendu 1000×1000 au lieu de 5000×5000)
-            result = validate_aligned_raster(
-                "dem", out, dst_crs, transform, 1000, 1000
-            )
+            result = validate_aligned_raster("dem", out, dst_crs, transform, 1000, 1000)
             assert not result.ok
             assert any("imension" in i for i in result.issues)
 

@@ -108,9 +108,7 @@ def test_hirise_vis_tiles_reach_zoom_19(jezero_manifest: SiteManifest) -> None:
     hirise = next((lay for lay in jezero_manifest.layers if lay.id == "hirise_vis"), None)
     assert hirise is not None
     assert hirise.tiles is not None, "hirise_vis doit avoir des tuiles"
-    assert hirise.tiles.maxzoom == 19, (
-        f"hirise_vis.maxzoom={hirise.tiles.maxzoom}, attendu 19"
-    )
+    assert hirise.tiles.maxzoom == 19, f"hirise_vis.maxzoom={hirise.tiles.maxzoom}, attendu 19"
     # Vérifier qu'il y a réellement des tuiles au zoom 19
     tile_dir = JEZERO / "tiles" / "hirise_vis" / "19"
     assert tile_dir.is_dir(), "Répertoire tiles/hirise_vis/19/ absent"
@@ -124,8 +122,17 @@ def test_hirise_vis_tiles_reach_zoom_19(jezero_manifest: SiteManifest) -> None:
 @pytest.mark.jezero
 @pytest.mark.parametrize(
     "layer_id",
-    ["dem", "slope", "roughness", "hillshade", "obstacles", "scarps",
-     "loose_soil", "radio_coverage", "illumination"],
+    [
+        "dem",
+        "slope",
+        "roughness",
+        "hillshade",
+        "obstacles",
+        "scarps",
+        "loose_soil",
+        "radio_coverage",
+        "illumination",
+    ],
 )
 def test_1m_layers_reach_zoom_17(jezero_manifest: SiteManifest, layer_id: str) -> None:
     """Les couches à 1 m doivent avoir des tuiles jusqu'au zoom 17."""
@@ -133,9 +140,7 @@ def test_1m_layers_reach_zoom_17(jezero_manifest: SiteManifest, layer_id: str) -
     if layer is None or layer.status == "missing":
         pytest.skip(f"Couche {layer_id} absente ou manquante")
     assert layer.tiles is not None, f"{layer_id} doit avoir des tuiles"
-    assert layer.tiles.maxzoom == 17, (
-        f"{layer_id}.maxzoom={layer.tiles.maxzoom}, attendu 17"
-    )
+    assert layer.tiles.maxzoom == 17, f"{layer_id}.maxzoom={layer.tiles.maxzoom}, attendu 17"
     tile_dir = JEZERO / "tiles" / layer_id / "17"
     assert tile_dir.is_dir(), f"Répertoire tiles/{layer_id}/17/ absent"
     assert any(tile_dir.rglob("*.webp")), f"Aucune tuile z17 pour {layer_id}"
@@ -149,9 +154,7 @@ def test_ctx_vis_max_zoom(jezero_manifest: SiteManifest) -> None:
     # La grille ctx_vis est rééchantillonnée à 1 m (grille D1), donc son COG est à 1 m.
     # Le tuilage est fait depuis le COG 1 m → zoom 17.
     # (Si un display/ctx_vis.tif à 6 m existait, ce serait zoom 14.)
-    assert ctx.tiles.maxzoom in (14, 17), (
-        f"ctx_vis.maxzoom={ctx.tiles.maxzoom}, attendu 14 ou 17"
-    )
+    assert ctx.tiles.maxzoom in (14, 17), f"ctx_vis.maxzoom={ctx.tiles.maxzoom}, attendu 14 ou 17"
 
 
 @pytest.mark.jezero
@@ -194,8 +197,7 @@ def test_hirise_z19_tile_has_detail(jezero_manifest: SiteManifest) -> None:
         pytest.skip("Tuile entièrement transparente")
     std = float(gray.std())
     assert std > 5.0, (
-        f"Tuile HiRISE z19 {mid.name} peu contrastée (std={std:.1f}), "
-        "attendu > 5 (imagerie variée)"
+        f"Tuile HiRISE z19 {mid.name} peu contrastée (std={std:.1f}), attendu > 5 (imagerie variée)"
     )
 
 
@@ -236,9 +238,7 @@ def test_hirise_z19_cog_coherence(jezero_site: Any) -> None:
             checked += 1
     assert checked > 10, "Pas assez de pixels à vérifier"
     # On accepte jusqu'à 20% d'écarts (artefacts de rééchantillonnage entre display et COG)
-    assert errors / checked < 0.20, (
-        f"{errors}/{checked} pixels avec écart > 50 DN (seuil 20%)"
-    )
+    assert errors / checked < 0.20, f"{errors}/{checked} pixels avec écart > 50 DN (seuil 20%)"
 
 
 # ---------------------------------------------------------------------------
@@ -338,9 +338,7 @@ def test_jezero_package_size_under_2gb(jezero_manifest: SiteManifest) -> None:
     """La taille totale du paquet est < 2 Go (ENF-10)."""
     total = sum(p.stat().st_size for p in JEZERO.rglob("*") if p.is_file())
     max_bytes = 2 * 1024**3
-    assert total < max_bytes, (
-        f"Paquet {total / 1e9:.2f} Go > 2 Go"
-    )
+    assert total < max_bytes, f"Paquet {total / 1e9:.2f} Go > 2 Go"
 
 
 @pytest.mark.jezero
@@ -352,4 +350,3 @@ def test_jezero_manifest_size_field(jezero_manifest: SiteManifest) -> None:
     # Le size_bytes est calculé avant l'écriture du manifest.json lui-même
     # donc un léger écart est attendu
     assert abs(jezero_manifest.size_bytes - actual) < 10 * 1024 * 1024  # < 10 Mo d'écart
-

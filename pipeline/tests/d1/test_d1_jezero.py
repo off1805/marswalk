@@ -29,8 +29,6 @@ from marswalk_core.config import load_site_config
 from marswalk_core.paths import repo_root
 from marswalk_pipeline.ingest import (
     NODATA_FLOAT,
-    IngestResult,
-    IngestValidation,
     _analysis_crs,
     _analysis_crs_obj,
     _check_coverage,
@@ -74,7 +72,9 @@ _FILES = {
 }
 
 # CRS de référence : ESRI:103885 (EQC Mars, lat_ts=0, lon_0=0, R=3396190)
-_ESRI_103885_PROJ4 = "+proj=eqc +lat_ts=0 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +R=3396190 +units=m +no_defs"
+_ESRI_103885_PROJ4 = (
+    "+proj=eqc +lat_ts=0 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +R=3396190 +units=m +no_defs"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ class TestFilesPresent:
 class TestJezeroGrid:
     def test_grid_dimensions_jezero(self) -> None:
         """La grille Jezero est 5000×5000 px à 1 m/px (5 km × 5 km)."""
-        transform, width, height, _ = _jezero_grid()
+        _transform, width, height, _ = _jezero_grid()
         assert width == 5000, f"width={width} != 5000"
         assert height == 5000, f"height={height} != 5000"
 
@@ -138,11 +138,11 @@ class TestJezeroGrid:
     def test_grid_origin_centered(self) -> None:
         """L'origine X de la grille est -2500 m ; Y est décalé par y_center du site."""
         import math
-        transform, width, height, _ = _jezero_grid()
+        transform, _width, _height, _ = _jezero_grid()
         cfg = load_site_config("jezero")
         lat_center = float(cfg["center"]["lat"])
-        R = 3_396_190.0
-        y_center = lat_center * math.pi / 180.0 * R
+        r_mars = 3_396_190.0
+        y_center = lat_center * math.pi / 180.0 * r_mars
         half = 2500.0
         # X : centré sur lon_0=77.4502 → x_center=0, coin gauche = -half
         assert abs(transform.c - (-half)) < 1e-3, f"origin X = {transform.c} (attendu {-half})"
@@ -171,7 +171,14 @@ class TestJezeroGrid:
     def test_grid_with_buffer_flag_enabled(self) -> None:
         """Avec grid_includes_buffer=True et buffer=500m → grille 6000×6000."""
         cfg = load_site_config("jezero")
-        cfg_with_buffer = {**cfg, "ingest": {**cfg.get("ingest", {}), "grid_includes_buffer": True, "bbox_buffer_m": 500}}
+        cfg_with_buffer = {
+            **cfg,
+            "ingest": {
+                **cfg.get("ingest", {}),
+                "grid_includes_buffer": True,
+                "bbox_buffer_m": 500,
+            },
+        }
         _, width, height = _make_analysis_transform(cfg_with_buffer)
         assert width == 6000, f"width={width} != 6000 avec buffer"
         assert height == 6000, f"height={height} != 6000 avec buffer"
@@ -327,7 +334,7 @@ class TestCoverage:
         transform, width, height, dst_crs = self._grid_params()
         meta = _probe_raster(path)
         # Le CTX DEM a lat_ts=18.4663 — _check_coverage reprojette les coins
-        covers, fraction = _check_coverage(
+        _covers, fraction = _check_coverage(
             meta["bounds"], meta["crs"], transform, width, height, dst_crs
         )
         assert fraction >= 0.5, (
@@ -342,7 +349,7 @@ class TestCoverage:
             pytest.skip()
         transform, width, height, dst_crs = self._grid_params()
         meta = _probe_raster(path)
-        covers, fraction = _check_coverage(
+        _covers, fraction = _check_coverage(
             meta["bounds"], meta["crs"], transform, width, height, dst_crs
         )
         assert fraction >= 0.99, f"MOLA DEM fraction={fraction:.3f} (attendu ~1.0)"

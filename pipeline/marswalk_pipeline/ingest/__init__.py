@@ -33,6 +33,7 @@ Le recalage (coreg) est délégué à ``marswalk_pipeline.coreg``.
 
 from __future__ import annotations
 
+import contextlib
 import math
 from pathlib import Path
 from typing import Any
@@ -179,10 +180,8 @@ def _make_analysis_transform(
     r = 3_396_190.0
     for token in crs_str.split():
         if token.startswith("+R="):
-            try:
+            with contextlib.suppress(ValueError):
                 r = float(token[3:])
-            except ValueError:
-                pass
     y_center = lat_center * math.pi / 180.0 * r
 
     # Coin supérieur-gauche : X = -half (lon_0 est le centre, donc x_center=0)
@@ -357,7 +356,6 @@ def _reproject_multibands_uint8(
 
     with rasterio.open(src_path) as src:
         n_bands = src.count
-        src_nodata = src.nodata
 
     bands_out: list[np.ndarray] = []
     for b in range(1, n_bands + 1):
@@ -586,11 +584,11 @@ def ingest_layer(
 
         try:
             meta = _probe_raster(src_file)
-        except Exception as exc:
+        except Exception:
             continue
 
         # Vérifier la couverture
-        covers, fraction = _check_coverage(
+        _covers, fraction = _check_coverage(
             meta["bounds"],
             meta["crs"],
             transform,
@@ -711,7 +709,6 @@ def _reproject_with_nodata_mask(
         src_data = src.read(1).astype(np.float32)
         src_transform = src.transform
         src_crs = src.crs
-        src_dtype = "float32"
 
         # Remplacer NoData source
         src_data[np.isclose(src_data, src_nodata, rtol=0, atol=1e-6)] = dst_nodata

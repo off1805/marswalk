@@ -1,10 +1,10 @@
 """Génère le paquet du site fictif dans ``fixtures/sites/fictif/`` (T00).
 
 Le site fait 2 x 2 km à 2 m, centré sur Jezero. Il contient un plateau limité par une
-falaise (comme le front du delta), un petit cratère au bord abrupt, un champ de dunes à
-faible inertie thermique, un chaos de blocs, deux unités minéralogiques, un habitat et
-quatre cibles. Toutes les couches de la section 5.3 y existent, avec
-``source.instrument = "SYNTHETIC"``.
+falaise (comme le front du delta) et accessible par une rampe à l'ouest, un petit cratère
+au bord abrupt, un champ de dunes à faible inertie thermique, un chaos de blocs, deux
+unités minéralogiques, un habitat et quatre cibles. Toutes les couches de la section 5.3
+y existent, avec ``source.instrument = "SYNTHETIC"``.
 
 Les couches dérivées sont calculées ici de façon simple : D2 et D3 les recalculent
 proprement. La commande est déterministe (graine dans ``config/sites/fictif/site.yaml``).
@@ -120,9 +120,12 @@ def make_terrain(u: Arr, v: Arr, rng: np.random.Generator) -> Terrain:
             * np.cos(2 * math.pi * k[1] * v + ph[1])
         )
 
-    # Plateau au nord, limité par une falaise d'environ 22 m.
+    # Plateau au nord, limité par une falaise d'environ 22 m. À l'ouest de l'habitat, une
+    # rampe d'environ 200 m (pente max ≈ 9°) donne un passage praticable vers le plateau :
+    # le Front du delta reste atteignable par un détour, sans franchir la falaise (E4).
     v_scarp = 450.0 + 40.0 * np.sin(u / 180.0)
-    rise = smoothstep((v - v_scarp) / 15.0)
+    width = 15.0 + 185.0 * np.exp(-(((u + 200.0) / 90.0) ** 2))
+    rise = smoothstep((v - v_scarp + (width - 15.0) / 2.0) / width)
     dem += 22.0 * rise
     plateau = rise > 0.5
 

@@ -284,6 +284,8 @@ def compute_cost_grid(
             "risk": r_grid,
             "science": s_grid,
             "penalized": penalized.astype(np.float32),
+            # Pente en degrés, pour que P2 explique ses détours (« contourne une pente de 24° »)
+            "slope": layers.slope.astype(np.float32),
             # Poids stockés comme scalaires float (lus par _p1.explain)
             "_w_t": w_t,  # type: ignore[dict-item]
             "_w_r": w_r,  # type: ignore[dict-item]

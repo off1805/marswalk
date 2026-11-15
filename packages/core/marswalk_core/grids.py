@@ -80,6 +80,8 @@ class RouteGeometry:
     segment_breaks: list[int]
     """Indice, dans ``coordinates``, du premier point de chaque tronçon."""
     cost: float = 0.0
+    fallback_segments: list[int] = field(default_factory=list)
+    """Tronçons sans passage praticable, tracés en ligne droite de secours."""
 
 
 @dataclass

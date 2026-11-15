@@ -178,12 +178,13 @@ test("7. Comparer les variantes", async () => {
 });
 
 test("7 bis. La raison des détours se lit en clair", async () => {
-  test.fixme(true, "Écart E6 : les explications listent les termes du coût, pas la raison du détour (ECARTS.md)");
-  await expect(page.locator("details[open] li").first()).toContainText(/contourne|évite/i);
+  // Une phrase par tronçon, tirée de l'écart à la ligne droite (E6)
+  const items = page.locator("details[open] li");
+  await expect(items.filter({ hasText: /contourne une pente de \d+°/i }).first()).toBeVisible();
+  await expect(items.filter({ hasText: /Tobler|contribution/ })).toHaveCount(0);
 });
 
 test("7 ter. Trois tracés différents", async () => {
-  test.fixme(true, "Écart E5 : les trois variantes ont le même tracé et les mêmes totaux (ECARTS.md)");
   const totals = await Promise.all(
     ["Plus sûre", "Plus rapide", "Science"].map((n) =>
       page.getByRole("article", { name: `Variante ${n}` }).locator("dl").textContent(),
@@ -193,7 +194,6 @@ test("7 ter. Trois tracés différents", async () => {
 });
 
 test("7 quater. Aucune variante ne franchit une zone interdite en silence", async () => {
-  test.fixme(true, "Écart E4 : sans chemin possible, le tracé coupe la falaise sans avertissement (ECARTS.md)");
   const labels: Record<string, string> = { safest: "Plus sûre", fastest: "Plus rapide", science: "Science" };
   for (const r of plan.routes) {
     if (r.totals.max_slope_deg <= plan.settings.max_slope_deg) continue;

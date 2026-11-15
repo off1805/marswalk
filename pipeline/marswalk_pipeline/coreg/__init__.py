@@ -33,6 +33,15 @@ NODATA: float = -9999.0
 # Couches secondaires à recaler sur HiRISE
 _COREG_LAYERS: tuple[str, ...] = ("thermal_inertia", "crism_minerals", "ctx_vis")
 
+# Résolution native (m/px) de chaque couche secondaire, avant rééchantillonnage sur la
+# grille d'analyse. Le critère de recalage (résidu < 1 pixel) se juge à cette échelle :
+# sur la grille à 1 m, un résidu de 12 m de THEMIS (pixels de 100 m) n'est pas un défaut.
+NATIVE_RES_M: dict[str, float] = {
+    "thermal_inertia": 100.0,
+    "crism_minerals": 18.0,
+    "ctx_vis": 6.0,
+}
+
 # Nombre de points d'appui par couche
 _N_TIE_POINTS: int = 25
 
@@ -51,6 +60,7 @@ class CoregResult:
     n_tie_points: int = 0
     status: str = "ok"  # "ok", "degraded", "skipped"
     note: str = ""
+    residual_px: float | None = None  # résidu en pixels natifs de la couche
     tie_point_residuals: list[float] = field(default_factory=list)
 
 
@@ -207,6 +217,7 @@ def coregister(
     reference_layer: str = "hirise_vis",
     layers_to_coreg: tuple[str, ...] = _COREG_LAYERS,
     resolution_m: float = 1.0,
+    native_res_m: dict[str, float] | None = None,
 ) -> list[CoregResult]:
     """Recale les couches secondaires sur la couche de référence.
 
@@ -216,6 +227,8 @@ def coregister(
     reference_layer  : identifiant de la couche de référence (en général HiRISE).
     layers_to_coreg  : couches à recaler.
     resolution_m     : résolution de la grille d'analyse en m/px.
+    native_res_m     : résolution native de chaque couche (défaut ``NATIVE_RES_M``) ; le
+                       statut ``ok`` demande un résidu inférieur à un pixel natif.
 
     Retourne
     --------
@@ -225,6 +238,7 @@ def coregister(
     """
     ref_path = work_aligned_dir / f"{reference_layer}.tif"
     results: list[CoregResult] = []
+    native = {**NATIVE_RES_M, **(native_res_m or {})}
 
     if not ref_path.exists():
         # Référence absente : pas de recalage possible
@@ -288,6 +302,7 @@ def coregister(
                     n_tie_points=len(tie_residuals),
                     status="ok",
                     note="Pas de décalage détecté",
+                    residual_px=rmse / max(ref_res, sec_res, native.get(layer_id, 0.0)),
                     tie_point_residuals=tie_residuals,
                 )
             )
@@ -298,12 +313,16 @@ def coregister(
         sec_path.rename(backup)
         apply_shift(backup, sec_path, shift_x, shift_y)
 
-        # Résidu maximal en fraction de pixel de la couche la plus grossière
-        max_res_m = max(ref_res, sec_res)
+        # Résidu en fraction de pixel natif de la couche (la grille d'analyse ne garde pas
+        # la résolution d'origine : une couche à 100 m y est rééchantillonnée à 1 m).
+        max_res_m = max(ref_res, sec_res, native.get(layer_id, 0.0))
         residual_px = rmse / max_res_m if max_res_m > 0 else rmse
 
         status = "ok" if residual_px < 1.0 else "degraded"
-        note = f"shift ({shift_x:.2f}, {shift_y:.2f}) m; RMSE={rmse:.2f} m ({residual_px:.2f} px)"
+        note = (
+            f"shift ({shift_x:.2f}, {shift_y:.2f}) m; RMSE={rmse:.2f} m "
+            f"({residual_px:.2f} px de {max_res_m:g} m)"
+        )
 
         results.append(
             CoregResult(
@@ -314,6 +333,7 @@ def coregister(
                 n_tie_points=len(tie_residuals),
                 status=status,
                 note=note,
+                residual_px=residual_px,
                 tie_point_residuals=tie_residuals,
             )
         )
@@ -360,17 +380,18 @@ def write_coreg_report(
         "|--------|-------------|-------------|----------|-----------|--------|--------|",
     ]
     for r in coreg_results:
+        px = "—" if r.residual_px is None else f"{r.residual_px:.2f}"
         lines.append(
             f"| `{r.layer_id}` | {r.shift_x_m:.2f} | {r.shift_y_m:.2f} | "
-            f"{r.residual_m:.2f} | — | {r.n_tie_points} | {r.status} |"
+            f"{r.residual_m:.2f} | {px} | {r.n_tie_points} | {r.status} |"
         )
 
     lines += [
         "",
         "## 3. Validation\n",
         "",
-        "- **Critère :** décalage résiduel < 1 pixel de la couche la plus grossière "
-        "(THEMIS = 100 m).",
+        "- **Critère :** décalage résiduel < 1 pixel natif de chaque couche "
+        "(CTX 6 m, CRISM 18 m, THEMIS 100 m) ; « RMSE (px) » est exprimé dans ces pixels.",
         "- **Validation humaine :** vérifier la superposition dans `qgis/jezero.qgz`.",
         "",
         "### Résidus par point d'appui\n",

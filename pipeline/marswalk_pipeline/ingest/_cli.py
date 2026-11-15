@@ -41,7 +41,8 @@ def main() -> None:
 
     work_aligned_dir = work_dir / "aligned"
     print("[D1] Recalage sur HiRISE...")
-    coreg_results = coregister(work_aligned_dir)
+    native = {r.layer_id: r.resolution_m for r in ingest_results if r.status != "missing"}
+    coreg_results = coregister(work_aligned_dir, native_res_m=native)
 
     write_coreg_report(work_dir, ingest_results, coreg_results, site_id)
     print("[D1] Terminé.")

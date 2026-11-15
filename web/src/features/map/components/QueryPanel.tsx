@@ -27,7 +27,7 @@ function PointValueItem({ value }: { value: PointValue }) {
         <div className="text-[10px] text-[var(--text-muted)]">
           {value.source.instrument}
           {value.uncertainty?.coreg_m !== null && value.uncertainty?.coreg_m !== undefined && (
-            <span> · Recalage ±{value.uncertainty?.coreg_m}m</span>
+            <span> · Co-reg ±{value.uncertainty?.coreg_m}m</span>
           )}
         </div>
       </div>
@@ -36,8 +36,8 @@ function PointValueItem({ value }: { value: PointValue }) {
         <span className="font-mono font-medium text-[var(--text)]">
           {value.label ? `${value.label} (${displayVal})` : displayVal}
         </span>
-        {isDegraded && <AlertBadge level="caution" text="Dégradé" />}
-        {isMissing && <span className="text-[10px] text-[var(--text-muted)] italic">Non mesuré</span>}
+        {isDegraded && <AlertBadge level="caution" text="Degraded" />}
+        {isMissing && <span className="text-[10px] text-[var(--text-muted)] italic">Not measured</span>}
       </div>
     </div>
   );
@@ -78,7 +78,7 @@ export function QueryPanel() {
           query: { lon: coords.lon, lat: coords.lat },
         },
       });
-      if (error || !data) throw new Error("Erreur lors de l'interrogation du point");
+      if (error || !data) throw new Error("Error querying point");
       return data as PointQuery;
     },
     enabled: isQueryMode && coords !== null,
@@ -86,8 +86,8 @@ export function QueryPanel() {
   });
 
   return (
-    <Panel title="Interrogation au sol (EF-07)">
-      {/* Contrôle du mode interrogation */}
+    <Panel title="Ground query (EF-07)">
+      {/* Query mode toggle */}
       <div className="mb-3 space-y-2">
         <div className="flex items-center gap-2">
           <Button
@@ -95,13 +95,13 @@ export function QueryPanel() {
             onClick={() => setPickMode(isQueryMode ? "none" : "query")}
             className="w-full text-xs"
           >
-            {isQueryMode ? "● Mode interrogation actif" : "Activer l'interrogation"}
+            {isQueryMode ? "● Query mode active" : "Enable query mode"}
           </Button>
         </div>
 
         {isQueryMode && (
           <div className="rounded bg-[var(--surface-2)] p-2 text-[11px] text-[var(--text-muted)]">
-            <div className="mb-1">Cliquez sur la carte ou saisissez une coordonnée :</div>
+            <div className="mb-1">Click on the map or enter coordinates:</div>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-[10px] font-mono">Lon (°E)</label>
@@ -129,34 +129,34 @@ export function QueryPanel() {
               onClick={() => refetch()}
               className="mt-2 w-full rounded bg-[var(--surface)] py-1 text-[11px] font-semibold text-[var(--text-info)] hover:underline"
             >
-              Interroger ce point
+              Query this point
             </button>
           </div>
         )}
       </div>
 
-      {/* Résultats de l'interrogation */}
+      {/* Query results */}
       {isQueryMode && (
         <div>
           {isLoading && (
             <p className="text-xs text-[var(--text-muted)] animate-pulse">
-              Échantillonnage de toutes les couches…
+              Sampling all layers…
             </p>
           )}
 
           {error && (
             <p className="text-xs text-[var(--text-danger)]">
-              {error instanceof Error ? error.message : "Erreur d'interrogation"}
+              {error instanceof Error ? error.message : "Query error"}
             </p>
           )}
 
           {queryResult && (
             <div className="space-y-3">
-              {/* Synthèse retour à l'habitat */}
+              {/* Return time summary */}
               {typeof queryResult.return_time_s === "number" && (
                 <div className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-2">
                   <div className="text-[10px] uppercase font-bold text-[var(--text-muted)]">
-                    Temps de retour estimé
+                    Estimated return time
                   </div>
                   <div className="text-sm font-bold font-mono text-[var(--text-ok)]">
                     {Math.round(queryResult.return_time_s / 60)} min ({queryResult.return_time_s} s)
@@ -164,10 +164,10 @@ export function QueryPanel() {
                 </div>
               )}
 
-              {/* Valeurs des couches */}
+              {/* Layer values */}
               <div>
                 <div className="mb-1 text-[10px] uppercase font-bold text-[var(--text-muted)]">
-                  Valeurs des couches ({queryResult.values.length})
+                  Layer values ({queryResult.values.length})
                 </div>
                 <div className="max-h-72 overflow-y-auto pr-1">
                   {queryResult.values.map((v) => (

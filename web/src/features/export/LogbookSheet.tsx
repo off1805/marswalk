@@ -7,8 +7,8 @@ import { Button } from "@/shared/ui";
 export function LogbookSheet() {
   const { evaId = "" } = useParams();
   const book = useLogbook(evaId);
-  if (book.isError) return <p className="p-6">Carnet de {evaId} indisponible.</p>;
-  if (!book.data) return <p className="p-6">Chargement du carnet…</p>;
+  if (book.isError) return <p className="p-6">Logbook for {evaId} unavailable.</p>;
+  if (!book.data) return <p className="p-6">Loading logbook…</p>;
   const { entries } = book.data;
   const observations = entries.filter((e) => e.kind === "observation").length;
   return (
@@ -16,26 +16,26 @@ export function LogbookSheet() {
     <article className="mx-auto flex max-w-4xl flex-col gap-4 p-6">
       <nav className="flex flex-wrap gap-2 print:hidden">
         <Link to="/" className="underline">
-          ← Retour à la carte
+          ← Back to map
         </Link>
         <Button variant="primary" onClick={() => window.print()}>
-          🖶 Imprimer ou enregistrer en PDF
+          🖶 Print or save as PDF
         </Button>
-        <Button onClick={() => downloadJson(`marswalk-${evaId}-carnet.geojson`, logbookToGeojson(book.data))}>
+        <Button onClick={() => downloadJson(`marswalk-${evaId}-logbook.geojson`, logbookToGeojson(book.data))}>
           ⤓ GeoJSON
         </Button>
       </nav>
       <header>
-        <h1 className="text-2xl font-bold">Carnet de terrain · {evaId}</h1>
+        <h1 className="text-2xl font-bold">Field logbook · {evaId}</h1>
         <p>
-          Site {book.data.site_id} · {entries.length} entrées · {observations} observations
+          Site {book.data.site_id} · {entries.length} entries · {observations} observations
         </p>
       </header>
       <table className="w-full border-collapse text-sm [&_td]:py-1 [&_td]:pr-3 [&_th]:pr-3">
         <thead>
           <tr className="border-b border-black text-left">
             <th>Sol</th>
-            <th>Heure locale</th>
+            <th>Local time</th>
             <th>UTC</th>
             <th>Type</th>
             <th>Note</th>

@@ -95,7 +95,7 @@ export function upsertAlert(list: Alert[] | undefined, alert: Alert): Alert[] {
 /** Durée en clair : « 1 h 30 min », « 12 min 05 s », « 45 s ». Négative : « dépassé ». */
 export function formatCountdown(seconds: number | null | undefined): string {
   if (seconds == null || Number.isNaN(seconds)) return "—";
-  if (seconds <= 0) return "dépassé";
+  if (seconds <= 0) return "exceeded";
   const s = Math.floor(seconds);
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
@@ -105,10 +105,10 @@ export function formatCountdown(seconds: number | null | undefined): string {
   return `${sec} s`;
 }
 
-/** Nombre à la française, avec un nombre fixe de décimales. */
+/** Number formatted with fixed decimal places. */
 export function formatNumber(value: number | null | undefined, digits = 0): string {
   if (value == null || Number.isNaN(value)) return "—";
-  return value.toLocaleString("fr-FR", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return value.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
 /** Heure UTC « HH:MM:SS UTC » d'un instant ISO. */
@@ -169,12 +169,12 @@ export function parseLmst(lmst: string): number | null {
 /** Erreurs de cohérence des seuils saisis, par champ. */
 export function validateSettings(s: SafetySettings): Partial<Record<keyof SafetySettings, string>> {
   const errors: Partial<Record<keyof SafetySettings, string>> = {};
-  if (!(s.max_slope_deg > 0 && s.max_slope_deg <= 45)) errors.max_slope_deg = "Entre 0 et 45°.";
+  if (!(s.max_slope_deg > 0 && s.max_slope_deg <= 45)) errors.max_slope_deg = "Must be between 0 and 45°.";
   if (!(s.penalty_slope_deg >= 0 && s.penalty_slope_deg < s.max_slope_deg))
-    errors.penalty_slope_deg = "Doit rester sous la pente interdite.";
-  if (!(s.min_reserve_pct >= 0 && s.min_reserve_pct <= 90)) errors.min_reserve_pct = "Entre 0 et 90 %.";
-  if (!(s.max_dust_tau > 0 && s.max_dust_tau <= 10)) errors.max_dust_tau = "Entre 0 et 10.";
-  if (!(s.max_dose_usv > 0)) errors.max_dose_usv = "Doit être positive.";
-  if (!(s.min_illumination >= 0 && s.min_illumination <= 1)) errors.min_illumination = "Entre 0 et 1.";
+    errors.penalty_slope_deg = "Must be less than the forbidden slope.";
+  if (!(s.min_reserve_pct >= 0 && s.min_reserve_pct <= 90)) errors.min_reserve_pct = "Must be between 0 and 90%.";
+  if (!(s.max_dust_tau > 0 && s.max_dust_tau <= 10)) errors.max_dust_tau = "Must be between 0 and 10.";
+  if (!(s.max_dose_usv > 0)) errors.max_dose_usv = "Must be positive.";
+  if (!(s.min_illumination >= 0 && s.min_illumination <= 1)) errors.min_illumination = "Must be between 0 and 1.";
   return errors;
 }

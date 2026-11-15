@@ -13,17 +13,17 @@ type SpaceWeatherLevel = NonNullable<Conditions["space_weather"]>["level"];
 
 /** État du Soleil : niveau d'alerte, icône et texte. */
 export const spaceWeather: Record<NonNullable<SpaceWeatherLevel>, { level: GaugeLevel; label: string }> = {
-  quiet: { level: "ok", label: "Calme" },
-  watch: { level: "info", label: "Sous surveillance" },
-  warning: { level: "caution", label: "Avertissement" },
-  storm: { level: "danger", label: "Tempête de particules" },
+  quiet: { level: "ok", label: "Quiet" },
+  watch: { level: "info", label: "Watch" },
+  warning: { level: "caution", label: "Warning" },
+  storm: { level: "danger", label: "Particle storm" },
 };
 
 const MODE_LABEL: Record<NonNullable<Conditions["mode"]>, string> = {
-  historical: "Historique (MEDA, RAD)",
-  scenario: "Scénario rejoué",
-  live: "Temps réel (DONKI)",
-  constant: "Valeurs constantes",
+  historical: "Historical (MEDA, RAD)",
+  scenario: "Replayed scenario",
+  live: "Live (DONKI)",
+  constant: "Constant values",
 };
 
 function Row({ label, value, level }: { label: string; value: string; level?: GaugeLevel }) {
@@ -48,7 +48,7 @@ function ScenarioControl() {
   return (
     <div className="flex flex-wrap items-center gap-2 border-t border-[var(--border)] pt-2 text-sm">
       <label className="flex items-center gap-2">
-        Rejouer
+        Replay
         <select
           className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-1"
           value={selected}
@@ -65,7 +65,7 @@ function ScenarioControl() {
         disabled={!selected || control.isPending}
         onClick={() => control.mutate({ scenarioId: selected, run: !running, speed: 10 })}
       >
-        {running ? "■ Arrêter" : "▶ Lancer × 10"}
+        {running ? "■ Stop" : "▶ Play × 10"}
       </Button>
       {control.isError && <span>▲ {control.error.message}</span>}
     </div>
@@ -81,9 +81,9 @@ export function ConditionsPanel() {
   const sw = spaceWeather[c?.space_weather?.level ?? "quiet"];
 
   return (
-    <Panel title="Météo et météo spatiale">
+    <Panel title="Weather & Space Weather">
       {!c ? (
-        <p className="text-sm">{current.isError ? "○ Conditions indisponibles" : "Chargement…"}</p>
+        <p className="text-sm">{current.isError ? "○ Conditions unavailable" : "Loading…"}</p>
       ) : (
         <div className="flex flex-col gap-2">
           <div
@@ -92,7 +92,7 @@ export function ConditionsPanel() {
             style={{ borderColor: levelMeta[sw.level].color }}
           >
             <span>
-              <span className="text-xs text-[var(--text-muted)]">Soleil</span>
+              <span className="text-xs text-[var(--text-muted)]">Sun</span>
               <br />
               <strong>{sw.label}</strong>
               {c.space_weather?.event && <span className="ml-2 text-sm">{c.space_weather.event}</span>}
@@ -102,15 +102,15 @@ export function ConditionsPanel() {
           <table className="w-full text-sm">
             <tbody>
               <Row
-                label="Débit de dose"
+                label="Dose rate"
                 value={`${formatNumber(c.dose_rate_usv_h, 1)} µSv/h`}
                 level={doseRateLevel(c.dose_rate_usv_h)}
               />
-              <Row label="Opacité (τ)" value={formatNumber(c.dust_tau, 2)} level={dustLevel(c.dust_tau, maxTau)} />
-              <Row label="Température" value={`${formatNumber(c.temperature_c)} °C`} />
-              <Row label="Pression" value={`${formatNumber(c.pressure_pa)} Pa`} />
-              <Row label="Vent" value={`${formatNumber(c.wind_mps, 1)} m/s`} />
-              <Row label="Indice UV" value={formatNumber(c.uv_index, 1)} />
+              <Row label="Opacity (τ)" value={formatNumber(c.dust_tau, 2)} level={dustLevel(c.dust_tau, maxTau)} />
+              <Row label="Temperature" value={`${formatNumber(c.temperature_c)} °C`} />
+              <Row label="Pressure" value={`${formatNumber(c.pressure_pa)} Pa`} />
+              <Row label="Wind" value={`${formatNumber(c.wind_mps, 1)} m/s`} />
+              <Row label="UV index" value={formatNumber(c.uv_index, 1)} />
             </tbody>
           </table>
           <p className="text-xs text-[var(--text-muted)]">
@@ -119,7 +119,7 @@ export function ConditionsPanel() {
             {c.sol != null ? ` · sol ${c.sol}, ${c.lmst} LMST` : ""} · {formatUtc(c.utc)}
             {c.cached_at && (
               <>
-                <br />▲ Valeur en cache du {new Date(c.cached_at).toLocaleString("fr-FR", { timeZone: "UTC" })} UTC
+                <br />▲ Cached value from {new Date(c.cached_at).toLocaleString("en-US", { timeZone: "UTC" })} UTC
               </>
             )}
           </p>
@@ -127,15 +127,15 @@ export function ConditionsPanel() {
       )}
       {forecast.data && forecast.data.items.length > 0 && (
         <details className="mt-2 text-sm">
-          <summary className="cursor-pointer">Prévisions ({forecast.data.items.length} h)</summary>
-          <table className="mt-1 w-full tabular-nums" aria-label="Prévisions">
+          <summary className="cursor-pointer">Forecast ({forecast.data.items.length} h)</summary>
+          <table className="mt-1 w-full tabular-nums" aria-label="Forecast">
             <thead className="text-xs text-[var(--text-muted)]">
               <tr>
-                <th className="text-left font-normal">Heure</th>
+                <th className="text-left font-normal">Time</th>
                 <th className="text-right font-normal">µSv/h</th>
                 <th className="text-right font-normal">τ</th>
                 <th className="text-right font-normal">°C</th>
-                <th className="text-right font-normal">Soleil</th>
+                <th className="text-right font-normal">Sun</th>
               </tr>
             </thead>
             <tbody>

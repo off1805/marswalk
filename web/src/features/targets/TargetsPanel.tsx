@@ -43,46 +43,46 @@ export function TargetsPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-2" aria-label="Panneau cibles et itinéraire">
-      {/* En-tête cibles */}
-      <Panel title="Cibles">
-        {/* Bouton d'ajout */}
+    <div className="flex flex-col gap-2" aria-label="Targets and route panel">
+      {/* Targets header */}
+      <Panel title="Science Targets">
+        {/* Add button */}
         <Button
           variant={pickMode === "addTarget" ? "primary" : "secondary"}
           className="mb-2 w-full"
           onClick={toggleAddMode}
           aria-pressed={pickMode === "addTarget"}
-          aria-label="Ajouter une cible (cliquez sur la carte)"
+          aria-label="Add a target (click on the map)"
         >
           {pickMode === "addTarget"
-            ? "📍 Cliquez sur la carte…"
-            : "+ Ajouter une cible"}
+            ? "📍 Click on the map…"
+            : "+ Add a target"}
         </Button>
 
-        {/* Indicateur de calcul */}
+        {/* Computing indicator */}
         {computing && (
           <div
             className="mb-2 flex items-center gap-2 rounded bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--text-info)]"
             role="status"
             aria-live="polite"
-            aria-label="Calcul de l'itinéraire en cours"
+            aria-label="Route calculation in progress"
           >
             <span className="inline-block animate-spin">⟳</span>
-            <span>Calcul de l'itinéraire en cours…</span>
+            <span>Calculating route…</span>
           </div>
         )}
 
-        {/* Liste des cibles */}
+        {/* Target list */}
         {targetsLoading ? (
           <p className="text-xs text-[var(--text-muted)] animate-pulse">
-            Chargement des cibles…
+            Loading targets…
           </p>
         ) : !targets || targets.length === 0 ? (
           <p className="text-xs text-[var(--text-muted)]">
-            Aucune cible. Cliquez sur « + Ajouter une cible » puis sur la carte.
+            No targets. Click "+ Add a target" then click on the map.
           </p>
         ) : (
-          <ul className="space-y-1" role="list" aria-label="Liste des cibles">
+          <ul className="space-y-1" role="list" aria-label="Target list">
             {targets.map((t) => (
               <li key={t.id}>
                 <button
@@ -96,7 +96,7 @@ export function TargetsPanel() {
                     selectTarget(selectedTargetId === t.id ? null : t.id)
                   }
                   aria-pressed={selectedTargetId === t.id}
-                  aria-label={`Cible ${t.name}`}
+                  aria-label={`Target ${t.name}`}
                 >
                   <span className="font-semibold">{t.name}</span>
                   {t.priority !== undefined && (
@@ -111,7 +111,7 @@ export function TargetsPanel() {
         )}
       </Panel>
 
-      {/* Fiche de la cible sélectionnée */}
+      {/* Selected target card */}
       {selectedTarget && (
         <TargetCard
           target={selectedTarget}
@@ -119,9 +119,9 @@ export function TargetsPanel() {
         />
       )}
 
-      {/* Comparateur de variantes */}
+      {/* Route variant comparator */}
       {plan && plan.routes.length > 0 && (
-        <Panel title="Variantes d'itinéraire">
+        <Panel title="Route Variants">
           <RouteComparator plan={plan as import("@/shared/api/client").Plan} />
         </Panel>
       )}

@@ -14,7 +14,7 @@ function useTargets(siteId: string) {
       const { data, error } = await api.GET("/api/sites/{site_id}/targets", {
         params: { path: { site_id: siteId } },
       });
-      if (error || !data) throw new Error("Cibles indisponibles");
+      if (error || !data) throw new Error("Targets unavailable");
       return data as Target[];
     },
   });
@@ -29,18 +29,18 @@ export function NearbyImages() {
   const target = targets.data?.find((t) => t.id === targetId);
   const count = images.data?.length ?? 0;
   return (
-    <Panel title="Images au sol">
-      {images.isError && <p className="text-sm">Images au sol indisponibles.</p>}
+    <Panel title="Ground images">
+      {images.isError && <p className="text-sm">Ground images unavailable.</p>}
       {images.data && !target && (
         <p className="text-sm text-[var(--text-muted)]">
-          {count} images de Perseverance sur le site. Cliquez sur un point bleu de la carte, ou
-          choisissez une cible pour voir les images prises au plus près.
+          {count} Perseverance images at this site. Click a blue dot on the map, or
+          select a target to see nearby images.
         </p>
       )}
       {images.data && target && (
         <>
-          <p className="mb-2 text-sm">Au plus près de {target.name} :</p>
-          <ul className="grid grid-cols-2 gap-2" aria-label={`Images proches de ${target.name}`}>
+          <p className="mb-2 text-sm">Nearest to {target.name}:</p>
+          <ul className="grid grid-cols-2 gap-2" aria-label={`Nearest to ${target.name}`}>
             {nearestImages(images.data, target.position as LonLat).map(({ image, distance }) => {
               const src = thumbSrc(image.props);
               return (
@@ -49,7 +49,7 @@ export function NearbyImages() {
                     type="button"
                     onClick={() => open(image)}
                     className="flex w-full flex-col gap-1 text-left text-xs"
-                    aria-label={`Ouvrir ${image.props.image_id}`}
+                    aria-label={`Open ${image.props.image_id}`}
                   >
                     {src ? (
                       <img src={src} alt="" className="h-20 w-full rounded object-cover" loading="lazy" />
@@ -59,7 +59,7 @@ export function NearbyImages() {
                     <span>
                       Sol {image.props.sol} · {image.props.camera ?? image.props.instrument}
                     </span>
-                    <span className="text-[var(--text-muted)]">à {formatMarsDistance(Math.round(distance))}</span>
+                    <span className="text-[var(--text-muted)]">{formatMarsDistance(Math.round(distance))}</span>
                   </button>
                 </li>
               );

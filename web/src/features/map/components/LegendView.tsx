@@ -22,7 +22,7 @@ export function LegendView({ legend, unit }: LegendViewProps) {
     const gradient = `linear-gradient(to right, ${gradientParts.join(", ")})`;
 
     return (
-      <div className="mt-1 flex flex-col gap-0.5" aria-label={`Légende continue en ${unit ?? ""}`}>
+      <div className="mt-1 flex flex-col gap-0.5" aria-label={`Continuous legend in ${unit ?? ""}`}>
         <div
           className="h-2.5 w-full rounded border border-[var(--border)]"
           style={{ background: gradient }}
@@ -37,7 +37,7 @@ export function LegendView({ legend, unit }: LegendViewProps) {
 
   // Légende catégorielle
   return (
-    <div className="mt-1.5 flex flex-wrap gap-1.5" aria-label="Légende des classes">
+    <div className="mt-1.5 flex flex-wrap gap-1.5" aria-label="Class legend">
       {legend.stops.map((stop, idx) => (
         <span
           key={`${stop.value}-${idx}`}

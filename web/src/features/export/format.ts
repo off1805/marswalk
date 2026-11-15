@@ -6,16 +6,16 @@ export type Logbook = Schemas["Logbook"];
 export type LogbookEntry = Schemas["LogbookEntry"];
 export type ProfileSample = Schemas["ProfileSample"];
 
-export const CRS_NOTE = "IAU_2015:49900 (Mars 2000, planétocentrique, longitudes est)";
+export const CRS_NOTE = "IAU_2015:49900 (Mars 2000, planetocentric, east longitudes)";
 
 export const KIND_LABELS: Record<LogbookEntry["kind"], string> = {
-  start: "Départ",
-  target: "Cible",
+  start: "Departure",
+  target: "Target",
   observation: "Observation",
-  alert: "Alerte",
+  alert: "Alert",
   obstacle: "Obstacle",
-  reroute: "Recalcul",
-  end: "Fin",
+  reroute: "Reroute",
+  end: "End",
 };
 
 /** Durée lisible : « 1 h 36 min », « 12 min », « 45 s ». */
@@ -28,9 +28,9 @@ export function formatDuration(seconds: number): string {
   return min === 0 ? `${h} h` : `${h} h ${String(min).padStart(2, "0")} min`;
 }
 
-/** Distance lisible en mètres ou kilomètres. */
+/** Distance formatted in metres or kilometres. */
 export function formatDistance(m: number): string {
-  return m >= 1000 ? `${(m / 1000).toFixed(2).replace(".", ",")} km` : `${Math.round(m)} m`;
+  return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`;
 }
 
 /** Position lisible, en degrés est et nord (Mars 2000). */

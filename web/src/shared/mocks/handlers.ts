@@ -38,7 +38,7 @@ const json = (body: unknown, status = 200) => HttpResponse.json(body as object, 
 export const mockPresets = [
   {
     id: "safety",
-    title: "Sécurité",
+    title: "Safety",
     layers: {
       hillshade: { visible: true, opacity: 1 },
       slope: { visible: true, opacity: 0.6 },

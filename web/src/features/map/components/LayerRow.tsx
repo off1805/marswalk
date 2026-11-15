@@ -38,17 +38,17 @@ export function LayerRow({
         </label>
 
         {isDegraded && (
-          <AlertBadge level="caution" text="Dégradé" />
+          <AlertBadge level="caution" text="Degraded" />
         )}
         {isMissing && (
-          <span className="text-[10px] text-[var(--text-muted)] italic">Absente</span>
+          <span className="text-[10px] text-[var(--text-muted)] italic">Missing</span>
         )}
 
         <button
           type="button"
           onClick={() => setShowDetails(!showDetails)}
           className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] px-1 py-0.5"
-          aria-label={`Détails de la couche ${layer.title}`}
+          aria-label={`Details for layer ${layer.title}`}
         >
           {showDetails ? "▲" : "▼"}
         </button>
@@ -57,7 +57,7 @@ export function LayerRow({
       {view.visible && (
         <div className="mt-2 flex items-center gap-2 pl-6 text-xs text-[var(--text-muted)]">
           <label htmlFor={`opacity-${layer.id}`} className="text-[10px]">
-            Opacité :
+            Opacity:
           </label>
           <input
             id={`opacity-${layer.id}`}
@@ -68,7 +68,7 @@ export function LayerRow({
             value={view.opacity}
             onChange={(e) => onChangeOpacity(parseFloat(e.target.value))}
             className="h-1 flex-1 accent-[var(--color-info)]"
-            aria-label={`Opacité de la couche ${layer.title}`}
+            aria-label={`Opacity for layer ${layer.title}`}
           />
           <span className="w-8 text-right font-mono text-[10px]">
             {Math.round(view.opacity * 100)}%
@@ -87,26 +87,26 @@ export function LayerRow({
       {showDetails && (
         <div className="mt-2 border-t border-[var(--border)] pt-1.5 pl-6 text-[10px] text-[var(--text-muted)] space-y-0.5">
           <div>
-            <span className="font-semibold">Instrument :</span> {layer.source.instrument} ({layer.source.mission})
+            <span className="font-semibold">Instrument:</span> {layer.source.instrument} ({layer.source.mission})
           </div>
           {layer.resolution_m && (
             <div>
-              <span className="font-semibold">Résolution :</span> {layer.resolution_m} m
+              <span className="font-semibold">Resolution:</span> {layer.resolution_m} m
             </div>
           )}
           {layer.acquired && (
             <div>
-              <span className="font-semibold">Acquisition :</span> {layer.acquired}
+              <span className="font-semibold">Acquired:</span> {layer.acquired}
             </div>
           )}
           {layer.uncertainty?.coreg_m !== undefined && layer.uncertainty.coreg_m !== null && (
             <div>
-              <span className="font-semibold">Recalage :</span> ±{layer.uncertainty.coreg_m} m
+              <span className="font-semibold">Co-registration:</span> ±{layer.uncertainty.coreg_m} m
             </div>
           )}
           {layer.status_note && (
             <div className="text-[var(--text-caution)] font-medium">
-              Note : {layer.status_note}
+              Note: {layer.status_note}
             </div>
           )}
         </div>

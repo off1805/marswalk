@@ -377,8 +377,8 @@ describe("RouteComparator", () => {
       </Wrapper>,
     );
 
-    expect(screen.getByRole("article", { name: /plus sûre/i })).toBeTruthy();
-    expect(screen.getByRole("article", { name: /plus rapide/i })).toBeTruthy();
+    expect(screen.getByRole("article", { name: /safest/i })).toBeTruthy();
+    expect(screen.getByRole("article", { name: /fastest/i })).toBeTruthy();
     expect(screen.getByRole("article", { name: /science/i })).toBeTruthy();
   });
 
@@ -389,8 +389,8 @@ describe("RouteComparator", () => {
         <RouteComparator plan={MOCK_PLAN} />
       </Wrapper>,
     );
-    // Aucune carte ne doit afficher le badge "Choisie"
-    expect(screen.queryByText("Choisie")).toBeNull();
+    // No card should display the "Selected" badge
+    expect(screen.queryByText("Selected")).toBeNull();
   });
 });
 
@@ -415,8 +415,8 @@ describe("Sélection d'une variante", () => {
       </Wrapper>,
     );
 
-    // Les trois boutons "Choisir cette variante" peuvent être trouvés par texte
-    const buttons = screen.getAllByText(/Choisir cette variante/i);
+    // All three "Select this variant" buttons can be found by text
+    const buttons = screen.getAllByText(/Select this variant/i);
     expect(buttons.length).toBe(3);
 
     await act(async () => {
@@ -463,7 +463,7 @@ describe("TargetsPanel", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByRole("list", { name: "Liste des cibles" })).toBeTruthy(),
+      expect(screen.getByRole("list", { name: "Target list" })).toBeTruthy(),
     );
     expect(screen.getByText("Front du delta")).toBeTruthy();
     expect(screen.getByText("Bord des dunes")).toBeTruthy();

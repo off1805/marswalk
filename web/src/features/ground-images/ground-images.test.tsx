@@ -94,9 +94,9 @@ describe("panneaux", () => {
     wrap(<ImageViewer />);
     const p = images[1]!.props;
     expect(screen.getByText(new RegExp(`Sol ${p.sol}`))).toBeTruthy();
-    expect(screen.getByText(`Instrument : ${p.instrument}`)).toBeTruthy();
-    expect(screen.getByText(`Identifiant : ${p.image_id}`)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Fermer la visionneuse" }));
+    expect(screen.getByText(`Instrument: ${p.instrument}`)).toBeTruthy();
+    expect(screen.getByText(`ID: ${p.image_id}`)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Close viewer" }));
     expect(useViewer.getState().selected).toBeNull();
   });
 
@@ -104,11 +104,11 @@ describe("panneaux", () => {
     const target = (targets as unknown as { id: string; name: string; position: LonLat }[])[0]!;
     useShared.getState().selectTarget(target.id);
     wrap(<NearbyImages />);
-    const list = await screen.findByRole("list", { name: `Images proches de ${target.name}` });
+    const list = await screen.findByRole("list", { name: `Nearest to ${target.name}` });
     const items = list.querySelectorAll("li");
     expect(items.length).toBe(4);
     const expected = nearestImages(images, target.position, 4)[0]!.image;
-    fireEvent.click(screen.getByRole("button", { name: `Ouvrir ${expected.props.image_id}` }));
+    fireEvent.click(screen.getByRole("button", { name: `Open ${expected.props.image_id}` }));
     expect(useViewer.getState().selected?.id).toBe(expected.id);
   });
 });

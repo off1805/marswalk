@@ -14,32 +14,32 @@ export function ExportPanel() {
   const book = useLogbook(evaId, 5000);
   const last = book.data?.entries.slice(-4).reverse() ?? [];
   return (
-    <Panel title="Export et carnet">
+    <Panel title="Export & Logbook">
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-2">
           <h3 className="font-semibold">Plan</h3>
           {planId ? (
             <div className="flex flex-wrap gap-2">
               <a className={linkClass} href={planGeojsonUrl(planId)} download={`marswalk-${planId}.geojson`}>
-                ⤓ GeoJSON du plan
+                ⤓ Plan GeoJSON
               </a>
               <Link className={linkClass} to={`/export/plan/${encodeURIComponent(planId)}`}>
-                🖶 Fiche imprimable (PDF)
+                🖶 Printable sheet (PDF)
               </Link>
             </div>
           ) : (
-            <p className="text-sm text-[var(--text-muted)]">Choisissez un plan pour l'exporter.</p>
+            <p className="text-sm text-[var(--text-muted)]">Select a plan to export it.</p>
           )}
         </div>
         <div className="flex flex-col gap-2">
-          <h3 className="font-semibold">Carnet de sortie</h3>
+          <h3 className="font-semibold">EVA logbook</h3>
           {!evaId && (
-            <p className="text-sm text-[var(--text-muted)]">Le carnet s'ouvre au lancement d'une sortie.</p>
+            <p className="text-sm text-[var(--text-muted)]">The logbook opens when an EVA is started.</p>
           )}
-          {evaId && book.isError && <p className="text-sm">Carnet indisponible.</p>}
+          {evaId && book.isError && <p className="text-sm">Logbook unavailable.</p>}
           {evaId && book.data && (
             <>
-              <ul aria-label="Dernières entrées du carnet" className="flex flex-col gap-1 text-sm">
+              <ul aria-label="Recent logbook entries" className="flex flex-col gap-1 text-sm">
                 {last.map((e, i) => (
                   <li key={`${e.utc}-${i}`}>
                     <span className="text-[var(--text-muted)]">
@@ -51,10 +51,10 @@ export function ExportPanel() {
               </ul>
               <div className="flex flex-wrap gap-2">
                 <Link className={linkClass} to={`/export/logbook/${encodeURIComponent(evaId)}`}>
-                  🖶 Carnet complet
+                  🖶 Full logbook
                 </Link>
-                <Button onClick={() => downloadJson(`marswalk-${evaId}-carnet.geojson`, logbookToGeojson(book.data))}>
-                  ⤓ Carnet en GeoJSON
+                <Button onClick={() => downloadJson(`marswalk-${evaId}-logbook.geojson`, logbookToGeojson(book.data))}>
+                  ⤓ Logbook GeoJSON
                 </Button>
               </div>
             </>

@@ -14,29 +14,29 @@ export function ImageCard({ image, onClose }: { image: GroundImage; onClose?: ()
         <img src={src} alt={`${p.camera ?? p.instrument}, sol ${p.sol}`} className="w-full rounded" loading="lazy" />
       ) : (
         <div className="flex h-32 items-center justify-center rounded bg-[var(--surface-2)] text-sm">
-          Vignette indisponible
+          Thumbnail unavailable
         </div>
       )}
       <figcaption className="flex flex-col gap-1 text-sm">
         <strong>
           Sol {p.sol} · {p.camera ?? p.instrument}
         </strong>
-        <span>Instrument : {p.instrument}</span>
-        <span className="break-all">Identifiant : {p.image_id}</span>
+        <span>Instrument: {p.instrument}</span>
+        <span className="break-all">ID: {p.image_id}</span>
         {p.azimuth_deg !== null && p.azimuth_deg !== undefined && (
-          <span>Azimut du mât : {Math.round(p.azimuth_deg)}°</span>
+          <span>Mast azimuth: {Math.round(p.azimuth_deg)}°</span>
         )}
         <span className="text-[var(--text-muted)]">
-          Position du rover au sol de prise de vue{p.credit ? ` · ${p.credit}` : ""}
+          Rover position at time of capture{p.credit ? ` · ${p.credit}` : ""}
         </span>
         <span className="flex gap-2">
           {p.url && (
             <a href={p.url} target="_blank" rel="noreferrer" className="underline">
-              Image complète ↗
+              Full image ↗
             </a>
           )}
           {onClose && (
-            <Button className="ml-auto" onClick={onClose} aria-label="Fermer la visionneuse">
+            <Button className="ml-auto" onClick={onClose} aria-label="Close viewer">
               ✕
             </Button>
           )}

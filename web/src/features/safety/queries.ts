@@ -30,7 +30,7 @@ export function useAlerts() {
       const { data, error } = await api.GET("/api/alerts", {
         params: { query: { eva_id: evaId ?? undefined, active: true } },
       });
-      if (error || !data) throw new Error("Alertes indisponibles");
+      if (error || !data) throw new Error("Alerts unavailable");
       return data as Alert[];
     },
     refetchInterval: live ? false : ALERT_POLL_MS,
@@ -47,7 +47,7 @@ export function useAcknowledge() {
       const { data, error } = await api.POST("/api/alerts/{alert_id}/ack", {
         params: { path: { alert_id: alertId } },
       });
-      if (error || !data) throw new Error("Acquittement refusé");
+      if (error || !data) throw new Error("Acknowledgement refused");
       return data as Alert;
     },
     onMutate: async (alertId) => {
@@ -77,7 +77,7 @@ export function useConditions() {
       const { data, error } = await api.GET("/api/sites/{site_id}/conditions/current", {
         params: { path: { site_id: siteId } },
       });
-      if (error || !data) throw new Error("Conditions indisponibles");
+      if (error || !data) throw new Error("Conditions unavailable");
       return data;
     },
     refetchInterval: 30_000,
@@ -94,7 +94,7 @@ export function useForecast() {
       const { data, error } = await api.GET("/api/sites/{site_id}/conditions/forecast", {
         params: { path: { site_id: siteId }, query: { hours: FORECAST_HOURS } },
       });
-      if (error || !data) throw new Error("Prévisions indisponibles");
+      if (error || !data) throw new Error("Forecast unavailable");
       return data;
     },
     refetchInterval: 5 * 60_000,
@@ -109,7 +109,7 @@ export function useSettings() {
       const { data, error } = await api.GET("/api/sites/{site_id}/settings", {
         params: { path: { site_id: siteId } },
       });
-      if (error || !data) throw new Error("Seuils indisponibles");
+      if (error || !data) throw new Error("Settings unavailable");
       return data;
     },
     staleTime: 60_000,
@@ -126,7 +126,7 @@ export function useSaveSettings() {
         params: { path: { site_id: siteId } },
         body: settings,
       });
-      if (error || !data) throw new Error("Seuils refusés par le serveur");
+      if (error || !data) throw new Error("Settings rejected by server");
       return data;
     },
     onSuccess: (saved) => {
@@ -144,7 +144,7 @@ export function useTime() {
     queryKey: queryKeys.time(siteId),
     queryFn: async (): Promise<TimeInfo> => {
       const { data, error } = await api.GET("/api/time", { params: { query: { site_id: siteId } } });
-      if (error || !data) throw new Error("Heure martienne indisponible");
+      if (error || !data) throw new Error("Martian time unavailable");
       return data;
     },
     refetchInterval: 15_000,
@@ -160,7 +160,7 @@ export function useEva() {
     enabled: !!evaId,
     queryFn: async (): Promise<Eva> => {
       const { data, error } = await api.GET("/api/eva/{eva_id}", { params: { path: { eva_id: evaId! } } });
-      if (error || !data) throw new Error("Sortie indisponible");
+      if (error || !data) throw new Error("EVA unavailable");
       return data as Eva;
     },
     refetchInterval: live ? 30_000 : 5_000,
@@ -175,7 +175,7 @@ export function usePlan() {
     enabled: !!planId,
     queryFn: async (): Promise<Plan> => {
       const { data, error } = await api.GET("/api/plans/{plan_id}", { params: { path: { plan_id: planId! } } });
-      if (error || !data) throw new Error("Plan indisponible");
+      if (error || !data) throw new Error("Plan unavailable");
       return data as Plan;
     },
   });
@@ -186,7 +186,7 @@ export function useScenarios() {
     queryKey: queryKeys.scenarios(),
     queryFn: async (): Promise<Scenario[]> => {
       const { data, error } = await api.GET("/api/scenarios");
-      if (error || !data) throw new Error("Scénarios indisponibles");
+      if (error || !data) throw new Error("Scenarios unavailable");
       return data;
     },
     staleTime: Infinity,
@@ -202,13 +202,13 @@ export function useStartEva() {
       const created = await api.POST("/api/eva", {
         body: { plan_id: args.planId, route_id: args.routeId, crew: ["EV1"] },
       });
-      if (created.error || !created.data) throw new Error("Démarrage de la sortie refusé");
+      if (created.error || !created.data) throw new Error("EVA start refused");
       const eva = created.data as Eva;
       const sim = await api.POST("/api/eva/{eva_id}/simulate", {
         params: { path: { eva_id: eva.id } },
         body: { speed: args.speed, scenario_id: args.scenarioId },
       });
-      if (sim.error) throw new Error("Simulation refusée");
+      if (sim.error) throw new Error("Simulation refused");
       return eva;
     },
     onSuccess: (eva) => {
@@ -228,7 +228,7 @@ export function useScenarioControl() {
         : await api.POST("/api/scenarios/{scenario_id}/stop", {
             params: { path: { scenario_id: args.scenarioId } },
           });
-      if (res.error || !res.data) throw new Error("Scénario refusé");
+      if (res.error || !res.data) throw new Error("Scenario refused");
       return res.data;
     },
   });

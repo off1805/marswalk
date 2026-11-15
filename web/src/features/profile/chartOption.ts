@@ -35,11 +35,11 @@ const BAND_ALPHA = "40"; // ~25 % d'opacité, suffixe hexadécimal
 export function tooltipText(sample: ProfileSample, span: SegmentSpan | undefined): string {
   const parts = [
     `<b>${formatDistance(sample.distance_m)}</b>`,
-    `Altitude : ${sample.elevation_m == null ? "inconnue" : `${sample.elevation_m.toFixed(1)} m`}`,
-    `Pente : ${sample.slope_deg == null ? "inconnue" : `${Math.abs(sample.slope_deg).toFixed(1)}°`}`,
-    `Temps écoulé : ${formatDuration(sample.time_s)}`,
+    `Elevation: ${sample.elevation_m == null ? "unknown" : `${sample.elevation_m.toFixed(1)} m`}`,
+    `Slope: ${sample.slope_deg == null ? "unknown" : `${Math.abs(sample.slope_deg).toFixed(1)}°`}`,
+    `Elapsed time: ${formatDuration(sample.time_s)}`,
   ];
-  if (span) parts.push(`Tronçon ${span.index + 1} : ${span.fromLabel} → ${span.toLabel}`);
+  if (span) parts.push(`Segment ${span.index + 1}: ${span.fromLabel} → ${span.toLabel}`);
   return parts.join("<br/>");
 }
 
@@ -92,7 +92,7 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
   ];
   if (input.pointOfNoReturnM != null) {
     lines.push({
-      name: "⚑ Point de non-retour",
+      name: "⚑ Point of no return",
       xAxis: input.pointOfNoReturnM,
       lineStyle: { color: colors.danger, type: "dotted", width: 2 },
       label: { formatter: "{b}", position: "insideEndTop", color: colors.danger, fontSize: 11 },
@@ -129,7 +129,7 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
     yAxis: [
       {
         type: "value",
-        name: "Altitude (m)",
+        name: "Elevation (m)",
         scale: true,
         axisLabel: { color: muted },
         nameTextStyle: { color: muted },
@@ -137,7 +137,7 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
       },
       {
         type: "value",
-        name: "Pente (°)",
+        name: "Slope (°)",
         min: 0,
         axisLabel: { color: muted },
         nameTextStyle: { color: muted },
@@ -146,7 +146,7 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
     ],
     series: [
       {
-        name: "Altitude",
+        name: "Elevation",
         type: "line",
         yAxisIndex: 0,
         data: elevation,
@@ -159,7 +159,7 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
         markLine: { silent: true, symbol: "none", data: lines, animation: false },
       },
       {
-        name: "Pente",
+        name: "Slope",
         type: "line",
         yAxisIndex: 1,
         data: slope,

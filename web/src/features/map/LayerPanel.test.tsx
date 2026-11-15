@@ -117,7 +117,7 @@ describe("Fonctionnalité Carte et couches (F1)", () => {
 
   it("affiche le composant LayerPanel dans l'état de chargement", () => {
     renderWithClient(<LayerPanel />);
-    expect(screen.getByText("Couches cartographiques")).toBeDefined();
+    expect(screen.getByText("Map layers")).toBeDefined();
   });
 
   it("permet de basculer la visibilité d'une couche", () => {

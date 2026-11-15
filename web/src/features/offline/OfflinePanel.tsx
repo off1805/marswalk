@@ -41,7 +41,7 @@ export function OfflinePanel() {
         onClick={() => setExpanded((e) => !e)}
         className="focus:outline-none"
         aria-expanded={expanded}
-        aria-label="Ouvrir le panneau hors ligne"
+        aria-label="Open offline panel"
       >
         <NetworkBadge status={network} pendingCount={pendingCount} />
       </button>

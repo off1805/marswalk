@@ -17,12 +17,12 @@ type NumericKey =
   | "min_illumination";
 
 const FIELDS: { key: NumericKey; label: string; unit: string; step: number }[] = [
-  { key: "max_slope_deg", label: "Pente interdite au-delà de", unit: "°", step: 1 },
-  { key: "penalty_slope_deg", label: "Pente pénalisée au-delà de", unit: "°", step: 1 },
-  { key: "min_reserve_pct", label: "Réserve minimale au retour", unit: "%", step: 1 },
-  { key: "max_dust_tau", label: "Opacité maximale (τ)", unit: "", step: 0.1 },
-  { key: "max_dose_usv", label: "Dose maximale de la sortie", unit: "µSv", step: 10 },
-  { key: "min_illumination", label: "Éclairement minimal", unit: "0–1", step: 0.05 },
+  { key: "max_slope_deg", label: "Forbidden slope beyond", unit: "°", step: 1 },
+  { key: "penalty_slope_deg", label: "Penalized slope beyond", unit: "°", step: 1 },
+  { key: "min_reserve_pct", label: "Minimum reserve on return", unit: "%", step: 1 },
+  { key: "max_dust_tau", label: "Maximum opacity (τ)", unit: "", step: 0.1 },
+  { key: "max_dose_usv", label: "Maximum EVA dose", unit: "µSv", step: 10 },
+  { key: "min_illumination", label: "Minimum illumination", unit: "0–1", step: 0.05 },
 ];
 
 export function ThresholdsPanel() {
@@ -45,9 +45,9 @@ export function ThresholdsPanel() {
   };
 
   return (
-    <Panel title="Seuils de sécurité">
+    <Panel title="Safety Thresholds">
       <details>
-        <summary className="cursor-pointer text-sm">Régler les seuils (préréglage {draft.preset})</summary>
+        <summary className="cursor-pointer text-sm">Adjust thresholds (preset {draft.preset})</summary>
         <form className="mt-2 flex flex-col gap-2 text-sm" onSubmit={onSubmit} noValidate>
           {FIELDS.map(({ key, label, unit, step }) => (
             <label key={key} className="flex flex-col gap-0.5">
@@ -76,19 +76,19 @@ export function ThresholdsPanel() {
               checked={draft.require_radio}
               onChange={(e) => setDraft({ ...draft, require_radio: e.target.checked })}
             />
-            Couverture radio obligatoire
+            Radio coverage required
           </label>
           <div className="flex items-center gap-2">
             <Button type="submit" variant="primary" disabled={invalid || !dirty || save.isPending}>
-              {save.isPending ? "Enregistrement…" : "Enregistrer"}
+              {save.isPending ? "Saving…" : "Save"}
             </Button>
             {dirty && (
               <Button onClick={() => settings.data && setDraft(settings.data)} disabled={save.isPending}>
-                Annuler
+                Cancel
               </Button>
             )}
             <span role="status">
-              {save.isError ? `▲ ${save.error.message}` : save.isSuccess && !dirty ? "✓ Enregistré" : ""}
+              {save.isError ? `▲ ${save.error.message}` : save.isSuccess && !dirty ? "✓ Saved" : ""}
             </span>
           </div>
         </form>

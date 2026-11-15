@@ -34,26 +34,25 @@ export function PrefetchPanel({
   return (
     <section
       className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-sm"
-      aria-label="Préchargement hors ligne"
+      aria-label="Offline prefetch"
     >
       <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--text-muted)]">
-        Hors ligne — Préchargement
+        Offline — Prefetch
       </h3>
 
       {!cacheAvailable && (
         <p className="mb-2 text-xs text-[var(--text-caution)]">
-          ▲ Service worker non actif — le préchargement nécessite un build de
-          production.
+          ▲ Service worker not active — prefetch requires a production build.
         </p>
       )}
 
       {/* Description */}
       <p className="mb-2 text-xs text-[var(--text-muted)]">
-        Téléchargez le paquet de site pour utiliser Marswalk sans connexion.
-        {estimatedBytes > 0 && ` Taille estimée : ${formatBytes(estimatedBytes)}.`}
+        Download the site package to use Marswalk offline.
+        {estimatedBytes > 0 && ` Estimated size: ${formatBytes(estimatedBytes)}.`}
       </p>
 
-      {/* Barre de progression */}
+      {/* Progress bar */}
       {(running || complete) && (
         <div className="mb-2 space-y-1">
           <div
@@ -62,7 +61,7 @@ export function PrefetchPanel({
             aria-valuenow={percent}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="Progression du préchargement"
+            aria-label="Prefetch progress"
           >
             <div
               className={`h-full rounded-full transition-all ${
@@ -75,13 +74,13 @@ export function PrefetchPanel({
           </div>
           <p className="text-xs text-[var(--text-muted)]" aria-live="polite">
             {complete
-              ? "✓ Préchargement terminé"
-              : `${done} / ${total} ressources (${percent} %)`}
+              ? "✓ Prefetch complete"
+              : `${done} / ${total} resources (${percent}%)`}
           </p>
         </div>
       )}
 
-      {/* Erreur */}
+      {/* Error */}
       {error && (
         <p className="mb-2 text-xs text-[var(--text-danger)]" role="alert">
           ⛔ {error}
@@ -96,27 +95,27 @@ export function PrefetchPanel({
             onClick={start}
             disabled={!cacheAvailable}
             className="text-xs"
-            aria-label="Lancer le préchargement du site"
+            aria-label="Start site prefetch"
           >
-            ↓ Télécharger pour hors ligne
+            ↓ Download for offline
           </Button>
         )}
         {running && (
           <Button
             onClick={cancel}
             className="text-xs"
-            aria-label="Annuler le préchargement"
+            aria-label="Cancel prefetch"
           >
-            ✕ Annuler
+            ✕ Cancel
           </Button>
         )}
         {complete && (
           <Button
             onClick={start}
             className="text-xs"
-            aria-label="Mettre à jour le cache"
+            aria-label="Update cache"
           >
-            ↻ Mettre à jour
+            ↻ Update
           </Button>
         )}
       </div>

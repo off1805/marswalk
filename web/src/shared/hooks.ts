@@ -12,7 +12,7 @@ export function useSiteManifest() {
       const { data, error } = await api.GET("/api/sites/{site_id}", {
         params: { path: { site_id: siteId } },
       });
-      if (error || !data) throw new Error(`Site ${siteId} indisponible`);
+      if (error || !data) throw new Error(`Site ${siteId} unavailable`);
       return data as SiteManifest;
     },
     staleTime: Infinity,
@@ -24,7 +24,7 @@ export function useHealth() {
     queryKey: queryKeys.health(),
     queryFn: async () => {
       const { data, error } = await api.GET("/api/health");
-      if (error || !data) throw new Error("API indisponible");
+      if (error || !data) throw new Error("API unavailable");
       return data;
     },
     refetchInterval: 30_000,
@@ -37,7 +37,7 @@ export function useMarsClock() {
     queryKey: queryKeys.time(siteId),
     queryFn: async () => {
       const { data, error } = await api.GET("/api/time", { params: { query: { site_id: siteId } } });
-      if (error || !data) throw new Error("Heure martienne indisponible");
+      if (error || !data) throw new Error("Martian time unavailable");
       return data;
     },
     refetchInterval: 60_000,

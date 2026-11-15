@@ -29,7 +29,7 @@ describe("mise en forme", () => {
     expect(formatDuration(5770)).toBe("1 h 36 min");
     expect(formatDuration(7200)).toBe("2 h");
     expect(formatDistance(640.4)).toBe("640 m");
-    expect(formatDistance(2470.25)).toBe("2,47 km");
+    expect(formatDistance(2470.25)).toBe("2.47 km");
   });
 
   it("met le carnet en GeoJSON, un point par entrée positionnée", () => {
@@ -112,17 +112,17 @@ describe("fiches imprimables", () => {
 
   it("la fiche du plan montre carte, profil et un tableau des tronçons", async () => {
     renderAt("/export/plan/plan-demo");
-    expect(await screen.findByRole("heading", { name: /Plan de sortie Sortie de démonstration/ })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "Carte du tracé" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: /EVA plan Sortie de démonstration/ })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Route map" })).toBeTruthy();
     const rows = screen.getByRole("table").querySelectorAll("tbody tr");
     expect(rows).toHaveLength(demoPlan.routes[0]!.segments.length);
     expect(rows[0]!.textContent).toContain("Front du delta");
-    expect(screen.getByRole("button", { name: /Imprimer/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Print/ })).toBeTruthy();
   });
 
   it("le carnet liste chaque entrée en sol et heure locale", async () => {
     renderAt("/export/logbook/eva-demo");
-    expect(await screen.findByRole("heading", { name: /Carnet de terrain/ })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: /Field logbook/ })).toBeTruthy();
     const rows = screen.getByRole("table").querySelectorAll("tbody tr");
     expect(rows).toHaveLength(book.entries.length);
     expect(rows[0]!.textContent).toContain(book.entries[0]!.lmst);

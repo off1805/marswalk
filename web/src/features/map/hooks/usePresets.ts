@@ -13,7 +13,7 @@ export function usePresets(manifest?: SiteManifest) {
     queryKey: queryKeys.presets(),
     queryFn: async () => {
       const { data, error } = await api.GET("/api/presets");
-      if (error || !data) throw new Error("Impossible de charger les préréglages");
+      if (error || !data) throw new Error("Failed to load presets");
       return data as DisplayPreset[];
     },
     staleTime: Infinity,

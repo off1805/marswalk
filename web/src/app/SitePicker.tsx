@@ -17,7 +17,7 @@ export function useSites() {
     queryKey: queryKeys.sites(),
     queryFn: async () => {
       const { data, error } = await api.GET("/api/sites");
-      if (error || !data) throw new Error("Liste des sites indisponible");
+      if (error || !data) throw new Error("Site list unavailable");
       return data as Schemas["SiteSummary"][];
     },
     staleTime: Infinity,

@@ -111,7 +111,7 @@ export class OperationQueue {
         results.push({
           kind: "failure",
           operationId: op.id,
-          reason: `Pas de handler pour l'opération « ${op.kind} »`,
+          reason: `No handler for operation "${op.kind}"`,
         });
         continue;
       }
@@ -129,7 +129,7 @@ export class OperationQueue {
           results.push({
             kind: "failure",
             operationId: op.id,
-            reason: `Abandonné après ${MAX_ATTEMPTS} tentatives : ${reason}`,
+            reason: `Abandoned after ${MAX_ATTEMPTS} attempts: ${reason}`,
           });
         } else {
           // Mettre à jour le compteur de tentatives
@@ -164,7 +164,7 @@ export function buildReplayHandlers(): Map<
       params: { path: { site_id: siteId } },
       body: op.payload as import("@/shared/api/client").Schemas["TargetCreate"],
     });
-    if (error) throw new Error("Échec de la création de la cible");
+    if (error) throw new Error("Failed to create target");
   });
 
   handlers.set("updateTarget", async (op) => {
@@ -175,7 +175,7 @@ export function buildReplayHandlers(): Map<
       params: { path: { target_id: id } },
       body: patch as import("@/shared/api/client").Schemas["TargetUpdate"],
     });
-    if (error) throw new Error("Échec de la mise à jour de la cible");
+    if (error) throw new Error("Failed to update target");
   });
 
   handlers.set("deleteTarget", async (op) => {
@@ -183,23 +183,23 @@ export function buildReplayHandlers(): Map<
     const { error } = await api.DELETE("/api/targets/{target_id}", {
       params: { path: { target_id: op.payload as string } },
     });
-    if (error) throw new Error("Échec de la suppression de la cible");
+    if (error) throw new Error("Failed to delete target");
   });
 
   handlers.set("addObservation", async (op) => {
     const { api } = await import("@/shared/api/client");
     const { useShared } = await import("@/shared/store");
-    // La sortie est notée dans l'opération à sa mise en file ; à défaut, la sortie suivie.
+    // The EVA id is recorded in the operation at enqueue time; fall back to the tracked EVA.
     const { eva_id: queuedEvaId, ...body } = op.payload as {
       eva_id?: string;
     } & import("@/shared/api/client").Schemas["ObservationCreate"];
     const evaId = queuedEvaId ?? useShared.getState().evaId;
-    if (!evaId) throw new Error("Pas de sortie active");
+    if (!evaId) throw new Error("No active EVA");
     const { error } = await api.POST("/api/eva/{eva_id}/observations", {
       params: { path: { eva_id: evaId } },
       body,
     });
-    if (error) throw new Error("Échec de l'ajout de l'observation");
+    if (error) throw new Error("Failed to add observation");
   });
 
   return handlers;

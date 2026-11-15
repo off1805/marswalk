@@ -27,7 +27,7 @@ export const textColors = {
 /** `ink` est la couleur du texte posé sur un fond `color` (au moins 4,5:1, écart E10). */
 export const alertLevels: Record<AlertLevel, { color: string; ink: string; icon: string; label: string }> = {
   info: { color: colors.info, ink: "#ffffff", icon: "ⓘ", label: "Information" },
-  caution: { color: colors.caution, ink: "#000000", icon: "▲", label: "Attention" },
+  caution: { color: colors.caution, ink: "#000000", icon: "▲", label: "Caution" },
   danger: { color: colors.danger, ink: "#000000", icon: "⛔", label: "Danger" },
 };
 

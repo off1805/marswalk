@@ -302,5 +302,5 @@ export function formatDuration(s: number): string {
 }
 
 export function formatDistance(m: number): string {
-  return m >= 1000 ? `${(m / 1000).toFixed(2).replace(".", ",")} km` : `${Math.round(m)} m`;
+  return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`;
 }

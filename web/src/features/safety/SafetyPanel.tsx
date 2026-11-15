@@ -40,7 +40,7 @@ function useClockAnchor(): ClockAnchor | null {
 
 export function MarsClock({ now }: { now: number }) {
   const anchor = useClockAnchor();
-  if (!anchor) return <p className="text-sm">Horloge martienne indisponible.</p>;
+  if (!anchor) return <p className="text-sm">Martian clock unavailable.</p>;
   const c = advanceClock(anchor, now);
   return (
     <div aria-label="Horloge martienne" className="flex flex-wrap items-baseline gap-x-3">
@@ -62,17 +62,17 @@ function StartEva() {
   return (
     <div className="flex flex-col gap-2 border-t border-[var(--border)] pt-2">
       <p className="text-sm">
-        Aucune sortie en cours.{" "}
-        {ready ? "Les valeurs ci-dessus sont celles prévues par le plan." : "Choisissez une variante pour la démarrer."}
+        No EVA in progress.{" "}
+        {ready ? "Values shown above are those planned." : "Select a route variant to start one."}
       </p>
       <label className="flex items-center justify-between gap-2 text-sm">
-        Scénario
+        Scenario
         <select
           className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-1"
           value={scenarioId}
           onChange={(e) => setScenarioId(e.target.value)}
         >
-          <option value="">Conditions du moment</option>
+          <option value="">Current conditions</option>
           {scenarios.data?.map((s) => (
             <option key={s.id} value={s.id}>
               {s.title}
@@ -81,7 +81,7 @@ function StartEva() {
         </select>
       </label>
       <label className="flex items-center justify-between gap-2 text-sm">
-        Accélération
+        Speed
         <select
           className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-1"
           value={speed}
@@ -99,7 +99,7 @@ function StartEva() {
         disabled={!ready || start.isPending}
         onClick={() => start.mutate({ planId: planId!, routeId: routeId!, scenarioId: scenarioId || null, speed })}
       >
-        {start.isPending ? "Démarrage…" : "Démarrer la sortie simulée"}
+        {start.isPending ? "Starting…" : "Start simulated EVA"}
       </Button>
       {start.isError && <p className="text-sm">▲ {start.error.message}</p>}
     </div>
@@ -107,18 +107,18 @@ function StartEva() {
 }
 
 const LIMITING: Record<string, string> = {
-  oxygen: "oxygène",
-  battery: "batterie",
-  water: "eau",
-  time: "temps",
+  oxygen: "oxygen",
+  battery: "battery",
+  water: "water",
+  time: "time",
   dose: "dose",
 };
 
 const STATUS_TEXT = {
-  idle: "○ Pas de liaison",
-  connecting: "◌ Connexion…",
-  open: "● Temps réel",
-  closed: "○ Liaison perdue, reconnexion…",
+  idle: "○ No link",
+  connecting: "◌ Connecting…",
+  open: "● Live",
+  closed: "○ Link lost, reconnecting…",
 } as const;
 
 export function SafetyPanel() {
@@ -163,57 +163,57 @@ export function SafetyPanel() {
   const reserveLevel = levelBelow(reserve, s.min_reserve_pct + RESERVE_CAUTION_MARGIN_PCT, s.min_reserve_pct);
 
   return (
-    <Panel title="Sécurité">
+    <Panel title="Safety">
       <div className="flex flex-col gap-3">
         <MarsClock now={now} />
         {evaId && (
           <p className="flex items-center justify-between text-sm" role="status">
             <span>
-              Sortie {evaId} · {STATUS_TEXT[status]}
+              EVA {evaId} · {STATUS_TEXT[status]}
             </span>
             <button type="button" className="underline" onClick={() => setEvaId(null)}>
-              Quitter le suivi
+              Exit tracking
             </button>
           </p>
         )}
         <div className="grid grid-cols-2 gap-2">
           <Countdown
-            label="Point de non-retour"
-            value={source === "plan" && pnrS != null ? `à ${formatCountdown(pnrS)}` : formatCountdown(pnrS)}
+            label="Point of no return"
+            value={source === "plan" && pnrS != null ? `in ${formatCountdown(pnrS)}` : formatCountdown(pnrS)}
             level={source === "plan" ? "ok" : pnrLevel(pnrS)}
-            hint={source === "plan" ? "prévu, après le départ" : pnrS == null ? "non calculé" : undefined}
+            hint={source === "plan" ? "planned, after departure" : pnrS == null ? "not calculated" : undefined}
           />
           <Countdown
-            label="Coucher du Soleil"
-            value={daylight == null ? "—" : daylight <= 0 ? "nuit" : formatCountdown(daylight)}
+            label="Sunset"
+            value={daylight == null ? "—" : daylight <= 0 ? "night" : formatCountdown(daylight)}
             level={daylightLevel(daylight)}
           />
         </div>
         <Gauge
-          label="Réserve au retour"
+          label="Reserve on return"
           value={reserve == null ? "—" : `${formatNumber(reserve)} %`}
           pct={reserve}
           level={reserveLevel}
-          hint={`minimum ${formatNumber(s.min_reserve_pct)} %${source === "plan" ? " · prévue par le plan" : ""}${
-            budget ? ` · limitant : ${LIMITING[budget.value.limiting_consumable] ?? budget.value.limiting_consumable}` : ""
+          hint={`minimum ${formatNumber(s.min_reserve_pct)} %${source === "plan" ? " · planned" : ""}${
+            budget ? ` · limiting: ${LIMITING[budget.value.limiting_consumable] ?? budget.value.limiting_consumable}` : ""
           }`}
         />
         {consumables && (
           <>
             <Gauge
-              label="Oxygène"
+              label="Oxygen"
               value={`${formatNumber(consumables.oxygen_pct)} %`}
               pct={consumables.oxygen_pct}
               level={consumableLevel(consumables.oxygen_pct, s)}
             />
             <Gauge
-              label="Batterie"
+              label="Battery"
               value={`${formatNumber(consumables.battery_pct)} %`}
               pct={consumables.battery_pct}
               level={consumableLevel(consumables.battery_pct, s)}
             />
             <Gauge
-              label="Eau"
+              label="Water"
               value={`${formatNumber(consumables.water_pct)} %`}
               pct={consumables.water_pct}
               level={consumableLevel(consumables.water_pct, s)}
@@ -221,17 +221,17 @@ export function SafetyPanel() {
           </>
         )}
         <Gauge
-          label="Dose reçue"
+          label="Radiation dose received"
           value={
             dose != null
               ? `${formatNumber(dose, 1)} µSv`
               : route
-                ? `${formatNumber(route.totals.consumption.dose_usv, 1)} µSv prévus`
+                ? `${formatNumber(route.totals.consumption.dose_usv, 1)} µSv planned`
                 : "—"
           }
           pct={dose != null ? (100 * dose) / s.max_dose_usv : null}
           level={doseLevel(dose ?? route?.totals.consumption.dose_usv, s)}
-          hint={`maximum de la sortie ${formatNumber(s.max_dose_usv)} µSv`}
+          hint={`EVA maximum ${formatNumber(s.max_dose_usv)} µSv`}
         />
         {!evaId && <StartEva />}
       </div>

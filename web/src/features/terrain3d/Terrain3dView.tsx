@@ -38,7 +38,7 @@ export function Terrain3dView() {
     return (
       <div className="relative min-h-0 flex-1 flex items-center justify-center bg-[var(--bg)]">
         <p className="animate-pulse text-sm text-[var(--text-muted)]">
-          Chargement du terrain 3D…
+          Loading 3D terrain…
         </p>
       </div>
     );
@@ -48,7 +48,7 @@ export function Terrain3dView() {
     return (
       <div className="relative min-h-0 flex-1 flex items-center justify-center bg-[var(--bg)]">
         <p className="text-sm text-[var(--text-muted)]">
-          Manifeste du site indisponible.
+          Site manifest unavailable.
         </p>
       </div>
     );
@@ -58,7 +58,7 @@ export function Terrain3dView() {
     <div
       className="relative min-h-0 flex-1 overflow-hidden"
       style={{ height: "100%" }}
-      aria-label="Vue 3D du terrain"
+      aria-label="3D terrain view"
     >
       {/* Rendu deck.gl */}
       <TerrainCanvas
@@ -73,8 +73,7 @@ export function Terrain3dView() {
       <div className="absolute bottom-4 left-4 w-72 space-y-2">
         {!activeRoute && (
           <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--text-muted)]">
-            Aucun itinéraire actif. Planifiez et choisissez une variante dans
-            la vue carte pour lancer le survol.
+            No active route. Plan and select a variant in the map view to start the flyover.
           </div>
         )}
         <FlyoverControls
@@ -96,7 +95,7 @@ export function Terrain3dView() {
         type="button"
         className="absolute right-4 top-4 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)]"
         onClick={() => setShowHelp((h) => !h)}
-        aria-label="Aide navigation 3D"
+        aria-label="3D navigation help"
       >
         ?
       </button>
@@ -105,12 +104,12 @@ export function Terrain3dView() {
           className="absolute right-4 top-12 w-56 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-xs"
           role="tooltip"
         >
-          <p className="font-semibold mb-1">Navigation 3D</p>
+          <p className="font-semibold mb-1">3D Navigation</p>
           <ul className="space-y-0.5 text-[var(--text-muted)]">
-            <li>Clic-glisser — pivoter la vue</li>
-            <li>Ctrl + glisser — incliner</li>
-            <li>Molette — zoomer</li>
-            <li>Clic droit + glisser — déplacer</li>
+            <li>Click-drag — rotate view</li>
+            <li>Ctrl + drag — tilt</li>
+            <li>Scroll wheel — zoom</li>
+            <li>Right-click + drag — pan</li>
           </ul>
         </div>
       )}

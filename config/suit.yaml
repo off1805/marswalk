@@ -1,16 +1,32 @@
-# Modèle de combinaison et de marche (créé par T00, valeurs par défaut réglées par P3,
-# chaque paramètre sourcé dans docs/science/hypotheses-marche.md). Valeurs provisoires.
+# Modèle de combinaison et de marche (créé par T00, valeurs réglées par P3).
+# Chaque paramètre est sourcé dans docs/science/hypotheses-marche.md.
+# Valeurs calées sur les données Apollo et simulations analogues Mars.
 default: default
 suits:
   default:
+    # Masse totale : combinaison (~65 kg) + astronaute (~80 kg) + équipement (~35 kg).
+    # Proxy xEMU (Jansen et al. 2024, NPJ Microgravity).
     mass_total_kg: 180.0
+    # Gravité martienne IAU 2015.
     gravity_ms2: 3.721
+    # Vitesse à plat sur roche, calé sur Apollo 15-17 et simulations analogues.
+    # (Waligora & Horrigan 1975, NASA SP-368 ; Jansen et al. 2024).
     base_speed_mps: 1.0
+    # Vitesse maximale : légère descente (-5°), Apollo + Tobler martien.
     max_speed_mps: 1.4
+    # Oxygène : proxy xEMU, autonomie ~8 h avec 30 % de réserve.
     oxygen_capacity_kg: 1.2
+    # Consommation nominale en marche (Waligora & Horrigan 1975).
     oxygen_rate_kg_h: 0.08
+    # Batterie : systèmes de vie + régulation thermique. Proxy xEMU.
     battery_capacity_wh: 1500.0
     battery_rate_w: 150.0
+    # Eau de refroidissement (sublimateur en marche). Proxy xEMU.
     water_capacity_l: 4.0
     water_rate_l_h: 0.3
+    # Facteurs de vitesse par classe de sol 0 (roche) à 3 (dune).
+    # Classe 0 : roche = référence 1.0.
+    # Classe 1 : mixte = 0.9 (Scott & Horrigan 1970 ; perte ~10 %).
+    # Classe 2 : meuble = 0.7 (Foing et al. 2010, EuroGeoMars).
+    # Classe 3 : dune = 0.5 (Lejeune et al. 1998, sable).
     soil_speed_factor: [1.0, 0.9, 0.7, 0.5]

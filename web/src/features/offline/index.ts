@@ -1,8 +1,46 @@
 /**
- * Hors ligne (F7). Module vide créé par T00 : la tâche F7 le remplit.
- * Règle : ne jamais importer le code d'une autre fonctionnalité ; passer par le magasin
- * partagé (@/shared/store) ou par l'API (@/shared/api/client).
+ * Feature hors ligne (F7) — PWA, préchargement, file d'attente.
+ *
+ * Architecture (principes SOLID) :
+ *
+ *   types.ts              I    Interfaces et types partagés du module
+ *   operationQueue.ts     S+O  Moteur de file (pure, injectable, extensible)
+ *   prefetch.ts           S+D  Logique de préchargement (pure, injectable)
+ *   serviceRegistry.ts    D    Composition root des singletons du module
+ *   swRegistration.ts     S    Enregistrement du service worker (setup())
+ *   vite.ts               S    Configuration du plugin Vite PWA
+ *   useNetworkStatus.ts   S+I  Hook réseau (écoute seulement)
+ *   useSwStatus.ts        S+I  Hook état service worker
+ *   useOfflineQueue.ts    S+D  Hook file d'attente + rejeu automatique
+ *   usePrefetch.ts        S+I  Hook préchargement
+ *   NetworkBadge.tsx      S+I  Badge réseau (reçoit ses props, ne lit pas le réseau)
+ *   PrefetchPanel.tsx     S+I  Panneau de préchargement
+ *   QueueStatusPanel.tsx  S+I  Panneau de file d'attente
+ *   OfflinePanel.tsx      S+D  Assembleur des panneaux (orchestre, ne calcule pas)
+ *
+ * Ne jamais importer le code d'une autre fonctionnalité.
+ * Communication via @/shared/store et @/shared/api/client.
  */
-import { emptyFeature, type Feature } from "@/app/feature";
+import type { Feature } from "@/app/feature";
+import { OfflinePanel } from "./OfflinePanel";
+import { registerServiceWorker } from "./swRegistration";
 
-export const feature: Feature = emptyFeature("offline");
+export const feature: Feature = {
+  id: "offline",
+  panels: [
+    {
+      slot: "map-overlay",
+      order: 30,
+      component: OfflinePanel,
+      modes: ["map"],
+    },
+  ],
+  routes: [],
+  /** Enregistre le service worker Workbox au démarrage de l'application. */
+  setup: registerServiceWorker,
+};
+
+// Export public pour les tests
+export { OperationQueue, buildReplayHandlers } from "./operationQueue";
+export { buildPrefetchList } from "./prefetch";
+export { __setQueueForTest } from "./serviceRegistry";

@@ -664,7 +664,11 @@ def ingest_layer(
                 layer_id=layer_id,
                 out_path=out_path,
                 source_key=key,
-                resolution_m=float(src_info.get("resolution_m", _TARGET_RES.get(layer_id, 1.0))),
+                resolution_m=float(
+                    src_info.get("resolution_m")
+                    or src_info.get("res_m")
+                    or _TARGET_RES.get(layer_id, 1.0)
+                ),
                 status=status,
                 note="; ".join(note_parts) if note_parts else "",
             )

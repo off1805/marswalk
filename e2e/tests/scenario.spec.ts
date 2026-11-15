@@ -381,7 +381,6 @@ test("14. Retour forcé et export du carnet", async () => {
 });
 
 test("14 bis. Une nouvelle sortie après l'éruption avance normalement", async () => {
-  test.fixme(true, "Écart E8 : après l'éruption, toute nouvelle sortie se termine aussitôt sans avancer (ECARTS.md)");
   await page.request.post(`${API}/api/scenarios/solar-event/stop`);
   const created = await page.request.post(`${API}/api/sites/${SITE}/plans`, {
     data: { target_ids: plan.target_ids, optimize_order: true, variants: ["safest"] },

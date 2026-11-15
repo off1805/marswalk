@@ -44,7 +44,7 @@ export default defineConfig(({ mode }) => {
   const api = process.env.MARSWALK_API_URL ?? "http://localhost:8000";
   const mock = mode === "mock";
   return {
-    plugins: [react(), tailwindcss(), ...(mock ? [serveFixtures()] : []), ...offlineVitePlugins()],
+    plugins: [react(), tailwindcss(), ...(mock ? [serveFixtures()] : []), ...offlineVitePlugins(mock)],
     resolve: {
       alias: {
         "@": resolve(__dirname, "src"),

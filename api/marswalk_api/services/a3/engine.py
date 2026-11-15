@@ -180,6 +180,20 @@ class AlertEngine:
             change.cleared.append((self._alerts[t.alert_id], reason))
         t.alert_id, t.level, t.ok_since = None, None, None
 
+    def clear_scope(self, eva_id: str | None, reason: str) -> Change:
+        """Lève toutes les alertes actives de ``eva_id`` (``None`` : site) sans attendre.
+
+        Sert quand la source des mesures change (fin d'un scénario de conditions) : les
+        alertes levées par l'ancienne source ne décrivent plus rien.
+        """
+        change = Change()
+        for (scope, _cause), t in self._tracks.items():
+            if scope == eva_id:
+                if t.alert_id is not None:
+                    self._clear(t, change, reason)
+                t.pending_level = t.pending_since = t.ok_since = None
+        return change
+
     def reset(self) -> None:
         self._alerts.clear()
         self._active.clear()

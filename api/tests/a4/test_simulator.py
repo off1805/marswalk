@@ -177,6 +177,42 @@ def test_danger_alert_forces_the_return(sim: A4Service, a3: A3Service) -> None:
     assert any(e.kind == "reroute" for e in sim.logbook(eva.id).entries)
 
 
+def test_new_eva_after_solar_event_walks_normally(sim: A4Service, a3: A3Service) -> None:
+    """E8 : la fin du scénario lève ses alertes ; une nouvelle sortie avance."""
+    import asyncio
+
+    async def scenario() -> None:
+        await a3.start_scenario("solar-event", speed=6000.0)
+        for _ in range(100):
+            if any(a.level.value == "danger" for a in a3.engine.list(None)):
+                break
+            await asyncio.sleep(0.02)
+        danger = [a for a in a3.engine.list(None) if a.level.value == "danger"]
+        assert danger, "le pic de dose lève une alerte danger"
+        a3.acknowledge(danger[0].id)
+        await a3.stop_scenario()
+
+    asyncio.run(scenario())
+    assert not [a for a in a3.engine.list(None) if a.level.value == "danger"]
+    eva = sim.start(DEMO)
+    for _ in range(5):
+        sim.step(eva.id, 10.0)
+    after = sim.get(eva.id)
+    assert after.status == EvaStatus.active
+    assert after.distance_done_m > 0
+
+
+def test_known_site_alert_does_not_force_the_return(sim: A4Service, a3: A3Service) -> None:
+    """E8 : une alerte de site acquittée avant le départ n'arrête pas la nouvelle sortie."""
+    a3.provider_factory = lambda mode, scenario_id=None: _Spike()
+    a3.tick()
+    for alert in a3.engine.list(None):
+        a3.acknowledge(alert.id)
+    eva = sim.start(DEMO)
+    sim.step(eva.id, 10.0)
+    assert sim.get(eva.id).status == EvaStatus.active
+
+
 def test_observation_goes_to_the_logbook(sim: A4Service, a3: A3Service) -> None:
     eva = sim.start(DEMO)
     obs = sim.add_observation(

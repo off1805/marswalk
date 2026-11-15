@@ -14,6 +14,8 @@ dependencies = [
 
 [project.scripts]
 marswalk-ingest = "marswalk_pipeline.ingest._cli:main"
+marswalk-derive = "marswalk_pipeline.derived._cli:main"
+marswalk-package = "marswalk_pipeline.package.__main__:main"
 
 [build-system]
 requires = ["hatchling>=1.25"]

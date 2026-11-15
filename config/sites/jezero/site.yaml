@@ -52,6 +52,11 @@ derive:
   antenna_height_m: 10.0
   sun_azimuth_deg: 90.0
   sun_altitude_deg: 20.0
+  ti_dune_threshold: 170.0
+  ti_loose_threshold: 200.0
+  ti_mixed_threshold: 270.0
+  texture_window_px: 5
+  texture_dune_threshold: 5.0
 
 # Paramètres d'ingest D1
 ingest:

@@ -80,7 +80,7 @@ def _dilate_mask(mask: BoolGrid, radius_cells: int) -> BoolGrid:
     """
     if radius_cells <= 0:
         return mask
-    from scipy.ndimage import maximum_filter1d
+    from scipy.ndimage import maximum_filter1d  # type: ignore[import-untyped]
 
     size = 2 * radius_cells + 1
     dilated = maximum_filter1d(mask.astype(np.uint8), size=size, axis=0)

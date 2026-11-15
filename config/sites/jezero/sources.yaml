@@ -1,0 +1,42 @@
+# Sources brutes pour le site Jezero (Perseverance).
+# Géré par D0 (téléchargement) et D1 (ingestion / recalage).
+# Les chemins sont relatifs à data/raw/jezero/.
+
+layers:
+  hirise_vis:
+    file: ESP_046060_1985_RED.JP2
+    description: "HiRISE ortho-mosaïque visible (25 cm, EQC lat_ts=0)"
+    res_m: 0.25
+    crs: ESRI:103885
+
+  hirise_dem:
+    file: JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif
+    description: "HiRISE MNT (1 m, EQC lat_ts=0, calé sur MOLA)"
+    res_m: 1.0
+    crs: ESRI:103885
+
+  ctx_vis:
+    file: JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif
+    description: "CTX ortho-mosaïque visible (6 m, EQC lat_ts=0)"
+    res_m: 6.0
+    crs: ESRI:103885
+
+  ctx_dem:
+    file: M20_JezeroCrater_CTXDEM_20m.tif
+    description: "CTX MNT (20 m)"
+    res_m: 20.0
+
+  dem_mola:
+    file: Mars_MGS_MOLA_DEM_mosaic_global_463m.tif
+    description: "MOLA MNT global (463 m)"
+    res_m: 463.0
+
+  thermal_inertia:
+    file: Jezero_Thermal_Inertia_v1.tiff
+    description: "Inertie thermique THEMIS (100 m, NoData=0)"
+    res_m: 100.0
+
+  crism_minerals:
+    file: jezeroFinal.tif
+    description: "Minéralogie CRISM (18 m, catégoriel)"
+    res_m: 18.0

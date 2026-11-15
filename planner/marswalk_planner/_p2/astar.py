@@ -31,8 +31,8 @@ from typing import NamedTuple
 
 import numpy as np
 from numpy.typing import NDArray
-from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import dijkstra
+from scipy.sparse import csr_matrix  # type: ignore[import-untyped]
+from scipy.sparse.csgraph import dijkstra  # type: ignore[import-untyped]
 
 FloatGrid = NDArray[np.float32]
 

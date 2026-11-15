@@ -144,7 +144,7 @@ def test_numpy_computation_2500x2500() -> None:
     de la section H du cahier des charges (< 1 s sur l'environnement de référence
     Linux/CI ; la limite élargie à 2 s absorbe la variabilité Windows).
     """
-    from scipy.ndimage import maximum_filter1d
+    from scipy.ndimage import maximum_filter1d  # type: ignore[import-untyped]
 
     rng = np.random.default_rng(42)
     n_grid = 2500

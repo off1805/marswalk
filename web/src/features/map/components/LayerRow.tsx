@@ -48,7 +48,7 @@ export function LayerRow({
           type="button"
           onClick={() => setShowDetails(!showDetails)}
           className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] px-1 py-0.5"
-          aria-label={`Details for layer ${layer.title}`}
+          aria-label={`Détails de la couche ${layer.title}`}
         >
           {showDetails ? "▲" : "▼"}
         </button>
@@ -68,7 +68,7 @@ export function LayerRow({
             value={view.opacity}
             onChange={(e) => onChangeOpacity(parseFloat(e.target.value))}
             className="h-1 flex-1 accent-[var(--color-info)]"
-            aria-label={`Opacity for layer ${layer.title}`}
+            aria-label={`Opacité de la couche ${layer.title}`}
           />
           <span className="w-8 text-right font-mono text-[10px]">
             {Math.round(view.opacity * 100)}%

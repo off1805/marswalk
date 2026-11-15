@@ -1,21 +1,25 @@
 /**
- * Hook — reconnaissance vocale avec wake word.
+ * Hook — reconnaissance vocale avec wake word et protection anti-écho.
  *
  * Flux d'état :
  *
  *   idle
- *    │  [1er clic bouton]
+ *    │  [1er clic]
  *    ▼
- *   wakeWord ◄──────────────────────────────────────────────────┐
- *    │  [« Nebula » détecté]  → synthèse répond aléatoirement   │
- *    ▼                                                           │
- *   listening ──[timeout 8 s / erreur no-speech]───────────────►┤
- *    │  [commande finale reconnue]                               │
- *    ▼                                                           │
- *   processing ──────────────────────────────────────────────── ┘
+ *   wakeWord ◄─────────────────────────────────────────────────────┐
+ *    │  [« Nebula » détecté]                                       │
+ *    │    → micro STOP                                             │
+ *    │    → synthèse répond aléatoirement  (isSpeaking = true)     │
+ *    │    → micro RESTART quand isSpeaking = false                 │
+ *    ▼                                                             │
+ *   listening ──[timeout 8 s / no-speech]─────────────────────────┤
+ *    │  [commande finale reconnue]                                 │
+ *    ▼                                                             │
+ *   processing ───────────────────────────────────────────────────┘
  *
- * [2e clic en état wakeWord] → listening (bypass du wake word, pour la démo)
- * [clic en état listening/processing] → idle (annuler complètement)
+ * Anti-écho : useWakeWord reçoit `paused = isSpeaking`. Tant que Nebula
+ * parle, le reconnaisseur de wake word est arrêté. Il redémarre dès que
+ * la synthèse termine. Même protection pour le micro de commandes.
  *
  * Principe S : gérer l'état de l'écoute est sa seule responsabilité.
  */
@@ -41,14 +45,28 @@ export function useVoiceRecognition(
   speechQueue: SpeechQueue,
   onCommand: (transcript: string) => void,
 ): VoiceRecognitionState {
-  const [state, setState]       = useState<RecognitionState>(() =>
+  const [state, setState]           = useState<RecognitionState>(() =>
     recognizer.isSupported() ? "idle" : "unsupported",
   );
   const [transcript, setTranscript] = useState("");
-  const listeningRef   = useRef(false);
-  const timeoutRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listeningRef                = useRef(false);
+  const timeoutRef                  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Écoute active de commandes ──────────────────────────────────────────────
+  // Raccourci vers l'état de synthèse (vrai = Nebula parle)
+  const { isSpeaking } = speechQueue;
+
+  // ── Anti-écho : stopper le micro de commande si Nebula parle ───────────────
+  useEffect(() => {
+    if (isSpeaking && listeningRef.current) {
+      // Nebula commence à parler pendant l'écoute de commande → stopper
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      recognizer.stop();
+      listeningRef.current = false;
+      // On ne change pas l'état : il reviendra à wakeWord via onEnd
+    }
+  }, [isSpeaking, recognizer]);
+
+  // ── Écoute active de commandes ─────────────────────────────────────────────
 
   const startCommandListening = useCallback(() => {
     if (!recognizer.isSupported()) return;
@@ -58,14 +76,16 @@ export function useVoiceRecognition(
     setState("listening");
     setTranscript("");
 
-    // Timeout : si aucune commande en 8 s, retour en wake word
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       if (!listeningRef.current) return;
       recognizer.stop();
       listeningRef.current = false;
       setState("wakeWord");
-      speechQueue.enqueue({ text: "No command received. I'm still listening for Nebula.", priority: "low" });
+      speechQueue.enqueue({
+        text: "No command received. I'm still listening for Nebula.",
+        priority: "low",
+      });
     }, COMMAND_TIMEOUT_MS);
   }, [recognizer, speechQueue]);
 
@@ -81,6 +101,9 @@ export function useVoiceRecognition(
     if (!recognizer.isSupported()) return;
 
     recognizer.onResult((text, isFinal) => {
+      // Ignorer si Nebula parle (écho)
+      if (isSpeaking) return;
+
       setTranscript(text);
       if (isFinal) {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -88,7 +111,6 @@ export function useVoiceRecognition(
         setState("processing");
         onCommand(text);
         setTranscript("");
-        // Retour automatique en écoute passive
         setState("wakeWord");
       } else if (looksLikeCommand(text)) {
         setState("processing");
@@ -110,18 +132,34 @@ export function useVoiceRecognition(
       listeningRef.current = false;
       setState((prev) => prev === "listening" ? "wakeWord" : prev);
     });
-  }, [recognizer, onCommand]);
+  }, [recognizer, onCommand, isSpeaking]);
 
-  // ── Wake word : écoute passive ─────────────────────────────────────────────
+  // ── Wake word : écoute passive (pausée quand Nebula parle) ────────────────
 
   useWakeWord(
     state === "wakeWord",
+    isSpeaking,   // ← pause le reconnaisseur pendant la synthèse
     useCallback(() => {
-      // Nebula détecté → réponse vocale aléatoire puis écoute de commande
+      // Nebula détecté → réponse aléatoire, puis ouverture du micro de commande
+      // Le micro de commande s'ouvre APRÈS la fin de la synthèse grâce à isSpeaking
       const response = randomWakeResponse();
       speechQueue.enqueue({ text: response, priority: "low" });
-      // Petit délai pour laisser la synthèse commencer avant d'ouvrir le micro
-      setTimeout(startCommandListening, 600);
+
+      // On attend que la synthèse soit terminée pour ouvrir le micro
+      // en observant isSpeaking via un polling léger
+      let attempts = 0;
+      const waitAndStart = () => {
+        attempts++;
+        if (attempts > 50) return; // sécurité max 5 s
+        if (speechQueue.isSpeaking) {
+          setTimeout(waitAndStart, 100);
+        } else {
+          // Synthèse terminée → petit délai supplémentaire (réverbération)
+          setTimeout(startCommandListening, 200);
+        }
+      };
+      // Laisser la synthèse démarrer (100 ms) avant de commencer à attendre
+      setTimeout(waitAndStart, 100);
     }, [speechQueue, startCommandListening]),
   );
 
@@ -132,19 +170,20 @@ export function useVoiceRecognition(
 
     switch (state) {
       case "idle":
-        // Première activation → mode wake word
         setState("wakeWord");
-        speechQueue.enqueue({ text: "Wake word mode activated. Say Nebula to give a command.", priority: "low" });
+        speechQueue.enqueue({
+          text: "Wake word mode activated. Say Nebula to give a command.",
+          priority: "low",
+        });
         break;
 
       case "wakeWord":
-        // 2e clic → bypass du wake word (accès direct, utile en démo)
+        // Bypass du wake word (accès direct, utile en démo)
         startCommandListening();
         break;
 
       case "listening":
       case "processing":
-        // Annuler
         stopCommandListening();
         setState("idle");
         speechQueue.enqueue({ text: "Voice assistant deactivated.", priority: "low" });

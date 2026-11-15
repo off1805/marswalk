@@ -1,56 +1,67 @@
 /**
- * File de synthèse vocale — évite que deux synthèses se chevauchent.
+ * File de synthèse vocale.
  *
- * Principe S : gérer la file et la priorité est sa seule responsabilité.
- * Les requêtes `high` vident la file et parlent immédiatement.
+ * Principe S : gérer la file, la priorité et l'état de parole est sa seule
+ * responsabilité.
+ *
+ * Expose `isSpeaking` pour que l'écoute du micro puisse se mettre en pause
+ * pendant que Nebula parle — évite l'écho (le micro qui capte la synthèse).
  */
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { SynthRequest } from "./types";
 import type { ISpeechSynthesizer } from "./speechSynthesis";
 
 export interface SpeechQueue {
   enqueue(req: SynthRequest): void;
   cancel(): void;
+  /** Vrai pendant toute la durée d'une synthèse vocale. */
+  isSpeaking: boolean;
 }
 
 export function useSpeechQueue(synthesizer: ISpeechSynthesizer): SpeechQueue {
-  const queue = useRef<SynthRequest[]>([]);
-  const speaking = useRef(false);
+  const queue      = useRef<SynthRequest[]>([]);
+  const speakingRef = useRef(false);
+  // État React pour déclencher les re-renders dans les consommateurs
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const setSpeaking = useCallback((val: boolean) => {
+    speakingRef.current = val;
+    setIsSpeaking(val);
+  }, []);
 
   const processNext = useCallback(async () => {
-    if (speaking.current || queue.current.length === 0) return;
+    if (speakingRef.current || queue.current.length === 0) return;
     const req = queue.current.shift()!;
-    speaking.current = true;
+    setSpeaking(true);
     try {
       await synthesizer.speak(req);
     } catch {
-      // Silence en cas d'erreur de synthèse
+      // Erreur de synthèse silencieuse
     } finally {
-      speaking.current = false;
+      setSpeaking(false);
       void processNext();
     }
-  }, [synthesizer]);
+  }, [synthesizer, setSpeaking]);
 
   const enqueue = useCallback(
     (req: SynthRequest) => {
       if (req.priority === "high") {
-        // Vide la file et interrompt la synthèse en cours
         queue.current = [req];
         synthesizer.cancel();
-        speaking.current = false;
+        setSpeaking(false);
       } else {
         queue.current.push(req);
       }
       void processNext();
     },
-    [synthesizer, processNext],
+    [synthesizer, processNext, setSpeaking],
   );
 
   const cancel = useCallback(() => {
     queue.current = [];
     synthesizer.cancel();
-    speaking.current = false;
-  }, [synthesizer]);
+    setSpeaking(false);
+  }, [synthesizer, setSpeaking]);
 
-  return { enqueue, cancel };
+  return { enqueue, cancel, isSpeaking };
 }

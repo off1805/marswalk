@@ -23,28 +23,56 @@ export interface ISpeechSynthesizer {
   isAvailable(): boolean;
 }
 
-// ── Sélection de voix ─────────────────────────────────────────────────────────
+// ── Sélection de voix féminine anglaise ──────────────────────────────────────
 
+/**
+ * Voix féminines anglophones, par ordre de préférence.
+ *
+ * Chrome/Edge  : "Google US English" — voix Google féminine par défaut
+ * macOS        : "Samantha" — féminine, claire
+ * Windows 11   : "Microsoft Aria Online (Natural)" — neural féminine
+ * Windows 11   : "Microsoft Jenny Online (Natural)" — neural féminine
+ * Windows 10   : "Microsoft Zira" — féminine
+ *
+ * Voix masculines explicitement exclues : David, Alex, Daniel, Mark.
+ */
 const PREFERRED_VOICES = [
   "Google US English",
   "Samantha",
-  "Alex",
   "Microsoft Aria Online (Natural) - English (United States)",
+  "Microsoft Jenny Online (Natural) - English (United States)",
+  "Microsoft Aria - English (United States)",
+  "Microsoft Jenny - English (United States)",
   "Microsoft Zira Desktop - English (United States)",
-  "Microsoft David Desktop - English (United States)",
+  "Karen",       // macOS australien, féminin
+  "Moira",       // macOS irlandais, féminin
+  "Tessa",       // macOS sud-africain, féminin
 ];
+
+/** Noms de voix masculines à exclure en repli. */
+const MALE_VOICE_NAMES = ["David", "Alex", "Daniel", "Mark", "Fred", "Ralph", "Junior"];
 
 function pickEnglishVoice(): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices();
+
+  // 1. Essayer chaque voix préférée dans l'ordre
   for (const name of PREFERRED_VOICES) {
     const v = voices.find((v) => v.name.includes(name));
     if (v) return v;
   }
-  return (
-    voices.find((v) => v.lang === "en-US") ??
-    voices.find((v) => v.lang.startsWith("en")) ??
-    null
+
+  // 2. Repli : première voix en-US qui n'est pas masculine
+  const usVoice = voices.find(
+    (v) =>
+      v.lang === "en-US" &&
+      !MALE_VOICE_NAMES.some((m) => v.name.includes(m)),
   );
+  if (usVoice) return usVoice;
+
+  // 3. Repli absolu : n'importe quelle voix en-US
+  return voices.find((v) => v.lang.startsWith("en-US"))
+    ?? voices.find((v) => v.lang.startsWith("en"))
+    ?? null;
 }
 
 // ── BrowserSynthesizer ────────────────────────────────────────────────────────
@@ -63,28 +91,35 @@ export class BrowserSynthesizer implements ISpeechSynthesizer {
       if (!this.isAvailable()) { resolve(); return; }
       if (priority === "high") window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang  = "en-US";
-      utterance.rate  = 1.0;
-      utterance.pitch = 1.0;
+      const doSpeak = () => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang  = "en-US";
+        utterance.rate  = 1.0;
+        utterance.pitch = 1.0;
 
-      // Les voix chargent de façon asynchrone — on tente d'en obtenir une.
-      const voice = pickEnglishVoice();
-      if (voice) utterance.voice = voice;
+        const voice = pickEnglishVoice();
+        if (voice) utterance.voice = voice;
 
-      // Workaround Chrome : la synthèse se coupe après ~15 s. On la relance.
-      const keepAlive = setInterval(() => {
-        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-      }, 5_000);
+        const keepAlive = setInterval(() => {
+          if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+        }, 5_000);
 
-      utterance.onend = () => { clearInterval(keepAlive); resolve(); };
-      utterance.onerror = (e) => {
-        clearInterval(keepAlive);
-        if (e.error === "interrupted" || e.error === "canceled") resolve();
-        else reject(new Error(e.error));
+        utterance.onend = () => { clearInterval(keepAlive); resolve(); };
+        utterance.onerror = (e) => {
+          clearInterval(keepAlive);
+          if (e.error === "interrupted" || e.error === "canceled") resolve();
+          else reject(new Error(e.error));
+        };
+
+        window.speechSynthesis.speak(utterance);
       };
 
-      window.speechSynthesis.speak(utterance);
+      // Si les voix ne sont pas encore chargées, attendre voiceschanged
+      if (window.speechSynthesis.getVoices().length > 0) {
+        doSpeak();
+      } else {
+        window.speechSynthesis.addEventListener("voiceschanged", doSpeak, { once: true });
+      }
     });
   }
 }

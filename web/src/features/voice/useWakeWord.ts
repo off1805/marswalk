@@ -2,20 +2,15 @@
  * Écoute permanente du mot de réveil « Nebula ».
  *
  * Principe S : détecter le mot de réveil est sa seule responsabilité.
- * Il ne connaît pas les commandes ni la synthèse.
  *
- * Quand active = true :
- *   - Un reconnaisseur en-US tourne en mode continu.
- *   - Dès que « Nebula » est détecté, onWake() est appelé et l'écoute s'arrête.
- *   - En cas d'erreur ou de fin, il redémarre automatiquement (back-off 500 ms).
- *
- * Quand active = false : tout s'arrête proprement.
+ * Paramètre `paused` : quand vrai (Nebula est en train de parler), l'écoute
+ * s'arrête proprement pour éviter que le micro capte la synthèse vocale.
+ * Dès que `paused` repasse à false, l'écoute redémarre automatiquement.
  */
 import { useEffect, useRef } from "react";
 import { containsWakeWord } from "./commandParser";
 
-// Types inline identiques à speechRecognition.ts
-interface SpeechRecognitionEvent {
+interface WakeRecognitionEvent {
   results: { [i: number]: { [j: number]: { transcript: string }; isFinal: boolean }; length: number };
 }
 interface WakeRecognitionInstance {
@@ -23,7 +18,7 @@ interface WakeRecognitionInstance {
   interimResults: boolean;
   lang: string;
   maxAlternatives: number;
-  onresult: ((e: SpeechRecognitionEvent) => void) | null;
+  onresult: ((e: WakeRecognitionEvent) => void) | null;
   onerror: ((e: { error: string }) => void) | null;
   onend: (() => void) | null;
   start(): void;
@@ -31,13 +26,36 @@ interface WakeRecognitionInstance {
 }
 interface WakeRecognitionCtor { new(): WakeRecognitionInstance; }
 
-export function useWakeWord(active: boolean, onWake: () => void): void {
-  const recRef      = useRef<WakeRecognitionInstance | null>(null);
-  const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const onWakeRef   = useRef(onWake);
-  const stoppedRef  = useRef(false);
-  onWakeRef.current = onWake;
+export function useWakeWord(
+  active: boolean,
+  paused: boolean,
+  onWake: () => void,
+): void {
+  const recRef     = useRef<WakeRecognitionInstance | null>(null);
+  const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stoppedRef = useRef(false);
+  const pausedRef  = useRef(paused);
+  const onWakeRef  = useRef(onWake);
 
+  // Mettre à jour les refs sans redémarrer l'effet
+  onWakeRef.current = onWake;
+  pausedRef.current = paused;
+
+  // Réagir à paused : arrêter ou relancer l'écoute
+  useEffect(() => {
+    if (!active) return;
+
+    if (paused) {
+      // Nebula parle — arrêter le micro immédiatement
+      if (timerRef.current) clearTimeout(timerRef.current);
+      recRef.current?.stop();
+      recRef.current = null;
+    }
+    // Quand paused repasse à false, l'effet principal (ci-dessous) redémarre
+    // automatiquement car `paused` est dans ses dépendances.
+  }, [paused, active]);
+
+  // Effet principal : démarrer / arrêter l'écoute passive
   useEffect(() => {
     const w = window as unknown as {
       SpeechRecognition?: WakeRecognitionCtor;
@@ -45,7 +63,7 @@ export function useWakeWord(active: boolean, onWake: () => void): void {
     };
     const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
 
-    if (!SR || !active) {
+    if (!SR || !active || paused) {
       stoppedRef.current = true;
       recRef.current?.stop();
       recRef.current = null;
@@ -55,7 +73,7 @@ export function useWakeWord(active: boolean, onWake: () => void): void {
     stoppedRef.current = false;
 
     function startListening() {
-      if (stoppedRef.current) return;
+      if (stoppedRef.current || pausedRef.current) return;
 
       const rec = new SR!();
       rec.continuous      = true;
@@ -64,10 +82,12 @@ export function useWakeWord(active: boolean, onWake: () => void): void {
       rec.maxAlternatives = 2;
 
       rec.onresult = (e) => {
+        // Ne pas traiter si Nebula est en train de parler
+        if (pausedRef.current) return;
+
         for (let i = 0; i < e.results.length; i++) {
           const r = e.results[i];
           if (!r) continue;
-          // Vérifier chaque alternative
           for (let j = 0; j < 2; j++) {
             const alt = r[j];
             if (alt && containsWakeWord(alt.transcript)) {
@@ -80,15 +100,14 @@ export function useWakeWord(active: boolean, onWake: () => void): void {
       };
 
       rec.onerror = ({ error }) => {
-        if (stoppedRef.current) return;
-        // "no-speech" est normal en écoute continue
+        if (stoppedRef.current || pausedRef.current) return;
         if (error !== "aborted") {
           timerRef.current = setTimeout(startListening, 1_000);
         }
       };
 
       rec.onend = () => {
-        if (!stoppedRef.current) {
+        if (!stoppedRef.current && !pausedRef.current) {
           timerRef.current = setTimeout(startListening, 500);
         }
       };
@@ -105,5 +124,5 @@ export function useWakeWord(active: boolean, onWake: () => void): void {
       recRef.current?.stop();
       recRef.current = null;
     };
-  }, [active]);
+  }, [active, paused]);
 }

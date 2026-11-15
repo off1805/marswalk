@@ -14,11 +14,11 @@ import { queryKeys } from "@/shared/queryKeys";
 import type { Alert } from "@/shared/api/client";
 import type { SpeechQueue } from "./useSpeechQueue";
 
-/** Texte lu à voix haute selon le niveau d'alerte. */
+/** Texte lu à voix haute en anglais selon le niveau d'alerte. */
 function alertToSpeech(alert: Alert): string {
   const level =
-    alert.level === "danger" ? "Alerte danger"
-    : alert.level === "caution" ? "Attention"
+    alert.level === "danger"  ? "Danger alert"
+    : alert.level === "caution" ? "Caution"
     : "Information";
   return `${level}. ${alert.title}. ${alert.action}.`;
 }

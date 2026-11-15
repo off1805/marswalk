@@ -1,16 +1,15 @@
 /**
- * Panneau assembleur de la feature vocale — slot `map-overlay`.
+ * Panneau assembleur de la feature vocale — slot map-overlay.
  *
- * Principe S : orchestrer les hooks et composants est sa seule responsabilité.
- * Principe D : dépend des abstractions exposées par ses hooks.
+ * Flux :
+ *   1. useSpeechQueue    → file de synthèse anglaise (une voix à la fois)
+ *   2. useAlertSpeaker   → lit les alertes danger automatiquement en anglais
+ *   3. useVoiceCommands  → traduit les commandes en actions magasin/API
+ *   4. useVoiceRecognition → gère l'état micro + wake word Nebula
+ *   5. VoiceButton       → affiche l'état et permet le toggle
  *
- * Ce composant :
- *   1. Instancie les singletons via `serviceRegistry`.
- *   2. Monte la file de synthèse (`useSpeechQueue`).
- *   3. Active la lecture automatique des alertes (`useAlertSpeaker`).
- *   4. Exécute les commandes (`useVoiceCommands`).
- *   5. Gère la reconnaissance (`useVoiceRecognition`).
- *   6. Affiche `VoiceButton`.
+ * Principe S : orchestrer, ne pas calculer.
+ * Principe D : dépend des abstractions exposées par les hooks.
  */
 import { useCallback } from "react";
 import { getRecognizer, getSynthesizer } from "./serviceRegistry";
@@ -25,34 +24,30 @@ export function VoicePanel() {
   const recognizer = getRecognizer();
   const synthesizer = getSynthesizer();
 
-  // File de synthèse — une seule voix à la fois, priorité respectée
   const speechQueue = useSpeechQueue(synthesizer);
 
-  // Lecture automatique des alertes danger
+  // Lecture automatique des alertes en anglais
   useAlertSpeaker(speechQueue);
 
-  // Exécution des commandes
   const { execute } = useVoiceCommands(speechQueue);
 
-  // Callback : transcription finale → parse → exécute
   const handleTranscript = useCallback(
     (transcript: string) => {
-      const cmd = parseCommand(transcript);
-      void execute(cmd);
+      void execute(parseCommand(transcript));
     },
     [execute],
   );
 
-  // Reconnaissance vocale
   const { recognitionState, transcript, toggle } = useVoiceRecognition(
     recognizer,
+    speechQueue,
     handleTranscript,
   );
 
   return (
     <div
       className="absolute bottom-16 right-4 z-20"
-      aria-label="Assistant vocal"
+      aria-label="Nebula voice assistant"
     >
       <VoiceButton
         state={recognitionState}

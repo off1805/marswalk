@@ -13,7 +13,8 @@ let _synthesizer: ISpeechSynthesizer | null = null;
 
 export function getRecognizer(): ISpeechRecognizer {
   if (!_recognizer) {
-    _recognizer = new BrowserSpeechRecognizer("fr-FR");
+    // en-US : reconnaissance et wake word en anglais
+    _recognizer = new BrowserSpeechRecognizer("en-US");
   }
   return _recognizer;
 }

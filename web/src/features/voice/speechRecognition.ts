@@ -1,14 +1,12 @@
 /**
- * Abstraction de l'API Web Speech (reconnaissance vocale).
+ * Abstraction de la Web Speech API (reconnaissance vocale).
  *
- * Principe D (Dependency Inversion) : le code applicatif dépend de
- * `ISpeechRecognizer`, pas de `window.SpeechRecognition` directement.
- * Les tests injectent `MockSpeechRecognizer` sans navigateur.
+ * Deux modes selon l'usage :
+ *   - wake-word (en-US, continu)  : écoute permanente du mot « Nebula »
+ *   - commandes  (en-US, single)  : écoute d'une commande après réveil
  *
- * Principe S : wrappeur uniquement — pas de logique de commande ici.
- *
- * Note : `SpeechRecognition` n'est pas dans `lib.dom.d.ts` standard.
- * On utilise des types inline pour éviter une dépendance supplémentaire.
+ * Principe D : le code dépend de ISpeechRecognizer, jamais de
+ * window.SpeechRecognition directement.
  */
 
 export interface ISpeechRecognizer {
@@ -20,13 +18,13 @@ export interface ISpeechRecognizer {
   isSupported(): boolean;
 }
 
-// Types inline pour l'API Web Speech (non standard, absent de lib.dom.d.ts)
+// Types inline — SpeechRecognition est absent de lib.dom.d.ts standard.
 interface SpeechRecognitionResult {
   readonly isFinal: boolean;
   0: { transcript: string };
 }
 interface SpeechRecognitionEvent extends Event {
-  readonly results: { [index: number]: SpeechRecognitionResult; length: number };
+  readonly results: { [i: number]: SpeechRecognitionResult; length: number };
 }
 interface SpeechRecognitionErrorEvent extends Event {
   readonly error: string;
@@ -42,20 +40,16 @@ interface SpeechRecognitionInstance extends EventTarget {
   start(): void;
   stop(): void;
 }
-interface SpeechRecognitionConstructor {
-  new(): SpeechRecognitionInstance;
-}
+interface SpeechRecognitionConstructor { new(): SpeechRecognitionInstance; }
 
-/** Implémentation réelle utilisant la Web Speech API du navigateur. */
 export class BrowserSpeechRecognizer implements ISpeechRecognizer {
   private rec: SpeechRecognitionInstance | null = null;
 
-  constructor(private readonly lang = "fr-FR") {}
+  /** lang — langue d'écoute ; pour V1 : toujours "en-US". */
+  constructor(private readonly lang = "en-US") {}
 
   isSupported(): boolean {
-    return (
-      "SpeechRecognition" in window || "webkitSpeechRecognition" in window
-    );
+    return "SpeechRecognition" in window || "webkitSpeechRecognition" in window;
   }
 
   private get instance(): SpeechRecognitionInstance {
@@ -65,12 +59,12 @@ export class BrowserSpeechRecognizer implements ISpeechRecognizer {
         webkitSpeechRecognition?: SpeechRecognitionConstructor;
       };
       const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
-      if (!SR) throw new Error("Web Speech API non supportée");
+      if (!SR) throw new Error("Web Speech API not supported");
       this.rec = new SR();
       this.rec.continuous = false;
       this.rec.interimResults = true;
       this.rec.lang = this.lang;
-      this.rec.maxAlternatives = 1;
+      this.rec.maxAlternatives = 2;
     }
     return this.rec;
   }
@@ -94,7 +88,8 @@ export class BrowserSpeechRecognizer implements ISpeechRecognizer {
   }
 }
 
-/** Implémentation de test — injectable sans navigateur. */
+// ── Mock pour les tests ───────────────────────────────────────────────────────
+
 export class MockSpeechRecognizer implements ISpeechRecognizer {
   private resultCb?: (t: string, f: boolean) => void;
   private errorCb?: (e: string) => void;
@@ -102,19 +97,14 @@ export class MockSpeechRecognizer implements ISpeechRecognizer {
 
   isSupported() { return true; }
   start() { /* no-op */ }
-  stop() { /* no-op */ }
+  stop()  { /* no-op */ }
   onResult(cb: (t: string, f: boolean) => void) { this.resultCb = cb; }
   onError(cb: (e: string) => void) { this.errorCb = cb; }
   onEnd(cb: () => void) { this.endCb = cb; }
 
-  /** Simule un résultat final (pour les tests). */
   emit(transcript: string, isFinal = true) {
     this.resultCb?.(transcript, isFinal);
     if (isFinal) this.endCb?.();
   }
-
-  /** Simule une erreur (pour les tests). */
-  emitError(error: string) {
-    this.errorCb?.(error);
-  }
+  emitError(error: string) { this.errorCb?.(error); }
 }

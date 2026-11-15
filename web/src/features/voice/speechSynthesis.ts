@@ -1,17 +1,19 @@
 /**
- * Abstraction de la synthèse vocale.
+ * Synthèse vocale en anglais (en-US).
  *
- * Principe D : le code dépend de `ISpeechSynthesizer`, pas de
- * `window.speechSynthesis` directement.
+ * Préférence de voix (ordre décroissant de qualité) :
+ *   Google US English   Chrome/Edge — qualité excellente
+ *   Samantha            macOS — claire, naturelle
+ *   Alex                macOS — alternative
+ *   Microsoft Zira      Windows 10/11
+ *   Microsoft Aria      Windows 11
+ *   première voix en-US disponible en repli
  *
- * Principe O : ajouter un synthétiseur cloud (Piper TTS, OpenAI) = créer
- * une nouvelle classe sans toucher au code appelant.
+ * Principe D : le code dépend de ISpeechSynthesizer, jamais de
+ * window.speechSynthesis directement.
  *
- * Architecture à deux niveaux :
- *   1. `BrowserSynthesizer`  — fonctionne hors ligne, qualité variable
- *   2. `PiperSynthesizer`    — API FastAPI locale (conteneur Docker)
- *
- * `createSynthesizer` choisit automatiquement selon la connectivité.
+ * Principe O : ajouter un synthétiseur cloud = nouvelle classe,
+ * zéro modification du code appelant.
  */
 import type { SynthRequest } from "./types";
 
@@ -21,19 +23,31 @@ export interface ISpeechSynthesizer {
   isAvailable(): boolean;
 }
 
-// ── Synthétiseur navigateur ───────────────────────────────────────────────────
+// ── Sélection de voix ─────────────────────────────────────────────────────────
 
-/** Sélectionne la meilleure voix française disponible dans le navigateur. */
-function pickFrenchVoice(): SpeechSynthesisVoice | null {
+const PREFERRED_VOICES = [
+  "Google US English",
+  "Samantha",
+  "Alex",
+  "Microsoft Aria Online (Natural) - English (United States)",
+  "Microsoft Zira Desktop - English (United States)",
+  "Microsoft David Desktop - English (United States)",
+];
+
+function pickEnglishVoice(): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices();
-  // Préférences ordonnées : Thomas (macOS) > Amélie (macOS) > Hortense (Win)
-  const PREFERRED = ["Thomas", "Amélie", "Hortense", "Google français"];
-  for (const name of PREFERRED) {
-    const v = voices.find((v) => v.name.includes(name) && v.lang.startsWith("fr"));
+  for (const name of PREFERRED_VOICES) {
+    const v = voices.find((v) => v.name.includes(name));
     if (v) return v;
   }
-  return voices.find((v) => v.lang.startsWith("fr")) ?? null;
+  return (
+    voices.find((v) => v.lang === "en-US") ??
+    voices.find((v) => v.lang.startsWith("en")) ??
+    null
+  );
 }
+
+// ── BrowserSynthesizer ────────────────────────────────────────────────────────
 
 export class BrowserSynthesizer implements ISpeechSynthesizer {
   isAvailable(): boolean {
@@ -46,53 +60,49 @@ export class BrowserSynthesizer implements ISpeechSynthesizer {
 
   speak({ text, priority }: SynthRequest): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (!this.isAvailable()) {
-        resolve();
-        return;
-      }
-      if (priority === "high") {
-        window.speechSynthesis.cancel();
-      }
+      if (!this.isAvailable()) { resolve(); return; }
+      if (priority === "high") window.speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "fr-FR";
-      utterance.rate = 1.05;
+      utterance.lang  = "en-US";
+      utterance.rate  = 1.0;
       utterance.pitch = 1.0;
 
-      // Les voix se chargent de manière asynchrone — on réessaie si besoin
-      const voice = pickFrenchVoice();
+      // Les voix chargent de façon asynchrone — on tente d'en obtenir une.
+      const voice = pickEnglishVoice();
       if (voice) utterance.voice = voice;
 
-      utterance.onend = () => resolve();
-      utterance.onerror = (e) => reject(new Error(e.error));
+      // Workaround Chrome : la synthèse se coupe après ~15 s. On la relance.
+      const keepAlive = setInterval(() => {
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+      }, 5_000);
+
+      utterance.onend = () => { clearInterval(keepAlive); resolve(); };
+      utterance.onerror = (e) => {
+        clearInterval(keepAlive);
+        if (e.error === "interrupted" || e.error === "canceled") resolve();
+        else reject(new Error(e.error));
+      };
 
       window.speechSynthesis.speak(utterance);
     });
   }
 }
 
-// ── Synthétiseur Piper TTS (conteneur Docker) ─────────────────────────────────
+// ── PiperSynthesizer (conteneur Docker) ──────────────────────────────────────
 
-/**
- * Appelle `/api/tts` (endpoint à ajouter via demande de changement).
- * En attendant, se rabat sur `BrowserSynthesizer`.
- */
 export class PiperSynthesizer implements ISpeechSynthesizer {
   private readonly fallback = new BrowserSynthesizer();
 
-  isAvailable(): boolean {
-    return true; // toujours déclaré disponible, utilise le fallback si l'API est absente
-  }
-
-  cancel(): void {
-    this.fallback.cancel();
-  }
+  isAvailable(): boolean { return true; }
+  cancel(): void { this.fallback.cancel(); }
 
   async speak(req: SynthRequest): Promise<void> {
     try {
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: req.text, voice: "fr_FR-upmc-medium" }),
+        body: JSON.stringify({ text: req.text, voice: "en_US-ljspeech-medium" }),
       });
       if (!res.ok) throw new Error(`TTS API: ${res.status}`);
       const blob = await res.blob();
@@ -100,11 +110,10 @@ export class PiperSynthesizer implements ISpeechSynthesizer {
       await new Promise<void>((resolve, reject) => {
         const audio = new Audio(url);
         audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
-        audio.onerror = () => { URL.revokeObjectURL(url); reject(); };
+        audio.onerror = () => { URL.revokeObjectURL(url); reject(new Error("audio")); };
         void audio.play();
       });
     } catch {
-      // Piper indisponible → repli sur le navigateur
       await this.fallback.speak(req);
     }
   }
@@ -112,15 +121,9 @@ export class PiperSynthesizer implements ISpeechSynthesizer {
 
 // ── Fabrique ──────────────────────────────────────────────────────────────────
 
-/**
- * Choisit le synthétiseur optimal selon la connectivité.
- * Principe D : le code appelant reçoit une abstraction, pas une classe concrète.
- */
 export function createSynthesizer(
   networkStatus: "online" | "offline",
 ): ISpeechSynthesizer {
-  // En ligne : on tente Piper (qualité supérieure et cohérente)
   if (networkStatus === "online") return new PiperSynthesizer();
-  // Hors ligne : uniquement le navigateur
   return new BrowserSynthesizer();
 }

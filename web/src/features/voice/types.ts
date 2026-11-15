@@ -1,39 +1,46 @@
 /**
  * Contrats internes de la feature vocale (V1).
  *
- * Principe I (Interface Segregation) : chaque consommateur reçoit
- * uniquement le type dont il a besoin.
+ * Principe I : chaque consommateur reçoit uniquement ce dont il a besoin.
  */
 
 // ── Commandes reconnues ───────────────────────────────────────────────────────
 
-/** Commande parsée depuis la transcription. */
 export type VoiceCommand =
   | { kind: "addTarget" }
   | { kind: "selectVariant"; variant: "safest" | "fastest" | "science" }
   | { kind: "queryPoint" }
   | { kind: "startFlyover" }
+  | { kind: "pauseFlyover" }
+  | { kind: "resumeFlyover" }
+  | { kind: "setFlyoverSpeed"; speed: 0.5 | 1 | 2 | 5 }
   | { kind: "returnToHabitat" }
   | { kind: "acknowledgeAlert" }
-  | { kind: "pauseFlyover" }
-  | { kind: "setFlyoverSpeed"; speed: 0.5 | 1 | 2 | 5 }
   | { kind: "toggleLayer"; layerId: string }
   | { kind: "unknown"; transcript: string };
 
 // ── État de la reconnaissance ─────────────────────────────────────────────────
 
-/** État observable du micro. */
+/**
+ * idle      — micro éteint
+ * wakeWord  — écoute passive du mot de réveil « Nebula »
+ * listening — écoute active d'une commande (après réveil)
+ * processing — commande reçue, traitement en cours
+ * error     — erreur de reconnaissance
+ * unsupported — Web Speech API absente
+ */
 export type RecognitionState =
-  | "unsupported"  // Web Speech API absente
-  | "idle"         // micro éteint
-  | "listening"    // écoute en cours
-  | "processing"   // résultat final reçu, traitement de la commande
-  | "error";       // erreur de reconnaissance
+  | "unsupported"
+  | "idle"
+  | "wakeWord"
+  | "listening"
+  | "processing"
+  | "error";
 
-// ── File de synthèse ──────────────────────────────────────────────────────────
+// ── Synthèse ──────────────────────────────────────────────────────────────────
 
-/** Requête de synthèse vocale. */
 export interface SynthRequest {
+  /** Texte en anglais à lire. */
   text: string;
   /** `high` interrompt la synthèse en cours (alertes danger). */
   priority: "low" | "high";

@@ -69,6 +69,7 @@ tasks:
     paths:
       - pipeline/marswalk_pipeline/derived/**
       - pipeline/tests/d2/**
+      - D2_REPORT.md
   D3:
     title: Paquet de site
     paths:

@@ -36,7 +36,7 @@ export function Terrain3dView() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center bg-[var(--bg)]">
+      <div className="relative min-h-0 flex-1 flex items-center justify-center bg-[var(--bg)]">
         <p className="animate-pulse text-sm text-[var(--text-muted)]">
           Chargement du terrain 3D…
         </p>
@@ -46,7 +46,7 @@ export function Terrain3dView() {
 
   if (!terrainConfig) {
     return (
-      <div className="flex h-full items-center justify-center bg-[var(--bg)]">
+      <div className="relative min-h-0 flex-1 flex items-center justify-center bg-[var(--bg)]">
         <p className="text-sm text-[var(--text-muted)]">
           Manifeste du site indisponible.
         </p>
@@ -55,7 +55,11 @@ export function Terrain3dView() {
   }
 
   return (
-    <div className="relative h-full w-full bg-[var(--bg)]" aria-label="Vue 3D du terrain">
+    <div
+      className="relative min-h-0 flex-1 overflow-hidden"
+      style={{ height: "100%" }}
+      aria-label="Vue 3D du terrain"
+    >
       {/* Rendu deck.gl */}
       <TerrainCanvas
         config={terrainConfig}

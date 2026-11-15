@@ -72,6 +72,10 @@ export function TerrainCanvas({
     const deck = new Deck({
       canvas: (() => {
         const canvas = document.createElement("canvas");
+        // Position absolue pour remplir le conteneur sans contribuer au flux
+        // et provoquer un scroll involontaire.
+        canvas.style.position = "absolute";
+        canvas.style.inset = "0";
         canvas.style.width = "100%";
         canvas.style.height = "100%";
         containerRef.current!.appendChild(canvas);
@@ -131,7 +135,7 @@ export function TerrainCanvas({
   return (
     <div
       ref={containerRef}
-      className="h-full w-full"
+      className="absolute inset-0"
       aria-label="Rendu 3D du terrain martien"
       data-testid="terrain-canvas"
     />

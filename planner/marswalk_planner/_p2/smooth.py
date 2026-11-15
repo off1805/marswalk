@@ -166,9 +166,6 @@ def _path_prefix_cost(cost: FloatGrid, path: list[Cell]) -> NDArray[np.float64]:
 # redressait tous les détours par le coût : les trois variantes, qui ne diffèrent que
 # par leurs poids, retombaient sur la même ligne droite (écart E5).
 _COST_TOLERANCE = 0.01
-# Après un raccourci refusé, on essaie encore quelques points plus loin : le coût d'une
-# corde n'est pas monotone le long du chemin.
-_LOOKAHEAD = 24
 
 
 def smooth_path(cost: FloatGrid, path: list[Cell]) -> list[Cell]:
@@ -200,18 +197,35 @@ def smooth_path(cost: FloatGrid, path: list[Cell]) -> list[Cell]:
     n = len(path)
     result: list[Cell] = [path[0]]
     i = 0
+
+    def ok(i: int, j: int) -> bool:
+        budget = float(prefix[j] - prefix[i]) * (1.0 + _COST_TOLERANCE) + 1e-9
+        return _line_cost(cost, path[i], path[j]) <= budget
+
     while i < n - 1:
+        # Recherche galopante puis dichotomique du point le plus lointain accepté :
+        # O(log n) segments testés par sommet retenu (sur Jezero, des milliers de cases
+        # par tronçon). Le coût d'une corde n'est pas monotone, le point retenu peut ne
+        # pas être le plus lointain possible ; il respecte toujours les deux règles.
         best = i + 1
-        misses = 0
-        for j in range(i + 2, n):
-            budget = (prefix[j] - prefix[i]) * (1.0 + _COST_TOLERANCE) + 1e-9
-            if _line_cost(cost, path[i], path[j]) <= budget:
+        step = 1
+        bad = n
+        while best + step < n:
+            j = best + step
+            if ok(i, j):
                 best = j
-                misses = 0
+                step *= 2
             else:
-                misses += 1
-                if misses > _LOOKAHEAD:
-                    break
+                bad = j
+                break
+        lo, hi = best, min(bad, n)
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            if ok(i, mid):
+                lo = mid
+            else:
+                hi = mid
+        best = lo
         result.append(path[best])
         i = best
 

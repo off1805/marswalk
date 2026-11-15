@@ -137,6 +137,7 @@ class A3Service:
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await task
+            self._end_scenario()
         state = self.scenario_state()
         return state.model_copy(update={"running": False})
 
@@ -144,6 +145,21 @@ class A3Service:
         while self._elapsed_s() < scenario.duration_s:
             await asyncio.sleep(self.tick_s)
             self.tick()
+        self._end_scenario(finished=True)
+
+    def _end_scenario(self, finished: bool = False) -> None:
+        """Fin du scénario : ses alertes de site sont levées, puis les conditions réelles
+        sont réévaluées (une alerte encore justifiée est levée de nouveau).
+
+        ``finished`` : appelé depuis la tâche elle-même, qui n'est pas encore ``done``.
+        """
+        with self._lock:
+            if finished:
+                self._task = None
+            st = self.stamp(utc=self.scenario_utc())
+            self._publish_change(self.engine.clear_scope(None, "fin du scénario"), st)
+            self._last_conditions = None
+        self.tick()
 
     def provider(self) -> marswalk_conditions.ConditionsProvider:
         if self._running():

@@ -209,6 +209,9 @@ class _Run:
     speed: float = 0.0
     scenario_id: str | None = None
     task: asyncio.Task[None] | None = None
+    known_site_alerts: set[str] = field(default_factory=set)
+    """Alertes de site déjà actives et acquittées au départ : l'équipe est partie en les
+    connaissant, elles n'imposent pas le retour à cette sortie."""
 
     @property
     def done(self) -> bool:
@@ -295,6 +298,9 @@ class A4Service:
             next_target_id=next((s.to_target_id for s in route.segments if s.to_target_id), None),
         )
         run = _Run(eva=eva, plan=plan, site=site, track=track)
+        run.known_site_alerts = {
+            a.id for a in a3.engine.list(None) if a.eva_id is None and a.acknowledged
+        }
         with self._lock:
             self._runs[eva_id] = run
             self._update(run, 0.0)
@@ -448,7 +454,10 @@ class A4Service:
         active = a3.engine.list(run.eva.id)
         run.eva.active_alert_ids = [a.id for a in active]
         if run.eva.status == EvaStatus.active:
-            trigger = next((a for a in active if _forces_return(a)), None)
+            trigger = next(
+                (a for a in active if _forces_return(a) and a.id not in run.known_site_alerts),
+                None,
+            )
             if trigger is not None:
                 self._force_return(run, trigger)
 

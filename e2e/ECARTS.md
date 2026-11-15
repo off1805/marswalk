@@ -19,8 +19,8 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 | 11 | Obstacle et observation | ✗ | E3 |
 | 12 | Éruption solaire | ✓ alerte affichée 0,4 s après sa réception | |
 | 13 | Acquitter l'alerte | ✓ | |
-| 14 | Retour forcé, carnet en GeoJSON | ✓ | E8 pour la sortie suivante |
-| — | Hors ligne (ENF-01) | ◐ indicateur et données en mémoire ; pas de réouverture hors ligne | E9 |
+| 14 | Retour forcé, carnet en GeoJSON | ✓ nouvelle sortie après l'éruption : corrigé (E8) | |
+| — | Hors ligne (ENF-01) | ✓ réouverture hors ligne : corrigé (E9) | |
 | — | Accessibilité (axe, WCAG 2.1 AA) | ◐ | E10, E11 |
 
 ## Corrigé avec ces tests
@@ -63,9 +63,13 @@ Le scénario attend « contourne une pente de 24° ». L'interface affiche les t
 
 Les alertes danger levées par le scénario `solar-event` restent actives (sans sortie rattachée) après l'arrêt du scénario, même acquittées, alors que le débit de dose est revenu à 16 µSv/h. Toute sortie lancée ensuite se termine en une dizaine de secondes sans avoir avancé (0 m). Seul un redémarrage de l'API rétablit la démo. À faire : lever les alertes quand la condition disparaît (`alert_cleared`) et ne forcer le retour que sur les alertes de la sortie en cours ; L1 en aura besoin pour sa commande de réinitialisation.
 
+**Corrigé** (PR `fix/E8-E9-alertes-hors-ligne`). À la fin d'un scénario (arrêt ou durée écoulée), A3 lève ses alertes de site avec `alert_cleared` (« fin du scénario ») puis réévalue les conditions réelles (`AlertEngine.clear_scope`). A4 ne force plus le retour sur une alerte de site déjà acquittée au départ de la sortie. Vérifié par le test « 14 bis » et deux tests de `api/tests/a4/test_simulator.py`.
+
 ### E9. Pas de service worker : l'application ne se rouvre pas hors ligne (ENF-01) · haute · F7
 
 `web/src/features/offline/vite.ts` charge `vite-plugin-pwa` par `require`, qui n'existe pas dans la configuration Vite en ESM ; l'erreur est avalée par le `catch` et le greffon n'est jamais ajouté. Le build ne produit ni `sw.js` ni manifeste, rien n'est mis en cache. L'indicateur réseau et les données déjà chargées tiennent, mais un rechargement sans réseau donne une page vide. À faire : `import { VitePWA } from "vite-plugin-pwa"` en tête de fichier.
+
+**Corrigé** (PR `fix/E8-E9-alertes-hors-ligne`). Import ESM ; le build produit `sw.js` et `manifest.webmanifest`. Trois réglages suivent : le bundle principal (3 Mo) dépassait la limite de pré-cache de 2 Mo, les motifs `/api/` et `/tiles/` étaient des RegExp que Workbox compare à l'URL complète (rien n'était mis en cache), et `index.html` sert maintenant de repli de navigation. Le test « L'application se rouvre sans réseau » attend que la carte soit chargée avant de couper le réseau. Reste : les icônes `icon-192.png` et `icon-512.png` du manifeste n'existent pas dans `web/public` (sans effet sur le hors ligne).
 
 ### E10. Couleurs d'état écrites en texte trop peu contrastées · moyenne · T00 (jetons), F2, F3, F4
 

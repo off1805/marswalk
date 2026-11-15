@@ -38,7 +38,6 @@ test("Le plan déjà chargé reste lisible hors ligne", async ({ page, context }
 });
 
 test("L'application se rouvre sans réseau", async ({ page, context }) => {
-  test.fixme(true, "Écart E9 : le build ne produit pas de service worker, rien n'est mis en cache (ECARTS.md)");
   await openApp(page);
   await expect
     .poll(() => page.evaluate(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active)), {
@@ -47,6 +46,9 @@ test("L'application se rouvre sans réseau", async ({ page, context }) => {
     .toBe(true);
   await page.reload();
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  // Les réponses de l'API passent par le service worker une fois en ligne : la carte chargée,
+  // elles sont en cache pour la réouverture sans réseau.
+  await expect(page.getByTestId("map").locator("canvas").first()).toBeVisible({ timeout: 30_000 });
   await context.setOffline(true);
   await page.reload();
   await expect(page.locator("header").first()).toContainText("Marswalk");

@@ -1,0 +1,99 @@
+# Docker Compose de production Marswalk — AWS Lightsail Ubuntu 24.04
+#
+# Usage :
+#   docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml up -d
+#
+# Ce fichier ne remplace pas infra/docker-compose.yml (dev intact).
+# Le frontend React est hébergé sur S3/CloudFront : aucun service web ici.
+#
+# Variables requises dans .env.prod (voir .env.prod.example) :
+#   POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+#   CLOUDFRONT_URL   ex: https://dxxxxxx.cloudfront.net
+#   MARSWALK_DOMAIN  ex: api.marswalk.example.com  (pour Nginx TLS)
+
+name: marswalk-prod
+
+services:
+
+  # ── PostgreSQL 16 + PostGIS 3.4 ───────────────────────────────────────────
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB:       ${POSTGRES_DB:-marswalk}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB:-marswalk}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    # Pas d'exposition du port 5432 à l'extérieur : PostgreSQL est interne au réseau Docker.
+
+  # ── API FastAPI (Uvicorn, 2 workers) ──────────────────────────────────────
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.prod.Dockerfile
+      network: host   # évite les pannes DNS lors du build (systemd-resolved sur Ubuntu)
+    restart: unless-stopped
+    environment:
+      MARSWALK_DATABASE_URL: >-
+        postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-marswalk}
+      # CLOUDFRONT_URL doit inclure le protocole, ex: https://dxxxxxx.cloudfront.net
+      MARSWALK_CORS_ORIGINS: '["${CLOUDFRONT_URL}"]'
+      MARSWALK_WARMUP: "true"
+      # MARSWALK_PACKAGES indique où chercher les paquets de site (Jezero).
+      # La variable est lue par marswalk_core.paths.package_search_path().
+      MARSWALK_PACKAGES: "/app/data/packages"
+      MARSWALK_ROOT: "/app"
+    volumes:
+      # Paquet de site Jezero (COG + tuiles, ~708 MB). Peuplé par le script deploy.sh.
+      # Monté en lecture seule : l'API ne modifie jamais les rasters.
+      - site_packages:/app/data/packages:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    # Port non exposé à l'extérieur : Nginx fait le seul point d'entrée.
+
+  # ── Nginx (reverse proxy + TLS Let's Encrypt) ─────────────────────────────
+  # envsubst remplace MARSWALK_DOMAIN dans nginx.conf au démarrage du conteneur.
+  # nginx:1.27-alpine inclut envsubst (gettext) nativement.
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    environment:
+      MARSWALK_DOMAIN: ${MARSWALK_DOMAIN}
+    # Docker Compose interprète $$ comme $ littéral dans les chaînes YAML.
+    # envsubst reçoit donc '$MARSWALK_DOMAIN' (avec le $) et remplace uniquement ce token,
+    # en laissant les autres variables Nginx ($host, $uri, etc.) intactes.
+    command: >-
+      sh -c "envsubst '$$MARSWALK_DOMAIN'
+      < /etc/nginx/templates/default.conf.template
+      > /etc/nginx/conf.d/default.conf
+      && nginx -g 'daemon off;'"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # nginx.conf est monté comme template (lecture seule) ; envsubst écrit dans conf.d/
+      - ./nginx/nginx.conf:/etc/nginx/templates/default.conf.template:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_conf:/etc/letsencrypt:ro
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  site_packages:
+  certbot_www:
+  certbot_conf:

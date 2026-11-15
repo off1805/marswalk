@@ -221,6 +221,27 @@ def test_large_download_uses_parallel_segments(
     assert len(http.gets) == 7
 
 
+def test_parallel_download_trusts_server_size(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Taille déclarée trop grande (cas des cubes CRISM) : la reprise aboutit au bon fichier."""
+    monkeypatch.setattr(fetch_mod, "PARALLEL_MIN", 8)
+    monkeypatch.setattr("marswalk_pipeline.fetch.parallel.SEGMENT", 4)
+    url = f"{BASE}/c.img"
+    data = b"abcdefghijklmnopqrstuv"  # 22 octets, la fiche en annonce 30
+    root = write_config(tmp_path, [product("c", files=[{"url": url, "size": 30}])])
+    http = FakeHttp({url: data})
+    out = tmp_path / "raw"
+    # Reste d'une première tentative : fichier creux de la taille déclarée, 2 segments faits.
+    part = out / "c" / "c.img.part"
+    part.parent.mkdir(parents=True)
+    part.write_bytes(data[:8] + bytes(22))
+    part.with_name("c.img.part.segments").write_text("[0, 4]", "utf-8")
+    assert run(load_sources("s", root), http, out, log=lambda _: None)[0].status == "téléchargé"
+    assert (out / "c" / "c.img").read_bytes() == data
+    assert {s for _, s in http.gets} == {8, 12, 16, 20}
+
+
 @pytest.mark.parametrize("bigtiff", ["NO", "YES"])
 def test_tiff_structure_ranges_make_sparse_copy_openable(tmp_path: Path, bigtiff: str) -> None:
     import numpy as np

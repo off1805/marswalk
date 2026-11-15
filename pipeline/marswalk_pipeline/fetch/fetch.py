@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import os
 import sys
 import threading
 import time
@@ -167,9 +168,17 @@ def download(http: Http, url: str, dest: Path, expected: int) -> None:
     part = dest.with_name(dest.name + ".part")
     if expected >= PARALLEL_MIN:
         real = http.resolve(url)
-        bar = Progress(expected)
+        # La taille relevée dans sources.yaml peut être fausse (fichier republié) : celle
+        # du serveur fait foi, sinon le dernier segment demandé dépasse la fin du fichier.
         try:
-            fetch_ranges(http, real, [(0, expected)], part, expected, bar.add)
+            size = http.size(real) or expected
+        except OSError:
+            size = expected
+        if part.exists() and part.stat().st_size != size:
+            os.truncate(part, size)  # les segments déjà notés restent valides
+        bar = Progress(size)
+        try:
+            fetch_ranges(http, real, [(0, size)], part, size, bar.add)
         finally:
             bar.close()
         part.replace(dest)

@@ -15,14 +15,20 @@ from datetime import datetime, timedelta
 from typing import Literal
 
 from marswalk_conditions.climatology import MedaClimatologyEngine
-from marswalk_conditions.historical import HistoricalProvider, MockMedaRadSource, PdsMedaRadSource
+from marswalk_conditions.dataset import ConditionsDataset, load_default
+from marswalk_conditions.historical import HistoricalProvider, PdsMedaRadSource
 from marswalk_conditions.interfaces import (
     ConditionsProvider,
     ICacheStore,
     IMedaRadSource,
     ISpaceWeatherSource,
 )
-from marswalk_conditions.live import DonkiClient, InMemoryCacheStore, LiveProvider
+from marswalk_conditions.live import (
+    DonkiClient,
+    InMemoryCacheStore,
+    JsonFileCacheStore,
+    LiveProvider,
+)
 from marswalk_conditions.scenario import (
     SOLAR_EVENT_SCENARIO,
     ScenarioProvider,
@@ -49,7 +55,7 @@ class _ConstantProvider:
             wind_mps=5.0,
             dust_tau=0.6,
             uv_index=5.0,
-            dose_rate_usv_h=10.0,
+            dose_rate_usv_h=16.0,
             space_weather=SpaceWeather(),
             source="Bouchon constant de secours",
         )
@@ -78,6 +84,7 @@ def get_provider(
 
 __all__ = [
     "SOLAR_EVENT_SCENARIO",
+    "ConditionsDataset",
     "ConditionsProvider",
     "DonkiClient",
     "HistoricalProvider",
@@ -85,12 +92,13 @@ __all__ = [
     "IMedaRadSource",
     "ISpaceWeatherSource",
     "InMemoryCacheStore",
+    "JsonFileCacheStore",
     "LiveProvider",
     "MedaClimatologyEngine",
-    "MockMedaRadSource",
     "PdsMedaRadSource",
     "ScenarioProvider",
     "get_provider",
     "get_scenario_manager",
     "list_scenarios",
+    "load_default",
 ]

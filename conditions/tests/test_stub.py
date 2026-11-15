@@ -1,6 +1,12 @@
 from datetime import UTC, datetime
 
-from marswalk_conditions import get_provider, list_scenarios
+from marswalk_conditions import LiveProvider, get_provider, list_scenarios
+from marswalk_core.schemas import SpaceWeather
+
+
+class _Offline:
+    def fetch_current(self) -> SpaceWeather:
+        raise ConnectionError("hors ligne")
 
 
 def test_constant_provider() -> None:
@@ -19,6 +25,6 @@ def test_historical_mode() -> None:
 
 def test_live_mode() -> None:
     now = datetime(2026, 11, 14, tzinfo=UTC)
-    provider = get_provider("live")
-    cond = provider.current(now)
+    assert isinstance(get_provider("live"), LiveProvider)
+    cond = LiveProvider(client=_Offline()).current(now)
     assert cond.space_weather is not None

@@ -6,8 +6,8 @@ export function AlertBadge({ level, text }: { level: AlertLevel; text?: string }
   return (
     <span
       role="status"
-      className="inline-flex items-center gap-1 rounded px-2 py-0.5 font-bold text-white"
-      style={{ background: meta.color }}
+      className="inline-flex items-center gap-1 rounded px-2 py-0.5 font-bold"
+      style={{ background: meta.color, color: meta.ink }}
     >
       <span aria-hidden="true">{meta.icon}</span>
       {text ?? meta.label}

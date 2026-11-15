@@ -35,7 +35,7 @@ export function QueueStatusPanel({ pending, replaying, lastResults }: Props) {
 
       {replaying && (
         <p
-          className="mb-1 flex items-center gap-1 text-xs text-[var(--color-info)]"
+          className="mb-1 flex items-center gap-1 text-xs text-[var(--text-info)]"
           role="status"
           aria-live="polite"
         >
@@ -63,7 +63,7 @@ export function QueueStatusPanel({ pending, replaying, lastResults }: Props) {
 
       {/* Résultats du dernier rejeu */}
       {lastResults.length > 0 && pending.length === 0 && (
-        <p className="text-xs text-[var(--color-ok)]" role="status">
+        <p className="text-xs text-[var(--text-ok)]" role="status">
           ✓ {lastResults.filter((r) => r.kind === "success").length} opération
           {lastResults.length > 1 ? "s" : ""} synchronisée
           {lastResults.length > 1 ? "s" : ""}
@@ -77,7 +77,7 @@ export function QueueStatusPanel({ pending, replaying, lastResults }: Props) {
               r.kind === "failure",
             )
             .map((r) => (
-              <li key={r.operationId} className="text-xs text-[var(--color-danger)]">
+              <li key={r.operationId} className="text-xs text-[var(--text-danger)]">
                 ⛔ {r.reason}
               </li>
             ))}

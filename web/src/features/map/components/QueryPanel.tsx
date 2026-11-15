@@ -112,7 +112,7 @@ export function QueryPanel() {
             <button
               type="button"
               onClick={() => refetch()}
-              className="mt-2 w-full rounded bg-[var(--surface)] py-1 text-[11px] font-semibold text-[var(--color-info)] hover:underline"
+              className="mt-2 w-full rounded bg-[var(--surface)] py-1 text-[11px] font-semibold text-[var(--text-info)] hover:underline"
             >
               Interroger ce point
             </button>
@@ -130,7 +130,7 @@ export function QueryPanel() {
           )}
 
           {error && (
-            <p className="text-xs text-[var(--color-danger)]">
+            <p className="text-xs text-[var(--text-danger)]">
               {error instanceof Error ? error.message : "Erreur d'interrogation"}
             </p>
           )}
@@ -143,7 +143,7 @@ export function QueryPanel() {
                   <div className="text-[10px] uppercase font-bold text-[var(--text-muted)]">
                     Temps de retour estimé
                   </div>
-                  <div className="text-sm font-bold font-mono text-[var(--color-ok)]">
+                  <div className="text-sm font-bold font-mono text-[var(--text-ok)]">
                     {Math.round(queryResult.return_time_s / 60)} min ({queryResult.return_time_s} s)
                   </div>
                 </div>

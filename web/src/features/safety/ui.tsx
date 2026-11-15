@@ -1,11 +1,11 @@
 /** Petits éléments d'affichage de F4 : niveau, jauge, compte à rebours, horloge locale. */
 import { useEffect, useState } from "react";
-import { alertLevels, colors } from "@/shared/theme";
+import { alertLevels, colors, textColors } from "@/shared/theme";
 import type { GaugeLevel } from "./thresholds";
 
 /** Couleur, icône et libellé d'un niveau ; « ok » n'est pas un niveau d'alerte. */
-export const levelMeta: Record<GaugeLevel, { color: string; icon: string; label: string }> = {
-  ok: { color: colors.ok, icon: "✓", label: "Normal" },
+export const levelMeta: Record<GaugeLevel, { color: string; ink: string; icon: string; label: string }> = {
+  ok: { color: colors.ok, ink: "#000000", icon: "✓", label: "Normal" },
   ...alertLevels,
 };
 
@@ -23,7 +23,7 @@ export function useNow(intervalMs = 1000): number {
 export function LevelTag({ level }: { level: GaugeLevel }) {
   const meta = levelMeta[level];
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-bold" style={{ color: meta.color }}>
+    <span className="inline-flex items-center gap-1 text-xs font-bold" style={{ color: textColors[level] }}>
       <span aria-hidden="true">{meta.icon}</span>
       {meta.label}
     </span>

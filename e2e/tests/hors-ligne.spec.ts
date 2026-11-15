@@ -1,7 +1,7 @@
 /**
- * Hors ligne (ENF-01, F7) : coupure du réseau pendant l'utilisation, puis réouverture de
- * l'application sans réseau. Le front est servi par `vite preview` (build de production),
- * seul cas où le service worker existe.
+ * Offline tests (ENF-01, F7): network cut during use, then reopening the application
+ * without network. The front is served by `vite preview` (production build),
+ * the only case where the service worker exists.
  */
 import { expect, test } from "@playwright/test";
 import { openApp, openProfile, resetTargets } from "./helpers";
@@ -10,7 +10,7 @@ test.beforeAll(async ({ request }) => {
   await resetTargets(request);
 });
 
-test("L'indicateur réseau suit la coupure et le retour du réseau", async ({ page, context }) => {
+test("Network badge follows the connection cut and restoration", async ({ page, context }) => {
   await openApp(page);
   const badge = page.getByTestId("network-badge");
   await expect(badge).toHaveAccessibleName("Online");
@@ -21,7 +21,7 @@ test("L'indicateur réseau suit la coupure et le retour du réseau", async ({ pa
   await expect(badge).toHaveAccessibleName("Online");
 });
 
-test("Le plan déjà chargé reste lisible hors ligne", async ({ page, context }) => {
+test("An already-loaded plan remains readable offline", async ({ page, context }) => {
   await openApp(page);
   await expect(page.getByRole("article", { name: /^Variant / })).toHaveCount(3, { timeout: 30_000 });
   await page.getByRole("button", { name: "Select variant Safest" }).click();
@@ -38,7 +38,7 @@ test("Le plan déjà chargé reste lisible hors ligne", async ({ page, context }
   await context.setOffline(false);
 });
 
-test("L'application se rouvre sans réseau", async ({ page, context }) => {
+test("The application reopens without network", async ({ page, context }) => {
   await openApp(page);
   await expect
     .poll(() => page.evaluate(async () => Boolean((await navigator.serviceWorker.getRegistration())?.active)), {
@@ -47,8 +47,8 @@ test("L'application se rouvre sans réseau", async ({ page, context }) => {
     .toBe(true);
   await page.reload();
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
-  // Les réponses de l'API passent par le service worker une fois en ligne : la carte chargée,
-  // elles sont en cache pour la réouverture sans réseau.
+  // API responses go through the service worker once online: after the map loads,
+  // they are cached for offline reopening.
   await expect(page.getByTestId("map").locator("canvas").first()).toBeVisible({ timeout: 30_000 });
   await context.setOffline(true);
   await page.reload();

@@ -8,6 +8,7 @@
  * Principe I (Interface Segregation) : il expose exactement ce dont la vue
  * 3D a besoin, pas toute la structure `Plan` ou `SiteManifest`.
  */
+import { useMemo } from "react";
 import { useSiteManifest } from "@/shared/hooks";
 import { useShared } from "@/shared/store";
 import { useQuery } from "@tanstack/react-query";
@@ -73,18 +74,18 @@ export function useTerrain3dData(): Terrain3dData {
     staleTime: 10_000,
   });
 
-  // Construire la TerrainConfig depuis le manifeste
-  const terrainConfig: TerrainConfig | null = manifest
-    ? (() => {
-        const texture = pickTextureLayer(manifest.layers);
-        return buildTerrainConfig(
-          manifest.site_id,
-          manifest.bbox as [number, number, number, number],
-          texture.id,
-          texture.format,
-        );
-      })()
-    : null;
+  // Construire la TerrainConfig depuis le manifeste. Mémorisée : une nouvelle référence à
+  // chaque rendu relancerait les effets du canevas.
+  const terrainConfig: TerrainConfig | null = useMemo(() => {
+    if (!manifest) return null;
+    const texture = pickTextureLayer(manifest.layers);
+    return buildTerrainConfig(
+      manifest.site_id,
+      manifest.bbox as [number, number, number, number],
+      texture.id,
+      texture.format,
+    );
+  }, [manifest]);
 
   // Itinéraire actif
   const activeRoute: Route | null =
@@ -92,14 +93,20 @@ export function useTerrain3dData(): Terrain3dData {
     plan?.routes[0] ??
     null) as Route | null;
 
-  // Transformer le profil de l'API en RouteProfile plat
-  const activeProfile: RouteProfile[] = activeRoute
-    ? activeRoute.profile.map((s) => ({
-        distanceM: s.distance_m,
-        position: s.position as [number, number],
-        elevationM: s.elevation_m,
-      }))
-    : [];
+  // Transformer le profil de l'API en RouteProfile plat. Mémorisé (écart E7) : useFlyover
+  // remet le survol à zéro quand ce tableau change, il ne doit donc changer qu'avec
+  // l'itinéraire.
+  const activeProfile: RouteProfile[] = useMemo(
+    () =>
+      activeRoute
+        ? activeRoute.profile.map((s) => ({
+            distanceM: s.distance_m,
+            position: s.position as [number, number],
+            elevationM: s.elevation_m,
+          }))
+        : [],
+    [activeRoute],
+  );
 
   const totalDistanceM = activeRoute?.totals.distance_m ?? 0;
 

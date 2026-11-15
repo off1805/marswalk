@@ -1,0 +1,11 @@
+{
+  "resolution_m": 1.0,
+  "source": {
+    "instrument": "DERIVED",
+    "mission": "Marswalk (D2)",
+    "note": "Visibilité depuis le mât de l'habitat (10 m) sur le MNT HiRISE."
+  },
+  "uncertainty": {
+    "coreg_m": 0.0
+  }
+}

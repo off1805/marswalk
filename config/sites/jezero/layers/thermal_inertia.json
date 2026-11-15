@@ -1,0 +1,13 @@
+{
+  "resolution_m": 100.0,
+  "source": {
+    "instrument": "THEMIS",
+    "mission": "Mars Odyssey",
+    "product_id": "THEMIS_TI_Mosaic_Quant_00N060E_100mpp",
+    "url": "https://asc-astropedia.s3.us-west-2.amazonaws.com/Mars/Odyssey/THEMIS-Global-Thermal-Inertia-Mosaic/Quantitative-32-Bit/THEMIS_TI_Mosaic_Quant_00N060E_100mpp.cub",
+    "note": "Christensen et al. (2013), LPSC 44 #2822. Recalée sur HiRISE par 5 points d'appui (résidu 12,5 m, sous le pixel de 100 m)."
+  },
+  "uncertainty": {
+    "coreg_m": 12.52
+  }
+}

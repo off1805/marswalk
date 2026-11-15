@@ -1,0 +1,13 @@
+{
+  "resolution_m": 1.0,
+  "source": {
+    "instrument": "HiRISE",
+    "mission": "MRO",
+    "product_id": "JEZ_hirise_soc_007_orthoMosaic_25cm_Ortho_blend120",
+    "url": "https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/JEZ_hirise_soc_007_orthoMosaic_25cm_Ortho_blend120.tif",
+    "note": "Mosaïque contrôlée Mars 2020 TRN à 25 cm (Fergason et al. 2020, LPSC 51 #2020), rééchantillonnée à 1 m sur la grille d'analyse par D1. La version 25 cm pour les tuiles (data/work/jezero/display/) reste à produire."
+  },
+  "uncertainty": {
+    "coreg_m": 0.0
+  }
+}

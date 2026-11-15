@@ -1,0 +1,11 @@
+{
+  "resolution_m": 1.0,
+  "source": {
+    "instrument": "DERIVED",
+    "mission": "Marswalk (D2)",
+    "note": "Inertie thermique THEMIS combinée à la texture HiRISE."
+  },
+  "uncertainty": {
+    "coreg_m": 0.0
+  }
+}

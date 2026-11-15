@@ -1,0 +1,11 @@
+{
+  "resolution_m": 1.0,
+  "source": {
+    "instrument": "DERIVED",
+    "mission": "Marswalk (D2)",
+    "note": "Ombres portées pour le soleil à 20° de hauteur, azimut 90°."
+  },
+  "uncertainty": {
+    "coreg_m": 0.0
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "resolution_m": 1.0,
+  "source": {
+    "instrument": "DERIVED",
+    "mission": "Marswalk (D2)",
+    "note": "Rugosité au-delà de 0,25 m, tampon de 2 m. Le MNT à 1 m ne voit pas les blocs de moins de 2 à 3 m : vigilance visuelle sur HiRISE."
+  },
+  "uncertainty": {
+    "coreg_m": 0.0
+  }
+}

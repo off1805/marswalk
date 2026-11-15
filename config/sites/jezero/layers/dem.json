@@ -1,0 +1,15 @@
+{
+  "resolution_m": 1.0,
+  "source": {
+    "instrument": "HiRISE",
+    "mission": "MRO",
+    "product_id": "JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40",
+    "url": "https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif",
+    "note": "MNT contrôlé Mars 2020 TRN, altitudes sur le géoïde (Fergason et al. 2020)."
+  },
+  "uncertainty": {
+    "value": 1.0,
+    "unit": "m",
+    "coreg_m": 0.0
+  }
+}

@@ -12,8 +12,12 @@ mission_epoch_utc: "2026-11-01T00:00:00Z"
 default_preset: safety
 seed: 1805
 tiles: { minzoom: 12, maxzoom: 19 }
-habitat: { x: 0, y: 0 }       # à calibrer par I1 avec vraies coordonnées
-rover: { x: 100, y: 100 }     # position actuelle de Perseverance (I1)
+# I1 : habitat au site d'atterrissage de Perseverance (Octavia E. Butler, sol 13 :
+# 77.45089°E, 18.44463°N, à 22 m du centre), sur le fond plat du cratère.
+habitat: { x: 0, y: 0 }
+# I1 : Perseverance est aujourd'hui à plus de 12 km à l'ouest, hors de l'emprise. On prend
+# son dernier arrêt dans l'emprise (sol 707, M20_waypoints.json du JPL), au pied du delta.
+rover: { lon: 77.40846, lat: 18.45864 }
 targets_seed: targets-seed.geojson
 layers:
   - hirise_vis
@@ -38,11 +42,14 @@ layers:
 # Rempli par sources.yaml lors du téléchargement des données.
 derive:
   roughness_window_m: 10.0
-  obstacle_roughness_threshold_m: 0.4
+  # I1 : 0,25 m sur la rugosité sans pente (0,4 % de l'emprise, 2 % avec le tampon).
+  obstacle_roughness_threshold_m: 0.25
   obstacle_buffer_m: 2.0
   scarp_threshold_deg: 30.0
   scarp_buffer_m: 10.0
-  antenna_height_m: 3.0
+  # I1 : mât de 10 m sur l'habitat. À 3 m, le relief du fond du cratère ne laisse que
+  # 19 % de l'emprise en vue ; à 10 m, 42 %.
+  antenna_height_m: 10.0
   sun_azimuth_deg: 90.0
   sun_altitude_deg: 20.0
 

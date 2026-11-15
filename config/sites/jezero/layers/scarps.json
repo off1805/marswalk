@@ -1,0 +1,11 @@
+{
+  "resolution_m": 1.0,
+  "source": {
+    "instrument": "DERIVED",
+    "mission": "Marswalk (D2)",
+    "note": "Pente au-delà de 30°, tampon de 10 m."
+  },
+  "uncertainty": {
+    "coreg_m": 0.0
+  }
+}

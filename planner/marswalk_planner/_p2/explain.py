@@ -38,6 +38,14 @@ _PENALIZED_TEXT: dict[str, str] = {
     "cause_roughness": "évite le terrain rugueux",
 }
 
+# Même cause, quand le tracé direct la traverse.
+_CROSSED_TEXT: dict[str, str] = {
+    "cause_loose_soil": "traverse du sol meuble",
+    "cause_no_radio": "passe hors couverture radio",
+    "cause_shadow": "traverse une zone d'ombre",
+    "cause_roughness": "traverse du terrain rugueux",
+}
+
 
 @dataclass
 class _LineStats:
@@ -139,13 +147,11 @@ def explain_segment(
 
     if ratio < _DIRECT_RATIO:
         crossed = [
-            txt.replace("évite ", "").replace("reste en couverture radio", "hors couverture radio")
-            for key, txt in _PENALIZED_TEXT.items()
-            if route.causes.get(key, 0) >= _MIN_CELLS
+            _CROSSED_TEXT[key] for key in _PENALIZED_TEXT if route.causes.get(key, 0) >= _MIN_CELLS
         ]
         if route.causes.get("cause_slope_penalized", 0) >= _MIN_CELLS:
-            crossed.insert(0, "une pente intermédiaire")
-        extra = f", traverse {', '.join(crossed)}" if crossed else ""
+            crossed.insert(0, "traverse une pente intermédiaire")
+        extra = f", {', '.join(crossed)}" if crossed else ""
         return f"Va en ligne droite ({tail}{extra})."
 
     reasons: list[str] = []

@@ -38,8 +38,9 @@ from marswalk_core.schemas import (
     Target,
 )
 from marswalk_core.site_package import Site
+from marswalk_planner._p2.explain import explain_segment
 from marswalk_planner.budget import return_check
-from marswalk_planner.cost import build_cost_grid, explain_cell
+from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.return_field import return_field
 from marswalk_planner.route import plan_route
 from marswalk_planner.walk import estimate_route
@@ -325,11 +326,14 @@ def compute_route(
                 work_time_s=s.work_time_s,
             )
         )
-        mid = LonLat((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
-        terms = explain_cell(grid, *to_analysis(site, mid[0], mid[1]))
-        explanation.append(
-            SegmentExplanation(segment_index=i, reasons=[reason, *[t.reason for t in terms]])
+        seg_pts = list(geom.coordinates[breaks[i] : breaks[i + 1] + 1])
+        detail = explain_segment(
+            grid,
+            seg_pts,
+            fallback=i in geom.fallback_segments,
+            max_slope_deg=s.max_slope_deg,
         )
+        explanation.append(SegmentExplanation(segment_index=i, reasons=[reason, detail]))
     profile = [
         ProfileSample(
             distance_m=round(d, 2),

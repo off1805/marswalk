@@ -193,6 +193,9 @@ export function buildLayers(
         getAlignmentBaseline: "center",
         fontWeight: "bold",
         billboard: true,
+        // Atlas construit depuis les textes affichés : le jeu ASCII par défaut de deck.gl
+        // n'a ni les accents (« Unité à olivine ») ni ⏱ (observation O1).
+        characterSet: "auto",
       }),
     );
   }
@@ -241,6 +244,8 @@ export function buildLayers(
         getPixelOffset: [16, -4],
         billboard: true,
         fontWeight: "bold",
+        // Voir f2-pnr : atlas tiré des noms de cibles, accents compris (O1).
+        characterSet: "auto",
       }),
     );
 
@@ -259,6 +264,9 @@ export function buildLayers(
         getAlignmentBaseline: "center",
         getPixelOffset: [0, -26],
         billboard: true,
+        // Atlas construit depuis les textes affichés : le jeu ASCII par défaut de deck.gl
+        // n'a ni les accents (« Unité à olivine ») ni ⏱ (observation O1).
+        characterSet: "auto",
       }),
     );
   }

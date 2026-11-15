@@ -69,9 +69,11 @@ def _plan_segment(
     start_cell = _lonlat_to_cell(cost_grid, start)
     end_cell = _lonlat_to_cell(cost_grid, end)
 
-    # Points hors grille : ligne droite de secours
+    # Points hors grille : ligne droite de secours (signalée par ``plan_route``)
     if start_cell is None or end_cell is None:
-        return [start, end]
+        result = [start, end]
+        _cache.put(key, RouteGeometry(coordinates=result, segment_breaks=[0], cost=float("inf")))
+        return result
 
     margin_cells = _window_margin_cells(cost_grid, options.window_margin_m)
 
@@ -84,7 +86,7 @@ def _plan_segment(
     )
 
     if path_cells is None:
-        # Aucun chemin trouvé → ligne droite (signalée dans warnings)
+        # Aucun chemin trouvé → ligne droite (signalée par ``plan_route``)
         result = [start, end]
         _cache.put(key, RouteGeometry(coordinates=result, segment_breaks=[0], cost=float("inf")))
         return result
@@ -156,6 +158,7 @@ def plan_route(
 
     all_coords: list[LonLat] = []
     segment_breaks: list[int] = []
+    fallback_segments: list[int] = []
     total_cost = 0.0
 
     for i in range(len(waypoints) - 1):
@@ -184,11 +187,15 @@ def plan_route(
             variant_name,
         )
         cached_seg = _cache.get(seg_key)
-        if cached_seg is not None:
+        if cached_seg is None or math.isinf(cached_seg.cost):
+            # Ligne droite de secours (hors grille ou aucun chemin) : à signaler (E4)
+            fallback_segments.append(i)
+        else:
             total_cost += cached_seg.cost
 
     return RouteGeometry(
         coordinates=all_coords,
         segment_breaks=segment_breaks,
         cost=total_cost,
+        fallback_segments=fallback_segments,
     )

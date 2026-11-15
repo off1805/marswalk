@@ -86,3 +86,19 @@ class TestBinaryOutput:
         allowed = {0.0, 1.0, NODATA}
         unique_vals = set(np.unique(result).tolist())
         assert unique_vals.issubset(allowed), f"Valeurs inattendues : {unique_vals - allowed}"
+
+
+def test_rover_position_for_the_radio_relay() -> None:
+    """Case du rover relais : lue en lon/lat, ignorée hors de la grille."""
+    from rasterio.transform import from_origin
+
+    from marswalk_pipeline.derived import _rover_px
+
+    transform = from_origin(-50.0, 50.0, 1.0, 1.0)
+    cfg = {"analysis_crs": "+proj=eqc +lat_ts=0 +lon_0=0 +R=3396190 +units=m +no_defs"}
+    assert _rover_px({**cfg, "rover": None}, transform, 1.0, (100, 100)) is None
+    lon = 10.0 / 3396190.0 * 180.0 / np.pi  # 10 m à l'est du centre
+    row_col = _rover_px({**cfg, "rover": {"lon": lon, "lat": 0.0}}, transform, 1.0, (100, 100))
+    assert row_col == (50, 60)
+    far = _rover_px({**cfg, "rover": [1.0, 1.0]}, transform, 1.0, (100, 100))
+    assert far is None  # hors grille : pas de relais, pas de repli au centre

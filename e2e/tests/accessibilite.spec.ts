@@ -10,15 +10,15 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { openApp, resetTargets } from "./helpers";
 
-const KNOWN: { gap: string; rule: string; match: RegExp }[] = [
-  // Couleurs d'état (vert #009e73, orange #e69f00, vermillon #d55e00) écrites en texte :
-  // 4,45:1 en thème sombre, 2,3 à 3,9:1 en thème plein soleil, au lieu de 4,5:1.
-  { gap: "E10", rule: "color-contrast", match: /foreground color: #(009e73|e69f00|d55e00)/ },
-  // aria-label sur un div sans rôle dans la vue 3D.
-  { gap: "E11", rule: "aria-prohibited-attr", match: /inset-0/ },
-];
+// E10 (contraste des couleurs d'état) et E11 (aria-label de la vue 3D) sont corrigés : plus
+// aucune violation tolérée.
+const KNOWN: { gap: string; rule: string; match: RegExp }[] = [];
 
 async function audit(page: Page, name: string): Promise<string[]> {
+  // Attendre la fin des transitions CSS (transition-colors des panneaux, 150 ms) : juste après
+  // le changement de thème, axe lirait sinon un fond encore dans l'ancien thème sous un texte
+  // déjà dans le nouveau (texte noir sur #20262e en plein soleil, faux échec intermittent).
+  await page.waitForFunction(() => document.getAnimations().every((a) => !(a instanceof CSSTransition) || a.playState !== "running"));
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     // Les canevas WebGL (carte, 3D) n'ont pas de contenu inspectable par axe.

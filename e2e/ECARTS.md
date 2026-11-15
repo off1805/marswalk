@@ -8,15 +8,15 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 | --- | --- | --- | --- |
 | 1 | Ouvrir Marswalk sur le site | ✓ | |
 | 2 | Préréglage « Sécurité » | ✓ | |
-| 3 | Cliquer sur le bord des dunes | ✗ | E1 |
+| 3 | Cliquer sur le bord des dunes | ✓ après le correctif de E1 | |
 | 4 | Zones dangereuses | ✓ | O3, O4 |
 | 5 | Objectif scientifique | ◐ objectif par cible seulement | E2 |
 | 6 | Planifier trois cibles | ✓ 2,7 s entre la suppression d'une cible et l'affichage des variantes | |
-| 7 | Comparer les variantes | ◐ | E4, E5, E6 |
+| 7 | Comparer les variantes | ✓ après les correctifs E4, E5, E6 | |
 | 8 | Profil de la variante choisie | ✓ profil et tableau synchronisés ; côté carte, voir « Non vérifié » | |
 | 9 | Vue 3D | ◐ exagération réglable, survol en panne | E7 |
 | 10 | Sortie et astronaute virtuel | ✓ après le correctif C1 | |
-| 11 | Obstacle et observation | ✗ | E3 |
+| 11 | Obstacle et observation | ✓ après le correctif de E3 | |
 | 12 | Éruption solaire | ✓ alerte affichée 0,4 s après sa réception | |
 | 13 | Acquitter l'alerte | ✓ | |
 | 14 | Retour forcé, carnet en GeoJSON | ✓ nouvelle sortie après l'éruption : corrigé (E8) | |
@@ -27,37 +27,47 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 
 **C1. La sortie simulée refusait tout plan calculé.** `POST /api/eva` répondait « Plan inconnu » pour tout plan de `POST /api/sites/{site_id}/plans` : le simulateur (A4) ne lisait que `plan-demo`, comme l'annonçait `tasks/change-requests/A4-source-des-plans.md`. Aucune sortie ne pouvait démarrer depuis l'interface, et l'export GeoJSON du plan (X1) échouait de même. Correctif : `get_simulator()` lit d'abord le dépôt de plans de A2 (PR `fix/I2-integration`), avec un test dans `api/tests/a4/test_plans_a2.py`.
 
+**C2 (E4). Cible sans passage écartée et annoncée.** Avant la recherche, P2 repère les cibles qu'aucune suite de cases praticables ne relie au départ (`_p2/reach.py`) : elles sont retirées de la variante avec un avertissement « Cible « … » écartée : aucun passage praticable depuis le départ (la ligne droite franchit une pente de 65°) ». Filet de sécurité : tout tronçon resté en ligne droite de secours est signalé dans `warnings`, et `return_check` passe à `fail`. Le site fictif a désormais une rampe d'environ 200 m (pente max ≈ 13°) à l'ouest de l'habitat ; le Front du delta est atteint par ce détour. Tests : `planner/tests/p2/test_ecarts_i2.py`, étape 7 quater.
+
+**C3 (E5). Le lissage effaçait les détours.** Le « string pulling » ne regardait que les cases interdites : il redressait tout détour voulu par le coût, et les trois variantes retombaient sur la même ligne droite. Un raccourci n'est plus retenu que s'il ne coûte pas plus que le chemin brut (intégrale exacte du coût le long du segment). La recherche ne coupe plus les coins des cases interdites. Sur le fictif : 3 193 m (sûre, pente max 15°), 2 917 m (rapide, 19°), 3 158 m (science). Étape 7 ter.
+
+**C4 (E6). Une phrase par tronçon.** L'explication compare le tracé à la ligne droite entre ses extrémités : « Contourne une pente de 65° : +518 m (pente max 15,0° sur le tracé). », « Va en ligne droite (pente max 4,0° sur le tracé, traverse le sol meuble). ». Le passage par une unité minérale n'est cité que pour la variante science. Même texte pour le recalcul local pendant la sortie (A4). Étape 7 bis.
+
+**E1 corrigé. Un clic sur la carte interroge le point (étape 3).** La coquille diffuse chaque clic MapLibre par `shared/mapClick.ts` (contournement de `tasks/change-requests/F2-pickmode-map-click.md`, sans toucher au magasin gelé) ; `QueryPanel` s'y abonne en mode interrogation et part de l'habitat du manifeste. Le clic est lu sur MapLibre, donc il passe même au-dessus d'une cible ou d'une zone ; en mode interrogation, F2 ne sélectionne plus la cible cliquée. Vérifié par l'étape 3, qui contrôle aussi la première requête à l'habitat.
+
+**E3 corrigé. Obstacle et observation pendant la sortie (étape 11).** Panneau « Relevés de terrain » (F7), affiché sous « Sécurité » tant qu'une sortie est suivie : « Signaler un obstacle » poste `POST /api/eva/{id}/obstacles` 50 m devant l'astronaute sur son tracé (rayon 6 m) ; « Noter l'observation » poste à la position courante et, sans réseau ou en cas d'échec, passe par `useOfflineQueue().enqueue("addObservation", …)` avec l'identifiant de la sortie. Le rejeu est désormais gardé au niveau du module, pour qu'une opération ne soit pas rejouée par chaque panneau qui utilise la file. Vérifié par l'étape 11, et l'étape 14 contrôle que l'obstacle et l'observation sont dans le carnet GeoJSON.
+
 ## Écarts ouverts
 
 Gravité : **critique** = risque pour la sécurité présentée ; **haute** = une étape de la démo ne se joue pas ; **moyenne** = l'étape se joue mais ne montre pas ce que dit le scénario ; **basse** = finition.
-
-### E1. Un clic sur la carte n'interroge pas le point (étape 3) · haute · F1, A1
-
-`QueryPanel` garde ses coordonnées dans un état local, fixé au centre du site fictif (77,578 E ; 18,381 N), et rien ne le relie aux clics sur la carte : « Cliquez sur la carte » n'a pas d'effet, seule la saisie des coordonnées fonctionne. Sur Jezero, le point par défaut est celui du fictif. À faire : écouter le clic de la carte quand `pickMode === "query"` (comme F2 le fait pour `addTarget`) et partir de l'habitat du manifeste.
 
 ### E2. Pas de panneau science du site (étape 5) · moyenne · S1, F2
 
 Le scénario demande un panneau qui justifie le site et les cibles par les données NASA (delta, argiles et carbonates, olivine). L'interface n'affiche que l'objectif de chaque cible dans sa fiche ; `docs/science/jezero.md` n'est repris nulle part.
 
+**Corrigé** (branche `fix/I2-ecarts-science-finitions`) : panneau « Science du site » dans la colonne gauche (F2, `SciencePanel.tsx`), résumé de `jezero.md` avec ses sources ; le test 5 bis n'est plus en `fixme`.
+
 ### E3. Ni signalement d'obstacle ni observation dans l'interface (étape 11) · haute · F4, F7, X1
 
 L'API sait faire (`POST /api/eva/{id}/obstacles`, `POST /api/eva/{id}/observations`) et la file hors ligne de F7 sait rejouer `addObservation`, mais aucun bouton ne les appelle. L'étape 11 et la partie « même hors ligne » du scénario ne se montrent pas. À faire : deux actions dans le panneau de sortie, l'observation passant par `useOfflineQueue().enqueue("addObservation", …)`.
 
-### E4. Sans chemin possible, le tracé coupe la falaise sans le dire (étapes 7 et 10) · critique · P2, T00 (site fictif)
+### E4. Sans chemin possible, le tracé coupe la falaise sans le dire (étapes 7 et 10) · critique · P2, T00 (site fictif) · **corrigé**
 
 Sur le site fictif, la falaise du plateau occupe toute la largeur : le Front du delta est inaccessible, A* ne trouve rien et `_plan_segment` revient à la ligne droite « de secours ». Les trois variantes passent alors par une pente de 65°, sans avertissement (`warnings` vide, alors que le code annonce le contraire) et avec « ✓ Retour 90 % ». Pendant la sortie, l'astronaute virtuel franchit la falaise et lève l'alerte « Pente trop forte, 43° ». À faire : (1) P2 signale tout tronçon de secours dans `warnings` et dans `return_check`, ou refuse la cible ; (2) le site fictif ouvre un passage praticable vers le plateau, pour que la démo de CI montre un vrai détour. À vérifier aussi sur Jezero.
 
-### E5. Les trois variantes sont identiques (étape 7) · haute · P2, I1
+### E5. Les trois variantes sont identiques (étape 7) · haute · P2, I1 · **corrigé**
 
 Même tracé, même distance, même durée pour « plus sûre », « plus rapide » et « science » sur le site fictif, y compris sur les tronçons atteignables. E4 en explique une partie, pas tout. À revoir avec les poids réglés par I1.
 
-### E6. Les explications ne disent pas la raison du détour (étape 7) · moyenne · P1, P2, F2
+### E6. Les explications ne disent pas la raison du détour (étape 7) · moyenne · P1, P2, F2 · **corrigé**
 
 Le scénario attend « contourne une pente de 24° ». L'interface affiche les termes du coût de la cellule du milieu du tronçon : « temps de traversée 2.36 s (Tobler 0,38 g × facteur sol) → contribution 1.181 · R=0.000 … ». À faire : une phrase par tronçon tirée de l'écart au tracé direct (pente évitée, obstacle contourné, zone pénalisée).
 
 ### E7. Le survol 3D s'arrête aussitôt lancé (étape 9) · moyenne · F6
 
 `useTerrain3dData` reconstruit `activeProfile` à chaque rendu ; l'effet de `useFlyover` qui remet le survol à zéro « quand l'itinéraire change » se déclenche donc à chaque rendu et repasse `playing` à faux. Correctif d'une ligne : `useMemo` sur `activeProfile`.
+
+**Corrigé** : `activeProfile` et `terrainConfig` mémorisés dans `useTerrain3dData` ; le test 9 bis n'est plus en `fixme`.
 
 ### E8. Après l'éruption, toute nouvelle sortie s'arrête sur place (après l'étape 14) · haute · A3, A4
 
@@ -75,13 +85,17 @@ Les alertes danger levées par le scénario `solar-event` restent actives (sans 
 
 Le vert « Normal » #009e73, l'orange #e69f00 et le vermillon #d55e00 servent de couleur de texte. Rapport de contraste : 4,45:1 sur le thème sombre, 2,3 à 3,9:1 sur le thème « plein soleil », au lieu de 4,5:1. Le thème clair, prévu pour la lecture en plein soleil (ENF-06), est le plus touché : jauges du panneau sécurité, « Retour » des variantes, légende du profil, tableau météo. À faire : une variante foncée de chaque couleur d'état pour le texte, la couleur vive restant pour les pastilles et les tracés.
 
+**Corrigé** : jetons `--text-ok`, `--text-caution`, `--text-danger`, `--text-info` par thème (au moins 4,8:1 sur toutes les surfaces), `textColors` côté JS, texte noir sur les pastilles orange et vermillon ; ligne retirée de `KNOWN`.
+
 ### E11. `aria-label` sur un `div` sans rôle dans la vue 3D · basse · F6
 
 L'élément `.inset-0` du rendu 3D porte un `aria-label` interdit sans rôle. Ajouter `role="img"` (ou retirer l'étiquette, le canevas en porte déjà une).
 
+**Corrigé** : `role="img"` ajouté ; ligne retirée de `KNOWN`.
+
 ## Observations sans test dédié
 
-- **O1. Accents manquants dans les étiquettes de la carte.** « Unité à olivine » s'affiche « Unit    olivine » : la police des étiquettes deck.gl n'a pas les caractères accentués (F2).
+- **O1. Accents manquants dans les étiquettes de la carte.** « Unité à olivine » s'affiche « Unit    olivine » : la police des étiquettes deck.gl n'a pas les caractères accentués (F2). **Corrigé** : `characterSet: "auto"` sur les `TextLayer` de F2.
 - **O2. Recalcul local après obstacle à la limite.** `api/tests/a4/test_demo.py` mesure 2,0 s dans le conteneur de cloud (échec à 2 004 ms pour une limite de 2 000 ms, sans lien avec le correctif C1) ; I1 a mesuré 2,9 s sur Jezero pour un objectif de 2 s. Vert dans la CI GitHub.
 - **O3. Zones interdites en vermillon, pas en rouge.** Le scénario dit « rouge » ; la palette pour daltoniens utilise le vermillon #d55e00 avec l'icône ⛔. Choix défendable, à aligner dans le texte du scénario.
 - **O4. Cause des zones toujours « pente ».** `GET /hazards` ne renvoie que des zones de cause `slope` sur le fictif ; les ruptures de pente et les obstacles ne sont pas cités comme cause.

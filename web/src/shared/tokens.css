@@ -27,6 +27,13 @@
   --text-muted: #a9b1bc;
   --border: #2f3742;
   --focus: #56b4e9;
+  /* Couleurs d'état pour le TEXTE (écart E10) : variantes éclaircies sur fond sombre,
+     au moins 6,5:1 sur --bg, --surface et --surface-2. Les couleurs vives --color-*
+     restent pour les pastilles, jauges et tracés. */
+  --text-ok: #2fd5a0;
+  --text-caution: #f5b83d;
+  --text-danger: #ff8a4c;
+  --text-info: #56b4e9;
   color-scheme: dark;
 }
 
@@ -38,6 +45,11 @@
   --text-muted: #2e3440;
   --border: #000000;
   --focus: #0072b2;
+  /* Variantes foncées pour le plein soleil : au moins 4,8:1 sur --surface-2. */
+  --text-ok: #00664a;
+  --text-caution: #8a5a00;
+  --text-danger: #a33f00;
+  --text-info: #005a8c;
   color-scheme: light;
 }
 

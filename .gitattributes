@@ -1,0 +1,12 @@
+# Fins de ligne : LF partout sauf les fichiers Windows explicites.
+* text=auto
+
+# Scripts shell exécutés sur Linux : LF obligatoire.
+*.sh text eol=lf
+
+# Dockerfiles et configs : LF.
+Dockerfile text eol=lf
+*.Dockerfile text eol=lf
+*.conf text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf

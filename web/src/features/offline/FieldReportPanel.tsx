@@ -70,7 +70,7 @@ export function FieldReportPanel() {
     setStatus(null);
     try {
       const eva = await currentEva(id);
-      if (!eva) throw new Error("Position de l'astronaute inconnue");
+      if (!eva) throw new Error("Astronaut position unknown");
       const plan = qc.getQueryData<Plan>(queryKeys.plan(eva.plan_id ?? activePlanId ?? ""));
       const route = plan?.routes.find((r) => r.id === eva.route_id);
       const position =
@@ -79,12 +79,12 @@ export function FieldReportPanel() {
         params: { path: { eva_id: id } },
         body: { position, radius_m: OBSTACLE_RADIUS_M, note: note.trim() || null },
       });
-      if (error || !data) throw new Error("Le serveur n'a pas pris le signalement");
+      if (error || !data) throw new Error("The server did not accept the report");
       setStatus({
         tone: "ok",
         text: data.route
-          ? `✓ Obstacle signalé, itinéraire recalculé en ${Math.round(data.compute_time_ms ?? 0)} ms`
-          : "✓ Obstacle signalé, hors du tracé restant",
+          ? `✓ Obstacle reported, route recomputed in ${Math.round(data.compute_time_ms ?? 0)} ms`
+          : "✓ Obstacle reported, clear of the remaining route",
       });
       void qc.invalidateQueries({ queryKey: queryKeys.logbook(id) });
       void qc.invalidateQueries({ queryKey: queryKeys.eva(id) });
@@ -102,7 +102,7 @@ export function FieldReportPanel() {
     setStatus(null);
     const eva = await currentEva(id);
     if (!eva) {
-      setStatus({ tone: "warn", text: "▲ Position de l'astronaute inconnue : observation non notée" });
+      setStatus({ tone: "warn", text: "▲ Astronaut position unknown: observation not logged" });
       setBusy(null);
       return;
     }
@@ -124,18 +124,18 @@ export function FieldReportPanel() {
       }
     }
     if (sent) {
-      setStatus({ tone: "ok", text: "✓ Observation ajoutée au carnet" });
+      setStatus({ tone: "ok", text: "✓ Observation added to the logbook" });
       void qc.invalidateQueries({ queryKey: queryKeys.logbook(id) });
     } else {
       enqueue("addObservation", { eva_id: id, ...body });
-      setStatus({ tone: "warn", text: "◌ Hors ligne : observation mise en file, envoyée au retour du réseau" });
+      setStatus({ tone: "warn", text: "◌ Offline: observation queued, it will be sent when the network is back" });
     }
     setNote("");
     setBusy(null);
   }
 
   return (
-    <Panel title="Relevés de terrain">
+    <Panel title="Field reports">
       <div className="flex flex-col gap-2 text-sm">
         <label className="flex flex-col gap-1">
           Note
@@ -143,7 +143,7 @@ export function FieldReportPanel() {
             rows={2}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Litage oblique, bloc instable…"
+            placeholder="Cross-bedding, loose boulder…"
             className="rounded border border-[var(--border)] bg-[var(--surface-2)] px-2 py-1 text-[var(--text)]"
           />
         </label>
@@ -151,22 +151,22 @@ export function FieldReportPanel() {
           <Button
             variant="danger"
             disabled={busy !== null || offline}
-            title={offline ? "Le contournement est calculé par le serveur : réseau nécessaire" : undefined}
+            title={offline ? "The detour is computed by the server: network required" : undefined}
             onClick={() => void reportObstacle(evaId)}
           >
-            {busy === "obstacle" ? "Signalement…" : "⚠ Signaler un obstacle"}
+            {busy === "obstacle" ? "Reporting…" : "⚠ Report an obstacle"}
           </Button>
           <Button
             variant="primary"
             disabled={busy !== null || !note.trim()}
             onClick={() => void addObservation(evaId)}
           >
-            {busy === "observation" ? "Envoi…" : "✎ Noter l'observation"}
+            {busy === "observation" ? "Sending…" : "✎ Log observation"}
           </Button>
         </div>
         <p className="text-xs text-[var(--text-muted)]">
-          L'obstacle est placé {OBSTACLE_AHEAD_M} m devant vous sur le tracé (rayon {OBSTACLE_RADIUS_M} m). La note
-          accompagne l'obstacle ou devient une observation à votre position.
+          The obstacle is placed {OBSTACLE_AHEAD_M} m ahead of you on the route (radius {OBSTACLE_RADIUS_M} m). The note
+          goes with the obstacle, or becomes an observation at your position.
         </p>
         {status && (
           <p role="status" className={status.tone === "ok" ? "" : "font-semibold"}>

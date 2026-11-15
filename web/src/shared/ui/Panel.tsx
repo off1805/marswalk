@@ -1,15 +1,17 @@
 import type { ReactNode } from "react";
 
-/** Panneau latéral de base, avec un titre. */
+/**
+ * Base panel. Panels live inside a console pane (the shell draws the glass), so the
+ * panel itself is a quiet section: a tracked-caps title and its content, separated
+ * from its neighbours by a hairline.
+ */
 export function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section
       aria-label={title}
-      className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3"
+      className="border-b border-[var(--border)] px-4 pb-4 pt-3 last:border-b-0"
     >
-      <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-[var(--text-muted)]">
-        {title}
-      </h2>
+      <h2 className="label-caps mb-3">{title}</h2>
       {children}
     </section>
   );

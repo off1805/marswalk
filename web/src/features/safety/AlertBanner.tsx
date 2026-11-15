@@ -32,38 +32,41 @@ function AlertRow({ alert, onAck, pending }: { alert: Alert; onAck: (id: string)
       data-alert-id={alert.id}
       data-level={alert.level}
       data-acknowledged={alert.acknowledged ? "true" : "false"}
-      className={`flex flex-wrap items-center gap-x-4 gap-y-1 border-l-8 bg-[var(--surface)] px-3 py-2 ${
-        alert.acknowledged ? "opacity-70" : ""
-      }`}
-      style={{ borderColor: meta.color }}
+      className={`pane flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 text-sm ${alert.acknowledged ? "opacity-70" : ""}`}
+      style={{ borderColor: alert.acknowledged ? undefined : meta.color }}
     >
       <span
-        className="inline-flex items-center gap-1 rounded px-2 py-0.5 font-bold"
+        className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold uppercase tracking-wider"
         style={{ background: meta.color, color: meta.ink }}
       >
         <span aria-hidden="true">{meta.icon}</span>
         {meta.label}
       </span>
-      <span className="min-w-0 flex-1">
-        <strong className={urgent ? "text-lg" : ""}>{alert.title}</strong>
-        <span className="ml-2">{alert.message}</span>
-        {measured && <span className="ml-2 text-sm text-[var(--text-muted)]">{measured}</span>}
-      </span>
-      <span className="font-bold">
-        <span aria-hidden="true">➜ </span>
-        {alert.action}
-      </span>
-      <span className="text-xs tabular-nums text-[var(--text-muted)]">
-        Sol {alert.sol} · {alert.lmst} LMST · {formatUtc(alert.utc)}
+      <span className="min-w-[14rem] flex-1">
+        <span className="block">
+          <strong className={urgent ? "font-semibold" : "font-medium"}>{alert.title}</strong>
+          <span className="ml-2 text-[var(--text-muted)]">{alert.message}</span>
+        </span>
+        <span className="mt-0.5 flex flex-wrap items-baseline gap-x-3 text-xs">
+          <span className="font-semibold">
+            <span aria-hidden="true">→ </span>
+            {alert.action}
+          </span>
+          {measured && <span className="font-mono tabular-nums text-[var(--text-muted)]">{measured}</span>}
+          <span className="font-mono text-[11px] tabular-nums text-[var(--text-faint)]">
+            Sol {alert.sol} · {alert.lmst} LMST · {formatUtc(alert.utc)}
+          </span>
+        </span>
       </span>
       {alert.acknowledged ? (
-        <span className="text-sm font-semibold">✓ Acknowledged</span>
+        <span className="shrink-0 text-xs font-semibold">✓ Acknowledged</span>
       ) : (
         <Button
           variant={alert.level === "danger" ? "danger" : "secondary"}
           onClick={() => onAck(alert.id)}
           disabled={pending}
           aria-label={`Acknowledge: ${alert.title}`}
+          className="shrink-0"
         >
           Acknowledge
         </Button>
@@ -82,20 +85,20 @@ export function AlertBanner() {
   const hidden = sorted.length - shown.length;
 
   return (
-    <section aria-label="Alerts" className="border-b border-[var(--border)] bg-[var(--surface-2)]">
+    <section aria-label="Alerts" className="flex flex-col items-center gap-1.5">
       {sorted.length === 0 ? (
-        <p className="px-4 py-1 text-sm" role="status">
+        <p className="pane px-3 py-1.5 text-xs text-[var(--text-muted)]" role="status">
           {alerts.isError ? "○ Alerts unavailable" : "✓ No active alerts"}
         </p>
       ) : (
-        <ul className="flex flex-col gap-px">
+        <ul className="flex w-full flex-col gap-1.5">
           {shown.map((a) => (
             <AlertRow key={a.id} alert={a} onAck={(id) => ack.mutate(id)} pending={ack.isPending && ack.variables === a.id} />
           ))}
         </ul>
       )}
       {(hidden > 0 || expanded) && sorted.length > VISIBLE && (
-        <button type="button" className="px-4 py-1 text-sm underline" onClick={() => setExpanded((v) => !v)}>
+        <button type="button" className="pane px-3 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)]" onClick={() => setExpanded((v) => !v)}>
           {expanded ? "Show less" : `+ ${hidden} more alert${hidden > 1 ? "s" : ""}`}
         </button>
       )}

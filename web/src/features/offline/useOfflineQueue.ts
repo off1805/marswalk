@@ -7,7 +7,7 @@
  * Principe D : reçoit l'instance `OperationQueue` via un singleton
  * du module `serviceRegistry` — pas instancié ici.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/shared/queryKeys";
 import { useShared } from "@/shared/store";
@@ -28,6 +28,17 @@ export interface OfflineQueueState {
   enqueue: (kind: QueuedOperation["kind"], payload: unknown) => void;
 }
 
+/**
+ * Le hook sert à plusieurs panneaux (badge réseau, relevés de terrain) : le rejeu est gardé
+ * au niveau du module, pour qu'une opération ne soit jamais rejouée deux fois, et chaque
+ * instance est prévenue quand une autre modifie la file.
+ */
+let replayingGlobal = false;
+const subscribers = new Set<() => void>();
+function notifyAll(): void {
+  for (const fn of [...subscribers]) fn();
+}
+
 export function useOfflineQueue(): OfflineQueueState {
   const qc = useQueryClient();
   const siteId = useShared((s) => s.siteId);
@@ -37,26 +48,32 @@ export function useOfflineQueue(): OfflineQueueState {
   const [pending, setPending] = useState<QueuedOperation[]>(() => queue.load());
   const [replaying, setReplaying] = useState(false);
   const [lastResults, setLastResults] = useState<ReplayResult[]>([]);
-  const replayingRef = useRef(false);
 
   /** Rafraîchit la liste locale depuis le stockage. */
   const refresh = useCallback(() => {
     setPending(queue.load());
   }, [queue]);
 
+  useEffect(() => {
+    subscribers.add(refresh);
+    return () => {
+      subscribers.delete(refresh);
+    };
+  }, [refresh]);
+
   /** Lance le rejeu dès le retour du réseau, une seule fois à la fois. */
   useEffect(() => {
-    if (network !== "online" || replayingRef.current) return;
+    if (network !== "online" || replayingGlobal) return;
     const ops = queue.load();
     if (ops.length === 0) return;
 
-    replayingRef.current = true;
+    replayingGlobal = true;
     setReplaying(true);
 
     void queue.replayAll().then((results) => {
       setLastResults(results);
-      refresh();
-      replayingRef.current = false;
+      replayingGlobal = false;
+      notifyAll();
       setReplaying(false);
 
       // Invalider les caches TanStack Query concernés
@@ -73,9 +90,9 @@ export function useOfflineQueue(): OfflineQueueState {
   const enqueue = useCallback(
     (kind: QueuedOperation["kind"], payload: unknown) => {
       queue.enqueue(kind, payload);
-      refresh();
+      notifyAll();
     },
-    [queue, refresh],
+    [queue],
   );
 
   return {

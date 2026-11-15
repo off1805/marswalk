@@ -80,25 +80,56 @@ export async function manifest(request: APIRequestContext): Promise<Manifest> {
   return (await res.json()) as Manifest;
 }
 
-/** Ouvre l'application sur le site joué et attend que la carte soit prête. */
+/**
+ * Ouvre l'application sur le site joué et attend que la carte soit prête. La visite guidée,
+ * qui s'ouvre à la première visite et couvre l'écran, est marquée comme déjà vue.
+ */
 export async function openApp(page: Page, path = "/"): Promise<void> {
+  await page.addInitScript(() => {
+    try {
+      window.localStorage.setItem("marswalk.tour.v1", "done");
+    } catch {
+      /* stockage indisponible */
+    }
+  });
   await page.goto(`${path}?site=${SITE}`);
   await expect(page.getByTestId("map").locator("canvas").first()).toBeVisible({ timeout: 30_000 });
+}
+
+/**
+ * Ouvre une section d'outils de la barre latérale (Layers, Science, Targets & route, Inspect,
+ * Environment, Field log, Export) : la console n'en montre qu'une à la fois.
+ */
+export async function openTool(page: Page, title: string): Promise<void> {
+  const button = page.getByRole("navigation", { name: "Tools" }).getByRole("button", { name: title, exact: true });
+  if ((await button.getAttribute("aria-expanded")) !== "true") await button.click();
+  await expect(page.locator("#tool-drawer")).toHaveAttribute("aria-label", title);
+}
+
+/** Ferme la section d'outils ouverte, pour rendre la carte cliquable. */
+export async function closeTools(page: Page): Promise<void> {
+  const close = page.locator("#tool-drawer").getByRole("button", { name: /^Close / });
+  if (await close.isVisible()) await close.click();
+}
+
+/** Déplie le profil d'altitude (replié par défaut en bas de la console). */
+export async function openProfile(page: Page): Promise<void> {
+  const toggle = page.getByRole("region", { name: "Elevation profile" }).getByRole("button", { name: /^Elevation profile/ });
+  if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
 }
 
 const mercX = (lon: number) => (lon * Math.PI) / 180;
 const mercY = (lat: number) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
 
 /**
- * Position à l'écran d'un point [lon, lat] sur la carte telle qu'elle s'ouvre : MapLibre
- * cadre l'emprise du paquet avec 24 px de marge (MapView), sans zoom ni déplacement depuis.
+ * Position à l'écran d'un point [lon, lat] sur la carte telle qu'elle s'ouvre : l'imagerie du
+ * site couvre tout l'écran (MapView), centrée sur l'emprise, sans zoom ni déplacement depuis.
  */
 export async function screenPoint(page: Page, bbox: Manifest["bbox"], [lon, lat]: LonLat) {
   const box = await page.getByTestId("map").boundingBox();
   if (!box) throw new Error("Carte introuvable");
   const [w, s, e, n] = bbox;
-  const pad = 24;
-  const scale = Math.min((box.width - 2 * pad) / (mercX(e) - mercX(w)), (box.height - 2 * pad) / (mercY(n) - mercY(s)));
+  const scale = Math.max(box.width / (mercX(e) - mercX(w)), box.height / (mercY(n) - mercY(s)));
   const cx = (mercX(w) + mercX(e)) / 2;
   const cy = (mercY(s) + mercY(n)) / 2;
   return {

@@ -27,6 +27,9 @@ Gestion du CRISM multi-bandes :
 - jezeroFinal.tif est une image RGB 3-bandes uint8.
 - Chaque bande est reprojetée séparément en nearest neighbour.
 - Le résultat est écrit en 3-bandes uint8 (pas de conversion Float32).
+- Cube MTRDR de paramètres de synthèse (fichier téléchargé par D0) : classé d'abord en
+  carte uint8 à une bande (1 argiles et carbonates, 2 olivine) par ``classify_crism_summary``,
+  puis reprojeté en nearest neighbour.
 
 Le recalage (coreg) est délégué à ``marswalk_pipeline.coreg``.
 """
@@ -82,6 +85,91 @@ _SOURCE_KEYS: dict[str, list[str]] = {
 
 # Couches dont les valeurs sont catégorielles → nearest neighbour obligatoire.
 _CATEGORICAL_LAYERS: frozenset[str] = frozenset({"crism_minerals"})
+
+# Classes de la couche crism_minerals (légende du paquet de site) : 0 non détecté ou hors
+# image, 1 argiles et carbonates, 2 olivine.
+CRISM_CLAY_CARB: int = 1
+CRISM_OLIVINE: int = 2
+
+# Seuils sur les paramètres de synthèse CRISM MTRDR (Viviano-Beck et al. 2014, « Revised
+# CRISM spectral parameters and summary products », JGR Planets 119, 1403-1431,
+# doi:10.1002/2014JE004627). Valeurs proches du bas des étirements des produits de synthèse :
+# à calibrer sur Jezero si la carte paraît trop chargée ou trop vide.
+CRISM_THRESHOLDS: dict[str, float] = {
+    "D2300": 0.010,  # smectites Fe/Mg (bande à 2,3 µm)
+    "MIN2295_2480": 0.010,  # carbonates Mg (doublet 2,3 et 2,5 µm)
+    "MIN2345_2537": 0.010,  # carbonates Fe/Ca
+    "OLINDEX3": 0.100,  # olivine (large absorption vers 1 µm)
+}
+_CRISM_INVALID: float = 65534.0  # les MTRDR marquent les pixels vides par 65535
+
+
+def _crism_band_names(src_path: Path) -> list[str]:
+    """Noms des bandes d'un cube CRISM : descriptions GDAL, sinon en-tête ENVI ``.hdr``."""
+    with rasterio.open(src_path) as src:
+        names = [d or "" for d in src.descriptions]
+    if any(names):
+        return [n.strip() for n in names]
+    hdr = src_path.with_suffix(".hdr")
+    if not hdr.exists():
+        return []
+    text = hdr.read_text(encoding="utf-8", errors="replace")
+    start = text.lower().find("band names")
+    if start < 0:
+        return []
+    body = text[text.index("{", start) + 1 : text.index("}", start)]
+    return [n.strip() for n in body.split(",") if n.strip()]
+
+
+def _is_crism_summary_cube(src_path: Path) -> bool:
+    """Vrai pour un cube de paramètres de synthèse (MTRDR « SU ») et non une carte classée."""
+    return set(CRISM_THRESHOLDS) <= set(_crism_band_names(src_path))
+
+
+def classify_crism_summary(src_path: Path, dst_path: Path) -> dict[str, int]:
+    """Classe un cube CRISM MTRDR en carte uint8 (0, 1, 2) dans la géométrie source.
+
+    Un pixel est « argiles et carbonates » si D2300, MIN2295_2480 ou MIN2345_2537 dépasse
+    son seuil, sinon « olivine » si OLINDEX3 dépasse le sien. Les mélanges olivine et
+    carbonates, fréquents dans le delta, sont donc rangés en classe 1. Renvoie le nombre de
+    pixels par classe.
+    """
+    names = _crism_band_names(src_path)
+    with rasterio.open(src_path) as src:
+        bands = {n: src.read(names.index(n) + 1).astype(np.float32) for n in CRISM_THRESHOLDS}
+        profile = {"crs": src.crs, "transform": src.transform}
+        height, width = src.height, src.width
+
+    def above(name: str) -> np.ndarray:
+        v = bands[name]
+        mask: np.ndarray = np.isfinite(v) & (v < _CRISM_INVALID) & (v > CRISM_THRESHOLDS[name])
+        return mask
+
+    clay_carb = above("D2300") | above("MIN2295_2480") | above("MIN2345_2537")
+    olivine = above("OLINDEX3") & ~clay_carb
+    classes = np.zeros((height, width), dtype=np.uint8)
+    classes[clay_carb] = CRISM_CLAY_CARB
+    classes[olivine] = CRISM_OLIVINE
+
+    dst_path.parent.mkdir(parents=True, exist_ok=True)
+    with rasterio.open(
+        dst_path,
+        "w",
+        driver="GTiff",
+        height=height,
+        width=width,
+        count=1,
+        dtype="uint8",
+        nodata=0,
+        **profile,
+    ) as dst:
+        dst.write(classes, 1)
+    return {
+        "clay_carb": int(clay_carb.sum()),
+        "olivine": int(olivine.sum()),
+        "pixels": height * width,
+    }
+
 
 # Couches dont le NoData=0 est un marqueur NoData, pas une valeur valide.
 _NODATA_ZERO_LAYERS: frozenset[str] = frozenset({"thermal_inertia"})
@@ -609,7 +697,30 @@ def ingest_layer(
             is_categorical = layer_id in _CATEGORICAL_LAYERS
             is_multiband = meta["count"] > 1
 
-            if is_categorical and is_multiband:
+            class_note = ""
+            if is_categorical and is_multiband and _is_crism_summary_cube(src_file):
+                # CRISM MTRDR (paramètres de synthèse) : classer d'abord dans la géométrie
+                # source, puis reprojeter la carte de classes en nearest neighbour.
+                classes_src = work_aligned_dir / f"{layer_id}_classes_src.tif"
+                counts = classify_crism_summary(src_file, classes_src)
+                try:
+                    _reproject_multibands_uint8(
+                        classes_src,
+                        out_path,
+                        crs_str,
+                        transform,
+                        width,
+                        height,
+                        resampling=rasterio.enums.Resampling.nearest,
+                        nodata=0,
+                    )
+                finally:
+                    classes_src.unlink(missing_ok=True)
+                class_note = (
+                    f"classé depuis MTRDR : {counts['clay_carb']} px argiles et carbonates, "
+                    f"{counts['olivine']} px olivine sur {counts['pixels']}"
+                )
+            elif is_categorical and is_multiband:
                 # CRISM : multi-bandes uint8, nearest neighbour sur chaque bande
                 _reproject_multibands_uint8(
                     src_file,
@@ -653,6 +764,8 @@ def ingest_layer(
                 note_parts.append(f"repli sur '{key}' (fichier préféré manquant)")
             if fraction < 1.0:
                 note_parts.append(f"couverture partielle ({fraction * 100:.0f}%)")
+            if class_note:
+                note_parts.append(class_note)
 
             # Documenter la reprojection si le CRS source diffère
             src_crs_desc = meta["crs_str"]

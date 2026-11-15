@@ -115,9 +115,9 @@ test("3. Click on the edge of the dunes", async ({ request }) => {
 });
 
 test("4. Display hazard zones", async () => {
-  const legend = page.getByLabel("Légende des zones de risque");
-  await expect(legend).toContainText("⛔ Interdite");
-  await expect(legend).toContainText("▲ Pénalisée");
+  const legend = page.getByLabel("Hazard zone legend");
+  await expect(legend).toContainText("⛔ Forbidden");
+  await expect(legend).toContainText("▲ Penalized");
   const hazards = await page.request.get(`${API}/api/sites/${SITE}/hazards`);
   const body = (await hazards.json()) as { features: { properties: { kind: string; cause: string } }[] };
   const kinds = new Set(body.features.map((f) => f.properties.kind));

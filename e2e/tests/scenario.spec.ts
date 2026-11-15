@@ -243,9 +243,16 @@ test("8. Examiner le profil de la variante choisie", async () => {
   await expect(profile.getByRole("table", { name: "Segments" }).locator("tbody tr")).toHaveCount(4); // 3 cibles + retour
   // Survoler le profil déplace le repère : la ligne du tronçon survolé s'allume
   const chart = profile.getByLabel("Elevation and slope profile along the route");
-  const box = (await chart.boundingBox())!;
-  await page.mouse.move(box.x + box.width * 0.3, box.y + box.height / 2);
-  await expect(profile.locator("tbody tr[aria-current]")).toHaveCount(1);
+  // Mesure et survol repris jusqu'à ce que le repère suive : le graphique se redimensionne
+  // après l'ouverture de la feuille, et ECharts ne réagit qu'aux mouvements du pointeur.
+  let step = 0;
+  await expect(async () => {
+    const box = (await chart.boundingBox())!;
+    const x = box.x + box.width * (0.3 + 0.02 * (step++ % 5));
+    await page.mouse.move(x - 8, box.y + box.height / 2);
+    await page.mouse.move(x, box.y + box.height / 2, { steps: 4 });
+    await expect(profile.locator("tbody tr[aria-current]")).toHaveCount(1, { timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
   // Et inversement : survoler un tronçon met le profil au même endroit
   await profile.getByTestId("segment-2").hover();
   await expect(profile.getByTestId("segment-2")).toHaveAttribute("aria-current", "true");

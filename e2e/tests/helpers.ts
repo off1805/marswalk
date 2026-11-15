@@ -116,6 +116,11 @@ export async function closeTools(page: Page): Promise<void> {
 export async function openProfile(page: Page): Promise<void> {
   const toggle = page.getByRole("region", { name: "Elevation profile" }).getByRole("button", { name: /^Elevation profile/ });
   if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
+  // La feuille s'ouvre en 380 ms (plus lent sous le WebGL logiciel de la CI) : attendre la
+  // fin de l'animation avant de mesurer ou de survoler son contenu.
+  await page.waitForFunction(() =>
+    document.getAnimations().every((a) => !(a instanceof CSSTransition) || a.playState !== "running"),
+  );
 }
 
 const mercX = (lon: number) => (lon * Math.PI) / 180;

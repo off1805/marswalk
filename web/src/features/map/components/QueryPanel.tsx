@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Panel } from "@/shared/ui/Panel";
 import { Button } from "@/shared/ui/Button";
@@ -6,6 +6,8 @@ import { AlertBadge } from "@/shared/ui/AlertBadge";
 import { api, type PointQuery } from "@/shared/api/client";
 import { queryKeys } from "@/shared/queryKeys";
 import { useShared } from "@/shared/store";
+import { useSiteManifest } from "@/shared/hooks";
+import { onMapClick } from "@/shared/mapClick";
 import type { PointValue } from "../types";
 
 function PointValueItem({ value }: { value: PointValue }) {
@@ -46,17 +48,30 @@ export function QueryPanel() {
   const pickMode = useShared((s) => s.pickMode);
   const setPickMode = useShared((s) => s.setPickMode);
 
-  // Coordonnées interrogées (par défaut centre du site / habitat)
-  const [coords, setCoords] = useState<{ lon: number; lat: number }>({
-    lon: 77.578,
-    lat: 18.381,
-  });
+  const habitat = useSiteManifest().data?.habitat;
+
+  // Coordonnées interrogées : l'habitat du site tant qu'aucun point n'a été choisi.
+  const [picked, setPicked] = useState<{ siteId: string; lon: number; lat: number } | null>(null);
+  const coords =
+    picked && picked.siteId === siteId
+      ? picked
+      : habitat
+        ? { lon: habitat[0], lat: habitat[1] }
+        : null;
+  const setCoords = (next: { lon: number; lat: number }) => setPicked({ siteId, ...next });
 
   const isQueryMode = pickMode === "query";
 
+  // Un clic sur la carte en mode interrogation interroge ce point (écart E1).
+  useEffect(() => {
+    if (!isQueryMode) return;
+    return onMapClick(({ lon, lat }) => setPicked({ siteId, lon, lat }));
+  }, [isQueryMode, siteId]);
+
   const { data: queryResult, isLoading, error, refetch } = useQuery({
-    queryKey: queryKeys.query(siteId, coords.lon, coords.lat),
+    queryKey: queryKeys.query(siteId, coords?.lon ?? NaN, coords?.lat ?? NaN),
     queryFn: async () => {
+      if (!coords) throw new Error("Site en cours de chargement");
       const { data, error } = await api.GET("/api/sites/{site_id}/query", {
         params: {
           path: { site_id: siteId },
@@ -66,7 +81,7 @@ export function QueryPanel() {
       if (error || !data) throw new Error("Erreur lors de l'interrogation du point");
       return data as PointQuery;
     },
-    enabled: isQueryMode,
+    enabled: isQueryMode && coords !== null,
     staleTime: 5000,
   });
 
@@ -93,8 +108,8 @@ export function QueryPanel() {
                 <input
                   type="number"
                   step="0.001"
-                  value={coords.lon}
-                  onChange={(e) => setCoords((c) => ({ ...c, lon: parseFloat(e.target.value) || 0 }))}
+                  value={coords?.lon ?? ""}
+                  onChange={(e) => coords && setCoords({ ...coords, lon: parseFloat(e.target.value) || 0 })}
                   className="w-full rounded border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 font-mono text-xs text-[var(--text)]"
                 />
               </div>
@@ -103,8 +118,8 @@ export function QueryPanel() {
                 <input
                   type="number"
                   step="0.001"
-                  value={coords.lat}
-                  onChange={(e) => setCoords((c) => ({ ...c, lat: parseFloat(e.target.value) || 0 }))}
+                  value={coords?.lat ?? ""}
+                  onChange={(e) => coords && setCoords({ ...coords, lat: parseFloat(e.target.value) || 0 })}
                   className="w-full rounded border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 font-mono text-xs text-[var(--text)]"
                 />
               </div>

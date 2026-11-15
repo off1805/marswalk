@@ -17,11 +17,13 @@
  *   PrefetchPanel.tsx     S+I  Panneau de préchargement
  *   QueueStatusPanel.tsx  S+I  Panneau de file d'attente
  *   OfflinePanel.tsx      S+D  Assembleur des panneaux (orchestre, ne calcule pas)
+ *   FieldReportPanel.tsx  S    Obstacle et observation pendant la sortie (file hors ligne)
  *
  * Ne jamais importer le code d'une autre fonctionnalité.
  * Communication via @/shared/store et @/shared/api/client.
  */
 import type { Feature } from "@/app/feature";
+import { FieldReportPanel } from "./FieldReportPanel";
 import { OfflinePanel } from "./OfflinePanel";
 import { registerServiceWorker } from "./swRegistration";
 
@@ -34,6 +36,8 @@ export const feature: Feature = {
       component: OfflinePanel,
       modes: ["map"],
     },
+    // Juste sous le panneau « Sécurité » de F4 (ordre 5), visible pendant une sortie.
+    { slot: "right", order: 6, component: FieldReportPanel },
   ],
   routes: [],
   /** Enregistre le service worker Workbox au démarrage de l'application. */
@@ -43,4 +47,5 @@ export const feature: Feature = {
 // Export public pour les tests
 export { OperationQueue, buildReplayHandlers } from "./operationQueue";
 export { buildPrefetchList } from "./prefetch";
+export { pointAhead } from "./FieldReportPanel";
 export { __setQueueForTest } from "./serviceRegistry";

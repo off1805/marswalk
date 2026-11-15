@@ -69,7 +69,9 @@ function getMapLayers(ctx: MapContext): Layer[] {
     draggingTargetId,
     {
       onTargetClick: (targetId: string) => {
-        const { selectTarget, selectedTargetId: cur } = useShared.getState();
+        const { selectTarget, selectedTargetId: cur, pickMode: mode } = useShared.getState();
+        // En mode interrogation, le clic interroge le point (F1) au lieu de choisir la cible.
+        if (mode === "query") return;
         selectTarget(cur === targetId ? null : targetId);
       },
       onTargetDragStart: (targetId: string) => {

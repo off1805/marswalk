@@ -11,6 +11,7 @@ import { API, SITE, manifest, openApp, resetTargets, screenPoint, targetByName }
 
 const PLANNED = ["Front du delta", "Unité à olivine", "Bord des dunes"] as const;
 const DROPPED = "Chaos de blocs";
+const OBSERVATION = "Litage oblique au pied du front";
 
 test.describe.configure({ mode: "serial" });
 
@@ -85,10 +86,18 @@ test("2. Choisir le préréglage « Sécurité »", async () => {
 });
 
 test("3. Cliquer sur le bord des dunes", async ({ request }) => {
-  test.fixme(true, "Écart E1 : un clic sur la carte n'interroge pas le point (ECARTS.md)");
   const dunes = await targetByName(request, "Bord des dunes");
-  const { bbox } = await manifest(request);
+  const { bbox, habitat: h } = await manifest(request);
+  const habitat = Array.isArray(h) ? h : h.position;
+  // Avant tout clic, le point interrogé est l'habitat du site (et non un point codé en dur).
+  const atHabitat = page.waitForResponse(
+    (r) =>
+      r.url().includes(`/api/sites/${SITE}/query`) &&
+      Math.abs(Number(new URL(r.url()).searchParams.get("lon")) - habitat[0]) < 1e-6 &&
+      Math.abs(Number(new URL(r.url()).searchParams.get("lat")) - habitat[1]) < 1e-6,
+  );
   await page.getByRole("button", { name: "Activer l'interrogation" }).click();
+  await atHabitat;
   const at = await screenPoint(page, bbox, dunes.position);
   const query = page.waitForResponse(
     (r) =>
@@ -277,9 +286,25 @@ test("10. Lancer la sortie et l'astronaute virtuel en accéléré", async () => 
 });
 
 test("11. Signaler un obstacle et noter une observation", async () => {
-  test.fixme(true, "Écart E3 : l'interface n'a ni bouton « obstacle » ni saisie d'observation (ECARTS.md)");
-  await page.getByRole("button", { name: /Signaler un obstacle/ }).click();
-  await page.getByRole("button", { name: /Observation/ }).click();
+  const field = page.getByRole("region", { name: "Relevés de terrain" });
+  await expect(field).toBeVisible();
+  // Obstacle : signalé devant l'astronaute, l'API recalcule le contournement local
+  const obstacle = page.waitForResponse(
+    (r) => r.url().endsWith(`/api/eva/${evaId}/obstacles`) && r.request().method() === "POST",
+  );
+  await field.getByRole("button", { name: /Signaler un obstacle/ }).click();
+  const obstacleRes = await obstacle;
+  expect(obstacleRes.ok(), await obstacleRes.text()).toBeTruthy();
+  await expect(field.getByRole("status")).toContainText("Obstacle signalé");
+  // Observation : une note à la position courante, ajoutée au carnet
+  await field.getByLabel("Note").fill(OBSERVATION);
+  const observation = page.waitForResponse(
+    (r) => r.url().endsWith(`/api/eva/${evaId}/observations`) && r.request().method() === "POST",
+  );
+  await field.getByRole("button", { name: /Noter l'observation/ }).click();
+  const observationRes = await observation;
+  expect(observationRes.ok(), await observationRes.text()).toBeTruthy();
+  await expect(field.getByRole("status")).toContainText("Observation ajoutée au carnet");
 });
 
 test("12. Éruption solaire simulée", async () => {
@@ -337,9 +362,10 @@ test("14. Retour forcé et export du carnet", async () => {
     )
     .toMatch(/completed|aborted|ended|finished/);
   // L'itinéraire a été recalculé vers l'habitat
-  const update = frames.find((f) => f.type === "route_updated");
-  expect(update, "message route_updated reçu").toBeTruthy();
-  expect(String(update!.payload.reason)).toMatch(/retour|habitat/i);
+  // (le premier route_updated peut être le contournement de l'obstacle de l'étape 11)
+  const reasons = frames.filter((f) => f.type === "route_updated").map((f) => String(f.payload.reason));
+  expect(reasons.length, "message route_updated reçu").toBeGreaterThan(0);
+  expect(reasons.some((r) => /retour|habitat/i.test(r)), reasons.join(" | ")).toBeTruthy();
   // Le carnet de terrain s'exporte en GeoJSON
   await page.getByRole("link", { name: "🖶 Carnet complet" }).click();
   await expect(page.getByRole("heading", { name: `Carnet de terrain · ${evaId}` })).toBeVisible();
@@ -350,6 +376,10 @@ test("14. Retour forcé et export du carnet", async () => {
   const geo = JSON.parse(readFileSync(file, "utf-8")) as { type: string; features: unknown[] };
   expect(geo.type).toBe("FeatureCollection");
   expect(geo.features.length).toBeGreaterThan(0);
+  // L'obstacle et l'observation de l'étape 11 sont dans le carnet
+  const text = JSON.stringify(geo);
+  expect(text).toContain(OBSERVATION);
+  expect(text).toMatch(/Obstacle signalé/);
 });
 
 test("14 bis. Une nouvelle sortie après l'éruption avance normalement", async () => {

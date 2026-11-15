@@ -8,7 +8,7 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 | --- | --- | --- | --- |
 | 1 | Ouvrir Marswalk sur le site | ✓ | |
 | 2 | Préréglage « Sécurité » | ✓ | |
-| 3 | Cliquer sur le bord des dunes | ✗ | E1 |
+| 3 | Cliquer sur le bord des dunes | ✓ après le correctif de E1 | |
 | 4 | Zones dangereuses | ✓ | O3, O4 |
 | 5 | Objectif scientifique | ◐ objectif par cible seulement | E2 |
 | 6 | Planifier trois cibles | ✓ 2,7 s entre la suppression d'une cible et l'affichage des variantes | |
@@ -16,7 +16,7 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 | 8 | Profil de la variante choisie | ✓ profil et tableau synchronisés ; côté carte, voir « Non vérifié » | |
 | 9 | Vue 3D | ◐ exagération réglable, survol en panne | E7 |
 | 10 | Sortie et astronaute virtuel | ✓ après le correctif C1 | |
-| 11 | Obstacle et observation | ✗ | E3 |
+| 11 | Obstacle et observation | ✓ après le correctif de E3 | |
 | 12 | Éruption solaire | ✓ alerte affichée 0,4 s après sa réception | |
 | 13 | Acquitter l'alerte | ✓ | |
 | 14 | Retour forcé, carnet en GeoJSON | ✓ | E8 pour la sortie suivante |
@@ -27,21 +27,17 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 
 **C1. La sortie simulée refusait tout plan calculé.** `POST /api/eva` répondait « Plan inconnu » pour tout plan de `POST /api/sites/{site_id}/plans` : le simulateur (A4) ne lisait que `plan-demo`, comme l'annonçait `tasks/change-requests/A4-source-des-plans.md`. Aucune sortie ne pouvait démarrer depuis l'interface, et l'export GeoJSON du plan (X1) échouait de même. Correctif : `get_simulator()` lit d'abord le dépôt de plans de A2 (PR `fix/I2-integration`), avec un test dans `api/tests/a4/test_plans_a2.py`.
 
+**E1 corrigé. Un clic sur la carte interroge le point (étape 3).** La coquille diffuse chaque clic MapLibre par `shared/mapClick.ts` (contournement de `tasks/change-requests/F2-pickmode-map-click.md`, sans toucher au magasin gelé) ; `QueryPanel` s'y abonne en mode interrogation et part de l'habitat du manifeste. Le clic est lu sur MapLibre, donc il passe même au-dessus d'une cible ou d'une zone ; en mode interrogation, F2 ne sélectionne plus la cible cliquée. Vérifié par l'étape 3, qui contrôle aussi la première requête à l'habitat.
+
+**E3 corrigé. Obstacle et observation pendant la sortie (étape 11).** Panneau « Relevés de terrain » (F7), affiché sous « Sécurité » tant qu'une sortie est suivie : « Signaler un obstacle » poste `POST /api/eva/{id}/obstacles` 50 m devant l'astronaute sur son tracé (rayon 6 m) ; « Noter l'observation » poste à la position courante et, sans réseau ou en cas d'échec, passe par `useOfflineQueue().enqueue("addObservation", …)` avec l'identifiant de la sortie. Le rejeu est désormais gardé au niveau du module, pour qu'une opération ne soit pas rejouée par chaque panneau qui utilise la file. Vérifié par l'étape 11, et l'étape 14 contrôle que l'obstacle et l'observation sont dans le carnet GeoJSON.
+
 ## Écarts ouverts
 
 Gravité : **critique** = risque pour la sécurité présentée ; **haute** = une étape de la démo ne se joue pas ; **moyenne** = l'étape se joue mais ne montre pas ce que dit le scénario ; **basse** = finition.
 
-### E1. Un clic sur la carte n'interroge pas le point (étape 3) · haute · F1, A1
-
-`QueryPanel` garde ses coordonnées dans un état local, fixé au centre du site fictif (77,578 E ; 18,381 N), et rien ne le relie aux clics sur la carte : « Cliquez sur la carte » n'a pas d'effet, seule la saisie des coordonnées fonctionne. Sur Jezero, le point par défaut est celui du fictif. À faire : écouter le clic de la carte quand `pickMode === "query"` (comme F2 le fait pour `addTarget`) et partir de l'habitat du manifeste.
-
 ### E2. Pas de panneau science du site (étape 5) · moyenne · S1, F2
 
 Le scénario demande un panneau qui justifie le site et les cibles par les données NASA (delta, argiles et carbonates, olivine). L'interface n'affiche que l'objectif de chaque cible dans sa fiche ; `docs/science/jezero.md` n'est repris nulle part.
-
-### E3. Ni signalement d'obstacle ni observation dans l'interface (étape 11) · haute · F4, F7, X1
-
-L'API sait faire (`POST /api/eva/{id}/obstacles`, `POST /api/eva/{id}/observations`) et la file hors ligne de F7 sait rejouer `addObservation`, mais aucun bouton ne les appelle. L'étape 11 et la partie « même hors ligne » du scénario ne se montrent pas. À faire : deux actions dans le panneau de sortie, l'observation passant par `useOfflineQueue().enqueue("addObservation", …)`.
 
 ### E4. Sans chemin possible, le tracé coupe la falaise sans le dire (étapes 7 et 10) · critique · P2, T00 (site fictif)
 

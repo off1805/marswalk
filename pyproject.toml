@@ -84,4 +84,5 @@ addopts = "-q --import-mode=importlib"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
     "db: tests qui demandent PostGIS (MARSWALK_DATABASE_URL)",
+    "jezero: tests qui demandent le paquet Jezero dans data/packages/jezero/",
 ]

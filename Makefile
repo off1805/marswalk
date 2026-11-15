@@ -56,7 +56,10 @@ examples: ## Régénère contracts/examples (changement de contrat seulement)
 
 SITE ?= jezero
 
-site: ## Paquet d'un site réel (make site SITE=jezero) : ingest (D1), derive (D2), package (D3)
+site: ## Enchaîne ingest → derive → package pour SITE (ex: make site SITE=jezero)
+ifndef SITE
+	$(error SITE est requis : make site SITE=jezero)
+endif
 	uv run marswalk-ingest $(SITE)
 	$(MAKE) site-package SITE=$(SITE)
 

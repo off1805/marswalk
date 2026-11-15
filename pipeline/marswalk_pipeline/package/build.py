@@ -49,7 +49,7 @@ from .tiling import (
     Encoder,
     Eqc,
     RasterSampler,
-    build_pyramid,
+    build_pyramid_auto,
     max_zoom_for,
     render_categorical,
     render_continuous,
@@ -244,21 +244,23 @@ def _tile_layer(
     bbox: tuple[float, float, float, float],
     minzoom: int,
     lat_c: float,
+    log: Callable[[str], None] = lambda _: None,
 ) -> tuple[TileInfo, int, int]:
     categorical = info.legend is not None and info.legend.type == "categorical"
     sampler = RasterSampler(source, eqc, nearest=categorical)
     try:
         maxzoom = max_zoom_for(sampler.resolution_m, lat_c, eqc.radius_m, minzoom)
         encoder = Encoder("webp", lossless=categorical, quality=display.quality)
-        stats = build_pyramid(
+        stats = build_pyramid_auto(
             tiles_root / info.id,
-            sampler.sample,
+            sampler,
             _renderer(info, display, source),
             encoder,
             bbox,
             minzoom,
             maxzoom,
             display.resample,
+            log=log,
         )
     finally:
         sampler.close()
@@ -351,7 +353,13 @@ def build_package(
     out.parent.mkdir(parents=True, exist_ok=True)
     staging_parent = out.parent / f".build-{site_id}"
     if staging_parent.exists():
-        shutil.rmtree(staging_parent)
+        shutil.rmtree(staging_parent, ignore_errors=True)
+        # Sur Windows, shutil.rmtree peut échouer silencieusement sur des arborescences
+        # profondes ; on vérifie et on force si nécessaire.
+        if staging_parent.exists():
+            import subprocess
+
+            subprocess.run(["cmd", "/c", "rd", "/s", "/q", str(staging_parent)], check=False)
     staging = staging_parent / site_id
     staging.mkdir(parents=True)
     report = PackageReport(site_id, out)
@@ -390,7 +398,15 @@ def build_package(
             write_cog(cog_src, staging / "cog" / f"{inp.id}.tif", grid, categorical)
             log(f"{inp.id} : tuiles depuis {source.name} ({source.parent.name}/)")
             tiles, count, size = _tile_layer(
-                info, display, source, staging / "tiles", eqc, bbox, minzoom, lat_c
+                info,
+                display,
+                source,
+                staging / "tiles",
+                eqc,
+                bbox,
+                minzoom,
+                lat_c,
+                log=lambda m: log(f"  {m}"),
             )
             update: dict[str, Any] = {"cog": f"cog/{inp.id}.tif", "tiles": tiles}
             if info.resolution_m is None:
@@ -407,15 +423,16 @@ def build_package(
         sampler = RasterSampler(dem_source, eqc, nearest=False)
         try:
             tz = max_zoom_for(sampler.resolution_m, lat_c, eqc.radius_m, minzoom)
-            build_pyramid(
+            build_pyramid_auto(
                 staging / "tiles" / "terrain_rgb",
-                sampler.sample,
+                sampler,
                 render_terrain_rgb,
                 Encoder("png"),
                 bbox,
                 minzoom,
                 tz,
                 "average",
+                log=lambda m: log(f"  {m}"),
             )
         finally:
             sampler.close()

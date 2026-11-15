@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
                 out,
                 max_bytes=max_bytes,
                 generated_at=args.generated_at,
-                log=lambda m: print(f"… {m}", flush=True),
+                log=lambda m: print(f"  {m}", flush=True),
             )
     except PackageError as exc:
         print(f"ERREUR : {exc}", file=sys.stderr)

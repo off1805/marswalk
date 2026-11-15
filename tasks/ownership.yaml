@@ -74,6 +74,10 @@ tasks:
     paths:
       - pipeline/marswalk_pipeline/package/**
       - pipeline/tests/d3/**
+      - D3_REPORT.md
+      - Makefile
+      - config/sites/jezero/site.yaml
+      - tasks/ownership.yaml
   P1:
     title: Moteur de risque et grille de coût
     paths:

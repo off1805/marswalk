@@ -161,6 +161,12 @@ def build_hazard_polygons(
     feature_id = 0
 
     for cause_key, meta in _CAUSE_META.items():
+        if cause_key == "no_radio" and not settings.require_radio:
+            # Radio non exigée (préréglage standard) : la pénalité reste dans le coût, mais
+            # on ne la dessine pas comme zone de danger. Sur Jezero elle couvre plus de la
+            # moitié de l'emprise et noyait la carte en orange ; la couche
+            # radio_coverage la montre déjà.
+            continue
         full_mask = masks.by_cause.get(cause_key)
         if full_mask is None or not bool(np.any(full_mask)):
             continue

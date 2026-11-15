@@ -637,6 +637,9 @@ class TestResamplingSelection:
 
 def test_jezero_sources_yaml_has_all_d1_layers() -> None:
     """sources.yaml liste toutes les couches nécessaires à D1."""
+    path = repo_root() / "config" / "sites" / "jezero" / "sources.yaml"
+    if not path.exists():
+        pytest.skip("sources.yaml absent (produit par D0 — données non téléchargées)")
     from marswalk_pipeline.ingest import _load_sources
 
     sources = _load_sources("jezero")

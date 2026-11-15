@@ -381,7 +381,8 @@ export function TerrainCanvas({
       <div
         ref={containerRef}
         className="h-full w-full"
-        role="img"
+        // A region, not an image: it holds focusable content (canvas, markers, controls).
+        role="region"
         aria-label="3D rendering of the Martian terrain"
         data-testid="terrain-canvas"
       />

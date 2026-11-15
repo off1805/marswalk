@@ -37,9 +37,9 @@ export function useAutoPlan(targets: Target[] | undefined) {
       }
 
       // Le plan actif (restauré après un rechargement, ou déjà calculé) couvre-t-il
-      // exactement ces cibles ? Alors on le garde, avec la variante choisie : le
-      // recalculer créerait un nouveau plan et effacerait ce choix.
-      const { activePlanId, activeRouteId } = useShared.getState();
+      // exactement ces cibles ? Alors on le garde : le recalculer créerait un nouveau plan
+      // et effacerait la variante choisie.
+      const { activePlanId } = useShared.getState();
       if (activePlanId) {
         let current = qc.getQueryData<Plan>(queryKeys.plan(activePlanId));
         if (!current) {
@@ -49,10 +49,9 @@ export function useAutoPlan(targets: Target[] | undefined) {
           current = data as Plan | undefined;
           if (current) qc.setQueryData(queryKeys.plan(current.id), current);
         }
-        if (current && sameTargets(current.target_ids, tgts)) {
-          if (!activeRouteId && current.selected_route_id) setActiveRoute(current.selected_route_id);
-          return;
-        }
+        // L'API présélectionne une variante à la création : ce n'est pas un choix de
+        // l'astronaute, on ne l'applique donc pas ici (PlanSync restaure son vrai choix).
+        if (current && sameTargets(current.target_ids, tgts)) return;
       }
 
       // Cancel previous in-flight request

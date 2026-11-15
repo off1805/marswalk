@@ -54,7 +54,8 @@ export function PlanSync() {
         write(siteId, null);
         return;
       }
-      const routeId = saved.routeId ?? data.selected_route_id ?? null;
+      // Only the user's own choice: the API preselects a variant on every new plan.
+      const routeId = saved.routeId;
       state.setActivePlan(data.id);
       if (routeId && data.routes.some((r) => r.id === routeId)) state.setActiveRoute(routeId);
     })();

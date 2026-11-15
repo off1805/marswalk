@@ -2,7 +2,7 @@
 # Une couche absente d'un préréglage est masquée.
 presets:
   safety:
-    title: Sécurité
+    title: Safety
     layers:
       hillshade: { visible: true, opacity: 1.0 }
       slope: { visible: true, opacity: 0.6 }

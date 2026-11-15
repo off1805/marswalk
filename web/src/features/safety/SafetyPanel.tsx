@@ -43,7 +43,7 @@ export function MarsClock({ now }: { now: number }) {
   if (!anchor) return <p className="text-sm">Martian clock unavailable.</p>;
   const c = advanceClock(anchor, now);
   return (
-    <div aria-label="Horloge martienne" className="flex flex-wrap items-baseline gap-x-3">
+    <div aria-label="Martian clock" className="flex flex-wrap items-baseline gap-x-3">
       <strong className="text-lg tabular-nums">Sol {c.sol}</strong>
       <strong className="text-lg tabular-nums">{c.lmst} LMST</strong>
       <span className="text-sm tabular-nums text-[var(--text-muted)]">{formatUtc(c.utc)}</span>

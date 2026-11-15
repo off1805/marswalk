@@ -17,6 +17,7 @@ import { useAutoPlan } from "./useAutoPlan";
 import { TargetCard } from "./TargetCard";
 import { RouteComparator } from "./RouteComparator";
 import { injectQueryClient } from "./index";
+import { targetsStore } from "./targetsStore";
 
 export function TargetsPanel() {
   const qc = useQueryClient();
@@ -36,6 +37,7 @@ export function TargetsPanel() {
   const { data: plan } = usePlan(activePlanId);
   const { computing } = useAutoPlan(targets);
 
+  const actionError = targetsStore((s) => s.actionError);
   const selectedTarget = targets?.find((t) => t.id === selectedTargetId);
 
   function toggleAddMode() {
@@ -58,6 +60,12 @@ export function TargetsPanel() {
             ? "📍 Click on the map…"
             : "+ Add a target"}
         </Button>
+
+        {actionError && (
+          <p role="alert" className="mb-2 text-xs font-semibold text-[var(--text-danger)]">
+            ▲ {actionError}
+          </p>
+        )}
 
         {/* Computing indicator */}
         {computing && (

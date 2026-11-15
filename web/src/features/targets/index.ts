@@ -7,7 +7,6 @@
  *   - map-overlay : légende des zones et tooltip de survol.
  *
  * Couches deck.gl :
- *   - Zone de capture de clics (mode addTarget)
  *   - Zones interdites et pénalisées (GeoJsonLayer)
  *   - Itinéraires par variante (PathLayer)
  *   - Point de non-retour (TextLayer)
@@ -34,6 +33,7 @@ import { targetsStore } from "./targetsStore";
 import { queryKeys } from "@/shared/queryKeys";
 import { useShared } from "@/shared/store";
 import { api } from "@/shared/api/client";
+import { onMapClick } from "@/shared/mapClick";
 import type { Target, FeatureCollection, Plan } from "@/shared/api/client";
 import type { MapContext } from "@/app/feature";
 
@@ -96,36 +96,45 @@ function getMapLayers(ctx: MapContext): Layer[] {
           }
         })();
       },
-      onMapClick: (lon: number, lat: number) => {
-        const { pickMode: mode, setPickMode, siteId: sid } = useShared.getState();
-        if (mode !== "addTarget") return;
-        setPickMode("none");
-        const currentTargets =
-          (_qc?.getQueryData(queryKeys.targets(sid)) as Target[] | undefined) ?? [];
-        void (async () => {
-          try {
-            const { data } = await api.POST("/api/sites/{site_id}/targets", {
-              params: { path: { site_id: sid } },
-              body: {
-                name: `Cible ${currentTargets.length + 1}`,
-                position: [lon, lat] as [number, number],
-                kind: "science" as const,
-                priority: currentTargets.length + 1,
-                work_time_s: 900,
-              },
-            });
-            if (data)
-              void _qc?.invalidateQueries({ queryKey: queryKeys.targets(sid) });
-          } catch {
-            /* silent */
-          }
-        })();
-      },
       onHazardHover: (cause: string | null) => {
         targetsStore.getState().setHazardHoverText(cause);
       },
     },
   );
+}
+
+/**
+ * Adds a target where the map was clicked, in "addTarget" pick mode. Map clicks come
+ * from the shell's click bus (shared/mapClick.ts), read on MapLibre, so they arrive
+ * whatever deck.gl layer lies under the pointer.
+ */
+async function addTargetAt(lon: number, lat: number) {
+  const { pickMode: mode, setPickMode, siteId } = useShared.getState();
+  if (mode !== "addTarget") return;
+  setPickMode("none");
+  const { setActionError } = targetsStore.getState();
+  setActionError(null);
+  const current = (_qc?.getQueryData(queryKeys.targets(siteId)) as Target[] | undefined) ?? [];
+  const n = current.length + 1;
+  try {
+    const { data, error } = await api.POST("/api/sites/{site_id}/targets", {
+      params: { path: { site_id: siteId } },
+      body: {
+        name: `Target ${n}`,
+        position: [lon, lat] as [number, number],
+        kind: "science" as const,
+        priority: 2, // medium; the API accepts 1 (high) to 3 (low)
+        work_time_s: 900,
+      },
+    });
+    if (error || !data) {
+      const detail = (error as { detail?: unknown } | undefined)?.detail;
+      throw new Error(typeof detail === "string" ? detail : "the server refused the target");
+    }
+    await _qc?.invalidateQueries({ queryKey: queryKeys.targets(siteId) });
+  } catch (err) {
+    setActionError(`Could not add the target: ${err instanceof Error ? err.message : String(err)}.`);
+  }
 }
 
 export const feature: Feature = {
@@ -137,4 +146,7 @@ export const feature: Feature = {
   ],
   mapLayers: (ctx: MapContext) => getMapLayers(ctx),
   routes: [],
+  setup: () => {
+    onMapClick(({ lon, lat }) => void addTargetAt(lon, lat));
+  },
 };

@@ -1,27 +1,26 @@
 /**
- * Contrôle d'accessibilité automatique (axe-core) sur les deux vues, la carte et la 3D, dans
- * les deux thèmes (ENF-06). Règles WCAG 2.1 A et AA.
+ * Automatic accessibility audit (axe-core) on both views — map and 3D — in both themes
+ * (ENF-06). WCAG 2.1 A and AA rules.
  *
- * Les violations déjà relevées dans e2e/ECARTS.md sont tolérées une à une (règle et élément),
- * et notées dans le rapport ; toute autre violation fait échouer le test. Quand un écart est
- * corrigé, retirer sa ligne de KNOWN.
+ * Violations already noted in e2e/ECARTS.md are tolerated one by one (rule and element)
+ * and annotated in the report; any other violation fails the test. When a gap is fixed,
+ * remove its line from KNOWN.
  */
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { openApp, resetTargets } from "./helpers";
 
-// E10 (contraste des couleurs d'état) et E11 (aria-label de la vue 3D) sont corrigés : plus
-// aucune violation tolérée.
+// E10 (state color contrast) and E11 (3D view aria-label) are fixed: no tolerated violations.
 const KNOWN: { gap: string; rule: string; match: RegExp }[] = [];
 
 async function audit(page: Page, name: string): Promise<string[]> {
-  // Attendre la fin des transitions CSS (transition-colors des panneaux, 150 ms) : juste après
-  // le changement de thème, axe lirait sinon un fond encore dans l'ancien thème sous un texte
-  // déjà dans le nouveau (texte noir sur #20262e en plein soleil, faux échec intermittent).
+  // Wait for CSS transitions to finish (panel transition-colors, 150 ms): right after a theme
+  // change, axe would otherwise read a background still in the old theme under text already
+  // in the new one (black text on #20262e in daylight mode — intermittent false failure).
   await page.waitForFunction(() => document.getAnimations().every((a) => !(a instanceof CSSTransition) || a.playState !== "running"));
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    // Les canevas WebGL (carte, 3D) n'ont pas de contenu inspectable par axe.
+    // WebGL canvases (map, 3D) have no content inspectable by axe.
     .exclude("canvas")
     .analyze();
   await test.info().attach(`axe-${name}.json`, {
@@ -34,7 +33,7 @@ async function audit(page: Page, name: string): Promise<string[]> {
       const target = node.target.join(" ");
       const line = `${v.id} (${v.impact}) ${target} : ${node.failureSummary?.split("\n")[1]?.trim() ?? v.help}`;
       const known = KNOWN.find((k) => k.rule === v.id && k.match.test(line));
-      if (known) test.info().annotations.push({ type: `écart ${known.gap}`, description: line });
+      if (known) test.info().annotations.push({ type: `gap ${known.gap}`, description: line });
       else unexpected.push(line);
     }
   }

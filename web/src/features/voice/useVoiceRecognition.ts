@@ -38,7 +38,7 @@ export interface VoiceRecognitionState {
 }
 
 /** Durée max d'écoute d'une commande en ms. */
-const COMMAND_TIMEOUT_MS = 8_000;
+const COMMAND_TIMEOUT_MS = 15_000;
 
 export function useVoiceRecognition(
   recognizer: ISpeechRecognizer,
@@ -83,7 +83,7 @@ export function useVoiceRecognition(
       listeningRef.current = false;
       setState("wakeWord");
       speechQueue.enqueue({
-        text: "No command received. I'm still listening for Nebula.",
+        text: "No command received after 15 seconds. I'm still listening for Nebula.",
         priority: "low",
       });
     }, COMMAND_TIMEOUT_MS);

@@ -3,6 +3,7 @@
  *
  * Slots :
  *   - right       : panneau de cibles, fiche et comparateur de variantes.
+ *   - left        : panneau « Science du site » (pourquoi Jezero, d'après S1).
  *   - map-overlay : légende des zones et tooltip de survol.
  *
  * Couches deck.gl :
@@ -27,6 +28,7 @@ import type { Layer } from "@deck.gl/core";
 import type { QueryClient } from "@tanstack/react-query";
 import { TargetsPanel } from "./TargetsPanel";
 import { TargetsOverlay } from "./TargetsOverlay";
+import { SciencePanel } from "./SciencePanel";
 import { buildLayers } from "./layers";
 import { targetsStore } from "./targetsStore";
 import { queryKeys } from "@/shared/queryKeys";
@@ -69,7 +71,9 @@ function getMapLayers(ctx: MapContext): Layer[] {
     draggingTargetId,
     {
       onTargetClick: (targetId: string) => {
-        const { selectTarget, selectedTargetId: cur } = useShared.getState();
+        const { selectTarget, selectedTargetId: cur, pickMode: mode } = useShared.getState();
+        // En mode interrogation, le clic interroge le point (F1) au lieu de choisir la cible.
+        if (mode === "query") return;
         selectTarget(cur === targetId ? null : targetId);
       },
       onTargetDragStart: (targetId: string) => {
@@ -128,6 +132,7 @@ export const feature: Feature = {
   id: "targets",
   panels: [
     { slot: "right", order: 20, component: TargetsPanel },
+    { slot: "left", order: 20, component: SciencePanel, modes: ["map"] },
     { slot: "map-overlay", order: 20, component: TargetsOverlay },
   ],
   mapLayers: (ctx: MapContext) => getMapLayers(ctx),

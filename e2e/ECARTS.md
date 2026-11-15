@@ -8,7 +8,7 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 | --- | --- | --- | --- |
 | 1 | Ouvrir Marswalk sur le site | ✓ | |
 | 2 | Préréglage « Sécurité » | ✓ | |
-| 3 | Cliquer sur le bord des dunes | ✗ | E1 |
+| 3 | Cliquer sur le bord des dunes | ✓ après le correctif de E1 | |
 | 4 | Zones dangereuses | ✓ | O3, O4 |
 | 5 | Objectif scientifique | ◐ objectif par cible seulement | E2 |
 | 6 | Planifier trois cibles | ✓ 2,7 s entre la suppression d'une cible et l'affichage des variantes | |
@@ -16,7 +16,7 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 | 8 | Profil de la variante choisie | ✓ profil et tableau synchronisés ; côté carte, voir « Non vérifié » | |
 | 9 | Vue 3D | ◐ exagération réglable, survol en panne | E7 |
 | 10 | Sortie et astronaute virtuel | ✓ après le correctif C1 | |
-| 11 | Obstacle et observation | ✗ | E3 |
+| 11 | Obstacle et observation | ✓ après le correctif de E3 | |
 | 12 | Éruption solaire | ✓ alerte affichée 0,4 s après sa réception | |
 | 13 | Acquitter l'alerte | ✓ | |
 | 14 | Retour forcé, carnet en GeoJSON | ✓ | E8 pour la sortie suivante |
@@ -33,17 +33,19 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 
 **C4 (E6). Une phrase par tronçon.** L'explication compare le tracé à la ligne droite entre ses extrémités : « Contourne une pente de 65° : +518 m (pente max 15,0° sur le tracé). », « Va en ligne droite (pente max 4,0° sur le tracé, traverse le sol meuble). ». Le passage par une unité minérale n'est cité que pour la variante science. Même texte pour le recalcul local pendant la sortie (A4). Étape 7 bis.
 
+**E1 corrigé. Un clic sur la carte interroge le point (étape 3).** La coquille diffuse chaque clic MapLibre par `shared/mapClick.ts` (contournement de `tasks/change-requests/F2-pickmode-map-click.md`, sans toucher au magasin gelé) ; `QueryPanel` s'y abonne en mode interrogation et part de l'habitat du manifeste. Le clic est lu sur MapLibre, donc il passe même au-dessus d'une cible ou d'une zone ; en mode interrogation, F2 ne sélectionne plus la cible cliquée. Vérifié par l'étape 3, qui contrôle aussi la première requête à l'habitat.
+
+**E3 corrigé. Obstacle et observation pendant la sortie (étape 11).** Panneau « Relevés de terrain » (F7), affiché sous « Sécurité » tant qu'une sortie est suivie : « Signaler un obstacle » poste `POST /api/eva/{id}/obstacles` 50 m devant l'astronaute sur son tracé (rayon 6 m) ; « Noter l'observation » poste à la position courante et, sans réseau ou en cas d'échec, passe par `useOfflineQueue().enqueue("addObservation", …)` avec l'identifiant de la sortie. Le rejeu est désormais gardé au niveau du module, pour qu'une opération ne soit pas rejouée par chaque panneau qui utilise la file. Vérifié par l'étape 11, et l'étape 14 contrôle que l'obstacle et l'observation sont dans le carnet GeoJSON.
+
 ## Écarts ouverts
 
 Gravité : **critique** = risque pour la sécurité présentée ; **haute** = une étape de la démo ne se joue pas ; **moyenne** = l'étape se joue mais ne montre pas ce que dit le scénario ; **basse** = finition.
 
-### E1. Un clic sur la carte n'interroge pas le point (étape 3) · haute · F1, A1
-
-`QueryPanel` garde ses coordonnées dans un état local, fixé au centre du site fictif (77,578 E ; 18,381 N), et rien ne le relie aux clics sur la carte : « Cliquez sur la carte » n'a pas d'effet, seule la saisie des coordonnées fonctionne. Sur Jezero, le point par défaut est celui du fictif. À faire : écouter le clic de la carte quand `pickMode === "query"` (comme F2 le fait pour `addTarget`) et partir de l'habitat du manifeste.
-
 ### E2. Pas de panneau science du site (étape 5) · moyenne · S1, F2
 
 Le scénario demande un panneau qui justifie le site et les cibles par les données NASA (delta, argiles et carbonates, olivine). L'interface n'affiche que l'objectif de chaque cible dans sa fiche ; `docs/science/jezero.md` n'est repris nulle part.
+
+**Corrigé** (branche `fix/I2-ecarts-science-finitions`) : panneau « Science du site » dans la colonne gauche (F2, `SciencePanel.tsx`), résumé de `jezero.md` avec ses sources ; le test 5 bis n'est plus en `fixme`.
 
 ### E3. Ni signalement d'obstacle ni observation dans l'interface (étape 11) · haute · F4, F7, X1
 
@@ -65,6 +67,8 @@ Le scénario attend « contourne une pente de 24° ». L'interface affiche les t
 
 `useTerrain3dData` reconstruit `activeProfile` à chaque rendu ; l'effet de `useFlyover` qui remet le survol à zéro « quand l'itinéraire change » se déclenche donc à chaque rendu et repasse `playing` à faux. Correctif d'une ligne : `useMemo` sur `activeProfile`.
 
+**Corrigé** : `activeProfile` et `terrainConfig` mémorisés dans `useTerrain3dData` ; le test 9 bis n'est plus en `fixme`.
+
 ### E8. Après l'éruption, toute nouvelle sortie s'arrête sur place (après l'étape 14) · haute · A3, A4
 
 Les alertes danger levées par le scénario `solar-event` restent actives (sans sortie rattachée) après l'arrêt du scénario, même acquittées, alors que le débit de dose est revenu à 16 µSv/h. Toute sortie lancée ensuite se termine en une dizaine de secondes sans avoir avancé (0 m). Seul un redémarrage de l'API rétablit la démo. À faire : lever les alertes quand la condition disparaît (`alert_cleared`) et ne forcer le retour que sur les alertes de la sortie en cours ; L1 en aura besoin pour sa commande de réinitialisation.
@@ -77,13 +81,17 @@ Les alertes danger levées par le scénario `solar-event` restent actives (sans 
 
 Le vert « Normal » #009e73, l'orange #e69f00 et le vermillon #d55e00 servent de couleur de texte. Rapport de contraste : 4,45:1 sur le thème sombre, 2,3 à 3,9:1 sur le thème « plein soleil », au lieu de 4,5:1. Le thème clair, prévu pour la lecture en plein soleil (ENF-06), est le plus touché : jauges du panneau sécurité, « Retour » des variantes, légende du profil, tableau météo. À faire : une variante foncée de chaque couleur d'état pour le texte, la couleur vive restant pour les pastilles et les tracés.
 
+**Corrigé** : jetons `--text-ok`, `--text-caution`, `--text-danger`, `--text-info` par thème (au moins 4,8:1 sur toutes les surfaces), `textColors` côté JS, texte noir sur les pastilles orange et vermillon ; ligne retirée de `KNOWN`.
+
 ### E11. `aria-label` sur un `div` sans rôle dans la vue 3D · basse · F6
 
 L'élément `.inset-0` du rendu 3D porte un `aria-label` interdit sans rôle. Ajouter `role="img"` (ou retirer l'étiquette, le canevas en porte déjà une).
 
+**Corrigé** : `role="img"` ajouté ; ligne retirée de `KNOWN`.
+
 ## Observations sans test dédié
 
-- **O1. Accents manquants dans les étiquettes de la carte.** « Unité à olivine » s'affiche « Unit    olivine » : la police des étiquettes deck.gl n'a pas les caractères accentués (F2).
+- **O1. Accents manquants dans les étiquettes de la carte.** « Unité à olivine » s'affiche « Unit    olivine » : la police des étiquettes deck.gl n'a pas les caractères accentués (F2). **Corrigé** : `characterSet: "auto"` sur les `TextLayer` de F2.
 - **O2. Recalcul local après obstacle à la limite.** `api/tests/a4/test_demo.py` mesure 2,0 s dans le conteneur de cloud (échec à 2 004 ms pour une limite de 2 000 ms, sans lien avec le correctif C1) ; I1 a mesuré 2,9 s sur Jezero pour un objectif de 2 s. Vert dans la CI GitHub.
 - **O3. Zones interdites en vermillon, pas en rouge.** Le scénario dit « rouge » ; la palette pour daltoniens utilise le vermillon #d55e00 avec l'icône ⛔. Choix défendable, à aligner dans le texte du scénario.
 - **O4. Cause des zones toujours « pente ».** `GET /hazards` ne renvoie que des zones de cause `slope` sur le fictif ; les ruptures de pente et les obstacles ne sont pas cités comme cause.

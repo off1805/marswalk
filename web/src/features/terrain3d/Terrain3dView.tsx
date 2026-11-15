@@ -1,118 +1,177 @@
 /**
- * Vue 3D complète (F6) — exposée via la route `/3d`.
+ * 3D view (F6), route `/3d`: the terrain edge to edge, a route chip, view and relief
+ * options, and the flyover bar.
  *
- * Ce composant est le seul point d'assemblage. Il compose :
- *   - `useTerrain3dData`  → données (manifeste + itinéraire)
- *   - `useFlyover`        → état de l'animation de caméra
- *   - `TerrainCanvas`     → rendu deck.gl
- *   - `FlyoverControls`   → contrôles UI
- *
- * Principe S : ce composant orchestre, il ne calcule rien.
- * Principe D : il dépend des abstractions exposées par ses hooks et composants,
- *              pas de leur implémentation.
+ * This component only assembles: data from `useTerrain3dData`, animation state from
+ * `useFlyover`, rendering in `TerrainCanvas`.
  */
 import { useCallback, useState } from "react";
-import { useTerrain3dData } from "./useTerrain3dData";
-import { useFlyover } from "./useFlyover";
+import { Link } from "react-router";
+import { colors } from "@/shared/theme";
+import type { ViewPreset } from "./camera";
+import { EXAGGERATION_STEPS } from "./flyover";
+import { FlyoverControls, Segmented } from "./FlyoverControls";
 import { TerrainCanvas } from "./TerrainCanvas";
-import { FlyoverControls } from "./FlyoverControls";
+import { useFlyover } from "./useFlyover";
+import { useTerrain3dData } from "./useTerrain3dData";
+
+const VARIANT_LABEL: Record<string, string> = { safest: "Safest", fastest: "Fastest", science: "Science" };
+
+const VIEWS: { id: ViewPreset; label: string; hint: string }[] = [
+  { id: "overview", label: "Overview", hint: "Oblique view of the whole site" },
+  { id: "top", label: "Top", hint: "Straight down, like the map" },
+  { id: "ground", label: "Ground level", hint: "Tilt down to the surface where you are" },
+];
+
+function Centered({ children }: { children: string }) {
+  return (
+    <div className="absolute inset-0 grid place-items-center bg-[var(--bg)]">
+      <p className="label-caps animate-pulse">{children}</p>
+    </div>
+  );
+}
 
 export function Terrain3dView() {
-  const { terrainConfig, activeProfile, activeRoute, totalDistanceM, isLoading } =
-    useTerrain3dData();
-
+  const data = useTerrain3dData();
+  const { terrainConfig, activeProfile, activeRoute, totalDistanceM, isLoading } = data;
   const flyover = useFlyover(activeProfile, totalDistanceM);
+  const [preset, setPreset] = useState<{ name: ViewPreset } | null>(null);
+  // Options open by default where there is room for them beside the terrain.
+  const [optionsOpen, setOptionsOpen] = useState(() => typeof window === "undefined" || window.innerWidth >= 1024);
+  const { playing, pause } = flyover;
 
-  // Quand l'utilisateur fait glisser manuellement, on suspend l'animation.
-  const handleManualDrag = useCallback(
-    () => {
-      if (flyover.playing) flyover.pause();
-    },
-    [flyover],
-  );
+  // Grabbing the camera during the flyover hands control back to the user.
+  const handleUserMove = useCallback(() => {
+    if (playing) pause();
+  }, [playing, pause]);
 
-  // État local du message d'info (pas besoin d'aller dans le magasin partagé)
-  const [showHelp, setShowHelp] = useState(false);
+  if (isLoading) return <Centered>Loading 3D terrain…</Centered>;
+  if (!terrainConfig) return <Centered>Site manifest unavailable</Centered>;
 
-  if (isLoading) {
-    return (
-      <div className="relative min-h-0 flex-1 flex items-center justify-center bg-[var(--bg)]">
-        <p className="animate-pulse text-sm text-[var(--text-muted)]">
-          Loading 3D terrain…
-        </p>
-      </div>
-    );
-  }
-
-  if (!terrainConfig) {
-    return (
-      <div className="relative min-h-0 flex-1 flex items-center justify-center bg-[var(--bg)]">
-        <p className="text-sm text-[var(--text-muted)]">
-          Site manifest unavailable.
-        </p>
-      </div>
-    );
-  }
+  const variantColor = activeRoute ? colors.route[activeRoute.variant] : undefined;
 
   return (
-    <div
-      className="relative min-h-0 flex-1 overflow-hidden"
-      style={{ height: "100%" }}
-      aria-label="3D terrain view"
-    >
-      {/* Rendu deck.gl */}
+    <div className="absolute inset-0 overflow-hidden" aria-label="3D terrain view">
       <TerrainCanvas
         config={terrainConfig}
-        camera={flyover.camera}
+        referenceM={data.referenceM}
+        zoomRange={data.zoomRange}
         exaggeration={flyover.exaggeration}
         activeRoute={activeRoute}
-        onViewStateChange={handleManualDrag}
+        targets={data.targets}
+        traverse={data.traverse}
+        photos={data.photos}
+        profile={activeProfile}
+        progressM={flyover.progressM}
+        following={flyover.playing}
+        preset={preset}
+        onUserMove={handleUserMove}
       />
 
-      {/* Contrôles superposés en bas à gauche */}
-      <div className="absolute bottom-4 left-4 w-72 space-y-2">
-        {!activeRoute && (
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--text-muted)]">
-            No active route. Plan and select a variant in the map view to start the flyover.
-          </div>
+      {/* Route */}
+      <div className="pane absolute left-3 top-[68px] z-10 max-w-[min(22rem,calc(100%-1.5rem))] px-3.5 py-2.5 sm:left-4">
+        {activeRoute ? (
+          <p className="flex items-center gap-2 text-sm">
+            <span aria-hidden="true" className="size-2.5 rounded-full" style={{ background: variantColor }} />
+            <span className="font-medium">{VARIANT_LABEL[activeRoute.variant] ?? activeRoute.variant} route</span>
+            <span className="font-mono text-xs tabular-nums text-[var(--text-muted)]">
+              {(activeRoute.totals.distance_m / 1000).toFixed(2)} km
+            </span>
+          </p>
+        ) : (
+          <p className="text-sm text-[var(--text-muted)]">
+            No route yet.{" "}
+            <Link to="/" className="text-[var(--text)] underline">
+              Plan one on the map
+            </Link>{" "}
+            to fly it here.
+          </p>
         )}
+      </div>
+
+      {/* View and relief */}
+      <aside
+        aria-label="3D view options"
+        className="pane absolute right-3 top-[120px] z-10 flex w-[15.5rem] flex-col overflow-hidden sm:right-4 sm:top-[68px]"
+      >
+        <button
+          type="button"
+          onClick={() => setOptionsOpen((o) => !o)}
+          aria-expanded={optionsOpen}
+          className="flex h-10 items-center justify-between px-3 text-left text-[13px] font-medium hover:bg-[var(--surface-2)]"
+        >
+          View &amp; relief
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            aria-hidden="true"
+            className={`text-[var(--text-muted)] transition-transform duration-300 ${optionsOpen ? "-rotate-90" : "rotate-90"}`}
+          >
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        </button>
+        <div hidden={!optionsOpen} className="flex flex-col gap-3 border-t border-[var(--border)] p-3">
+        <div>
+          <p className="label-caps mb-1.5">View</p>
+          <div className="flex flex-col gap-1">
+            {VIEWS.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => {
+                  pause();
+                  setPreset({ name: v.id });
+                }}
+                title={v.hint}
+                aria-label={`${v.label} view`}
+                className="flex h-8 items-center justify-between rounded-lg border border-[var(--border)] px-2.5 text-left text-[13px] hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]"
+              >
+                {v.label}
+                <span className="text-[11px] text-[var(--text-faint)]">{v.id === "ground" ? "85°" : v.id === "top" ? "0°" : "62°"}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="label-caps mb-1.5">Relief exaggeration</p>
+          <Segmented
+            label="Vertical exaggeration"
+            options={EXAGGERATION_STEPS}
+            value={flyover.exaggeration}
+            onChange={flyover.setExaggeration}
+            format={(e) => `×${e}`}
+          />
+        </div>
+        <details className="text-xs text-[var(--text-muted)]">
+          <summary className="cursor-pointer select-none text-[var(--text)]">Moving around</summary>
+          <ul className="mt-1.5 space-y-1 leading-snug">
+            <li>Drag: move across the terrain</li>
+            <li>Right-drag or Ctrl + drag: tilt and turn</li>
+            <li>Scroll or pinch: zoom in, down to the ground</li>
+            <li>Shift + arrows: tilt and turn with the keyboard</li>
+          </ul>
+        </details>
+        </div>
+      </aside>
+
+      {/* Flyover */}
+      <div className="absolute inset-x-3 bottom-3 z-10 mx-auto max-w-[44rem] sm:bottom-4">
         <FlyoverControls
           playing={flyover.playing}
           progressM={flyover.progressM}
           totalDistanceM={totalDistanceM}
-          exaggeration={flyover.exaggeration}
           speed={flyover.speed}
           onPlay={flyover.play}
           onPause={flyover.pause}
           onRewind={flyover.rewind}
-          onExaggerationChange={flyover.setExaggeration}
+          onSeek={flyover.seek}
           onSpeedChange={flyover.setSpeed}
         />
       </div>
-
-      {/* Badge d'aide */}
-      <button
-        type="button"
-        className="absolute right-4 top-4 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)]"
-        onClick={() => setShowHelp((h) => !h)}
-        aria-label="3D navigation help"
-      >
-        ?
-      </button>
-      {showHelp && (
-        <div
-          className="absolute right-4 top-12 w-56 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-xs"
-          role="tooltip"
-        >
-          <p className="font-semibold mb-1">3D Navigation</p>
-          <ul className="space-y-0.5 text-[var(--text-muted)]">
-            <li>Click-drag — rotate view</li>
-            <li>Ctrl + drag — tilt</li>
-            <li>Scroll wheel — zoom</li>
-            <li>Right-click + drag — pan</li>
-          </ul>
-        </div>
-      )}
     </div>
   );
 }

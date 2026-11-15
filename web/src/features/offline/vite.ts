@@ -65,9 +65,9 @@ export function offlineVitePlugins(mock = process.env["VITE_MOCK"] === "1"): Plu
         name: "Marswalk",
         short_name: "Marswalk",
         description:
-          "Planification de sorties à pied sur Mars — cratère Jezero",
-        theme_color: "#0b0d10",
-        background_color: "#0b0d10",
+          "Walking EVA planning on Mars, Jezero crater",
+        theme_color: "#120d0a",
+        background_color: "#120d0a",
         display: "standalone",
         icons: [
           {

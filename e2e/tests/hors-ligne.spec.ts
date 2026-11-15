@@ -4,7 +4,7 @@
  * the only case where the service worker exists.
  */
 import { expect, test } from "@playwright/test";
-import { openApp, resetTargets } from "./helpers";
+import { openApp, openProfile, resetTargets } from "./helpers";
 
 test.beforeAll(async ({ request }) => {
   await resetTargets(request);
@@ -51,7 +51,7 @@ test("The application reopens without network", async ({ page, context }) => {
   await expect(page.getByTestId("map").locator("canvas").first()).toBeVisible({ timeout: 30_000 });
   await context.setOffline(true);
   await page.reload();
-  await expect(page.locator("header").first()).toContainText("Marswalk");
+  await expect(page.locator("header").first()).toContainText(/marswalk/i);
   await expect(page.getByTestId("map").locator("canvas").first()).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId("network-badge")).toHaveAccessibleName("Offline");
 });

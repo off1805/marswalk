@@ -26,7 +26,7 @@ const SOURCES: Source[] = [
   },
   {
     n: 10,
-    label: "NASA JPL 2022, dépôt de Three Forks",
+    label: "NASA JPL 2022, Three Forks sample depot",
     url: "https://www.jpl.nasa.gov/news/nasas-perseverance-rover-to-begin-building-martian-sample-depot/",
   },
   { n: 13, label: "Coan 2021, NASA NTRS 20210000827", url: "https://ntrs.nasa.gov/citations/20210000827" },
@@ -42,14 +42,14 @@ interface Finding {
 
 const ORBIT: Finding[] = [
   {
-    title: "Argiles du delta",
-    text: "Mars Reconnaissance Orbiter voit des smectites Fe/Mg dans les deux deltas : un cadre favorable à la préservation de matière organique.",
+    title: "Delta clays",
+    text: "Mars Reconnaissance Orbiter sees Fe/Mg smectites in both deltas: a setting that favours the preservation of organic matter.",
     layer: "crism_minerals",
     refs: [4],
   },
   {
-    title: "Carbonates et olivine",
-    text: "Les spectres CRISM montrent carbonates magnésiens et olivine dans le delta occidental, venus du bassin versant.",
+    title: "Carbonates and olivine",
+    text: "CRISM spectra show magnesium carbonates and olivine in the western delta, carried in from the watershed.",
     layer: "crism_minerals",
     refs: [5],
   },
@@ -57,28 +57,28 @@ const ORBIT: Finding[] = [
 
 const ROVER: Finding[] = [
   {
-    title: "Un vrai delta",
-    text: "Couches inclinées déposées dans un lac au front du delta et sur Kodiak, blocs apportés par des crues.",
+    title: "A true delta",
+    text: "Inclined beds laid down in a lake at the delta front and on Kodiak, with boulders brought in by floods.",
     layer: "hirise_vis",
     refs: [3],
   },
   {
-    title: "Séítah, roche à olivine",
-    text: "Cumulat igné riche en olivine, altéré par une eau chargée de CO₂ qui y a laissé des carbonates.",
+    title: "Séítah, an olivine-rich rock",
+    text: "An olivine-rich igneous cumulate, altered by CO₂-laden water that left carbonates behind.",
     refs: [7],
   },
   {
-    title: "Matière organique",
-    text: "Wildcat Ridge, boue de lac salé au front du delta, a donné les signaux organiques les plus forts de la mission.",
+    title: "Organic matter",
+    text: "Wildcat Ridge, a salty lake mudstone at the delta front, gave the strongest organic signals of the mission.",
     refs: [9],
   },
 ];
 
 const TARGETS: { name: string; goal: string }[] = [
-  { name: "Front du delta", goal: "boues lacustres à sulfates et matière organique" },
-  { name: "Séítah", goal: "cumulat à olivine et carbonates d'altération" },
-  { name: "Contact Séítah et Máaz", goal: "ordre de mise en place des unités ignées" },
-  { name: "Kodiak", goal: "couches du delta et blocs de crue" },
+  { name: "Delta front", goal: "sulfate-bearing lake mudstones and organic matter" },
+  { name: "Séítah", goal: "olivine cumulate and alteration carbonates" },
+  { name: "Séítah–Máaz contact", goal: "emplacement order of the igneous units" },
+  { name: "Kodiak", goal: "delta beds and flood boulders" },
 ];
 
 function Refs({ refs }: { refs: number[] }) {
@@ -105,7 +105,7 @@ function Findings({ heading, items }: { heading: string; items: Finding[] }) {
         {items.map((f) => (
           <li key={f.title}>
             <strong>{f.title}.</strong> {f.text}
-            {f.layer && <span className="text-[var(--text-muted)]"> Couche : {f.layer}.</span>}
+            {f.layer && <span className="text-[var(--text-muted)]"> Layer: {f.layer}.</span>}
             <Refs refs={f.refs} />
           </li>
         ))}
@@ -118,34 +118,34 @@ export function SciencePanel() {
   const { data: manifest } = useSiteManifest();
   const synthetic = manifest?.site_id === "fictif";
   return (
-    <Panel title="Science du site">
+    <Panel title="Site science">
       <div className="text-xs leading-snug">
         <p>
-          <strong>Jezero</strong> est un ancien lac de cratère dont le <strong>delta</strong> a piégé
-          argiles, carbonates et matière organique. Perseverance y a déjà prélevé et déposé des
-          échantillons : des astronautes peuvent reprendre le travail là où le rover s'est arrêté.
+          <strong>Jezero</strong> is an ancient crater lake whose <strong>delta</strong> trapped
+          clays, carbonates and organic matter. Perseverance has already collected and cached
+          samples here: astronauts can pick up the work where the rover left off.
           <Refs refs={[3, 10]} />
         </p>
         {synthetic && (
           <p className="mt-1 text-[var(--text-muted)]">
-            Site fictif : terrain synthétique, science de Jezero.
+            Demo site: synthetic terrain, Jezero science.
           </p>
         )}
-        <Findings heading="Vu depuis l'orbite" items={ORBIT} />
-        <Findings heading="Mesuré par Perseverance" items={ROVER} />
-        <h3 className="mt-2 text-xs font-bold">Pourquoi une sortie à pied</h3>
+        <Findings heading="Seen from orbit" items={ORBIT} />
+        <Findings heading="Measured by Perseverance" items={ROVER} />
+        <h3 className="mt-2 text-xs font-bold">Why a walking EVA</h3>
         <p className="mt-1">
-          Une sortie de 6 à 8 h couvre environ 2 km autour de l'habitat : les quatre cibles tiennent
-          dans ce rayon.
-          <Refs refs={[13]} /> Un géologue compare plusieurs affleurements et ne prélève que les
-          meilleurs (hypothèse du projet).
+          A 6 to 8 hour EVA covers about 2 km around the habitat: all four targets fall within
+          that radius.
+          <Refs refs={[13]} /> A geologist compares several outcrops and samples only the best
+          ones (project assumption).
         </p>
         <details className="mt-2">
-          <summary className="cursor-pointer font-bold">Cibles proposées</summary>
+          <summary className="cursor-pointer font-bold">Suggested targets</summary>
           <ul className="mt-1 space-y-0.5">
             {TARGETS.map((t) => (
               <li key={t.name}>
-                <strong>{t.name}</strong> : {t.goal}
+                <strong>{t.name}</strong>: {t.goal}
               </li>
             ))}
           </ul>
@@ -162,7 +162,7 @@ export function SciencePanel() {
               </li>
             ))}
           </ol>
-          <p className="mt-1 text-[var(--text-muted)]">Détail : docs/science/jezero.md.</p>
+          <p className="mt-1 text-[var(--text-muted)]">Details: docs/science/jezero.md.</p>
         </details>
       </div>
     </Panel>

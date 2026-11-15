@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import { MapLayout, Terrain3dLayout } from "./Layouts";
 import { registry } from "./registry";
+import { PlanSync } from "./PlanSync";
 import { SiteSync } from "./SitePicker";
 import { useShared, type Mode } from "@/shared/store";
 
@@ -27,6 +28,7 @@ export function AppRoutes() {
     <>
       <ModeSync />
       <SiteSync />
+      <PlanSync />
       <Routes>
         <Route path="/" element={<MapLayout />} />
         <Route path="/3d" element={<Terrain3dLayout />} />

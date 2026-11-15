@@ -1,67 +1,59 @@
 # F6 — Vue 3D
 
-Rendu immersif du terrain martien avec survol automatique de l'itinéraire.
+Terrain martien en relief, avec le tracé posé au sol et un survol caméra « à la poursuite » du
+marcheur. Le rendu utilise MapLibre (même moteur que la carte 2D) : maillage de terrain,
+ombrage du relief, ciel martien et brume à l'horizon.
 
-## Architecture (principes SOLID)
-
-Chaque fichier a une responsabilité unique et dépend d'abstractions, pas d'implémentations.
+## Fichiers
 
 ```
 terrain3d/
-├── terrain.config.ts    Configuration du décodage altitude (injectable)
-├── flyover.ts           Calculs purs de caméra et d'animation (sans React)
-├── routeLayer.ts        Construction de la PathLayer deck.gl de l'itinéraire
-├── useTerrain3dData.ts  Hook de données : manifeste + plan actif → abstractions
-├── useFlyover.ts        Hook React : état de l'animation + synchronisation F3
-├── TerrainCanvas.tsx    Rendu deck.gl (reçoit des abstractions, pas des stores)
-├── FlyoverControls.tsx  Contrôles UI lecture/pause/vitesse/exagération
-├── Terrain3dView.tsx    Assembleur : compose les pièces, ne calcule rien
-├── terrain3d.test.ts    Tests unitaires des fonctions pures
-└── index.ts             Export de la feature (route /3d)
+├── terrain.config.ts    URLs des tuiles et décodeur terrain-RGB
+├── demProtocol.ts       Protocole mwdem:// : tuiles d'altitude relatives au site
+├── flyover.ts           Calculs purs d'animation (échantillonnage du profil, avance)
+├── camera.ts            Caméra de poursuite, vues prédéfinies, échelle Mars / MapLibre
+├── useTerrain3dData.ts  Manifeste + plan actif + cibles + altitude de référence
+├── useFlyover.ts        État du survol (lecture, curseur, vitesse, exagération)
+├── TerrainCanvas.tsx    Rendu MapLibre : relief, ombrage, ciel, tracé, cibles, marcheur
+├── FlyoverControls.tsx  Barre de survol
+├── Terrain3dView.tsx    Assemblage de la vue
+├── terrain3d.test.ts    Tests des fonctions pures
+└── index.ts             Route /3d, chargée à la demande
 ```
 
-### Principe S — Single Responsibility
+## Relief réaliste
 
-| Fichier | Raison de changer |
-|---|---|
-| `terrain.config.ts` | Format d'encodage des tuiles altitude |
-| `flyover.ts` | Algorithme de caméra ou constantes d'animation |
-| `routeLayer.ts` | Style visuel du tracé sur le terrain |
-| `useTerrain3dData.ts` | Sources de données ou transformation de format |
-| `useFlyover.ts` | Interaction React (timers, effets) |
-| `TerrainCanvas.tsx` | Paramètres du rendu deck.gl |
-| `FlyoverControls.tsx` | Ergonomie des contrôles UI |
-| `Terrain3dView.tsx` | Assemblage des pièces |
+- **Altitudes relatives.** Les tuiles terrain-RGB portent l'altitude absolue (≈ −2 600 m) et
+  leurs pixels hors site sont transparents (décodés à −10 000 m). `demProtocol.ts` réécrit
+  chaque tuile par rapport à l'altitude médiane du site (mesurée sur ses tuiles) et met les
+  trous à cette référence. Les tuiles hors site sont plates, servies sans requête : la plaine
+  continue au-delà du site, sans « socle » ni falaises de bord.
+- **Exagération.** Elle s'applique au relief seul (×1 à ×10, ×2 par défaut).
+- **Échelle.** MapLibre mesure le sol avec le rayon terrestre ; sur des degrés martiens ses
+  mètres horizontaux sont 1,88 fois trop longs. Les hauteurs sont multipliées d'autant
+  (`MARS_TO_RENDER`) : ×1 donne les vraies pentes.
+- **Lecture du relief.** Ombrage multidirectionnel calculé sur le même MNT, voile d'oxyde de
+  fer, ciel caramel et brume en fond de scène.
 
-### Principe O — Open/Closed
+## Caméra
 
-`ElevationDecoder` est un objet de configuration injecté dans `TerrainConfig`. Ajouter le support d'un nouveau format terrain (par exemple l'encodage Mapzen) ne modifie pas `TerrainCanvas` : on crée un nouveau décodeur et on le passe en prop.
+- Inclinaison jusqu'à 85° : on descend au niveau du sol et on regarde une pente en face.
+- Vues : Overview (oblique 62°), Top (0°), Ground level (80°, à l'endroit courant).
+- Survol : caméra 70 m derrière le marcheur, 28 m au-dessus du sol, visée 90 m plus loin.
+  Prendre la main sur la caméra met le survol en pause ; le curseur permet de se placer
+  n'importe où sur le tracé.
 
-### Principe D — Dependency Inversion
+## Synchronisation
 
-`TerrainCanvas` dépend de `TerrainConfig` et `CameraTarget` (abstractions définies dans le module), pas de `SiteManifest` ni de `QueryClient`. `Terrain3dView` injecte les dépendances concrètes depuis ses hooks.
-
-## Flux de données
-
-```
-SiteManifest ──► useTerrain3dData ──► TerrainConfig ──► TerrainCanvas
-Plan/Route   ──►                 ──► RouteProfile  ──► useFlyover ──► CameraTarget
-                                 ──► Route         ──► buildRouteLayer
-```
-
-## Synchronisation avec F3 (profil)
-
-`useFlyover` écrit `hoverDistanceM` dans le magasin partagé (Zustand) à chaque tick d'animation. F3 (profil d'altitude) lit cette valeur pour déplacer son repère en temps réel — sans aucun couplage direct entre F6 et F3.
-
-## Exagération verticale
-
-L'exagération est appliquée en multipliant les scalers RGB du décodeur d'élévation par le facteur choisi. Les valeurs disponibles sont ×1, ×2, ×3, ×5, ×10. La valeur courante est toujours affichée à l'écran.
+- `useFlyover` écrit `hoverDistanceM` dans le magasin partagé : le profil (F3) suit.
+- Le plan et la variante choisie sont conservés au rechargement (`app/PlanSync.tsx`) : la vue
+  3D ouverte directement retrouve le tracé.
 
 ## Critères d'acceptation
 
 | Critère | Démonstration |
 |---|---|
-| Le survol se lance d'un clic | Bouton ▶ Survol dans `FlyoverControls` |
-| ≥ 30 images/s | deck.gl utilise WebGL2 avec `requestAnimationFrame` natif |
-| Exagération réglable et indiquée | Boutons ×1…×10, label `aria-live` |
+| Le survol se lance d'un clic | Bouton « Fly the route » |
+| ≥ 30 images/s | Rendu WebGL MapLibre, `requestAnimationFrame` |
+| Exagération réglable et indiquée | Sélecteur ×1…×10, valeur active mise en évidence |
 | Repère synchronisé avec F3 | `useFlyover` → `setHoverDistance` → magasin partagé |

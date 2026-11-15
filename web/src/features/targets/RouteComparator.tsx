@@ -105,7 +105,7 @@ function RouteCard({ route, plan, isActive, onSelect }: RouteCardProps) {
           : "border-[var(--border)] bg-[var(--surface)]"
       }`}
       role="article"
-      aria-label={`Variante ${VARIANT_LABEL[route.variant] ?? route.variant}`}
+      aria-label={`Variant ${VARIANT_LABEL[route.variant] ?? route.variant}`}
     >
       {/* En-tête */}
       <div className="mb-2 flex items-center gap-2">

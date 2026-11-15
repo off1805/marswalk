@@ -26,12 +26,32 @@ export function baseLayerOf(manifest: SiteManifest) {
   );
 }
 
+function cssVar(name: string, fallback: string): string {
+  if (typeof document === "undefined") return fallback;
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+}
+
+/**
+ * Smallest zoom at which the site imagery covers the whole map: the camera can never show
+ * the empty space around the site. Measured from the current projection of the bbox.
+ */
+function coverZoom(map: maplibregl.Map, bbox: SiteManifest["bbox"]): number {
+  const [w, s, e, n] = bbox;
+  const a = map.project([w, n]);
+  const b = map.project([e, s]);
+  const bw = Math.abs(b.x - a.x);
+  const bh = Math.abs(b.y - a.y);
+  const { clientWidth: cw, clientHeight: ch } = map.getContainer();
+  if (!bw || !bh || !cw || !ch) return map.getMinZoom();
+  return Math.min(20, map.getZoom() + Math.log2(Math.max(cw / bw, ch / bh)));
+}
+
 function baseStyle(manifest: SiteManifest): StyleSpecification {
   const base = baseLayerOf(manifest);
   const style: StyleSpecification = {
     version: 8,
     sources: {},
-    layers: [{ id: "background", type: "background", paint: { "background-color": "#1b1410" } }],
+    layers: [{ id: "background", type: "background", paint: { "background-color": "#2a1a12" } }],
   };
   if (base?.tiles) {
     style.sources.base = {
@@ -43,7 +63,13 @@ function baseStyle(manifest: SiteManifest): StyleSpecification {
       bounds: manifest.bbox as [number, number, number, number],
       attribution: `${base.title} : ${base.source.instrument}`,
     };
-    style.layers.push({ id: "base", type: "raster", source: "base" });
+    style.layers.push({ id: "base", type: "raster", source: "base", paint: { "raster-contrast": 0.08 } });
+    // Iron-oxide wash over the greyscale orbital imagery, under every feature layer.
+    style.layers.push({
+      id: "mars-tint",
+      type: "background",
+      paint: { "background-color": cssVar("--mars-tint", "#a4552b"), "background-opacity": Number(cssVar("--mars-tint-opacity", "0.3")) },
+    });
   }
   return style;
 }
@@ -87,13 +113,21 @@ export function MapView({ manifest }: { manifest: SiteManifest }) {
       container: container.current,
       style: baseStyle(manifest),
       bounds: [w, s, e, n],
-      fitBoundsOptions: { padding: 24 },
-      maxBounds: [w - (e - w), s - (n - s), e + (e - w), n + (n - s)],
-      minZoom: 11,
+      // The site fills the view edge to edge; the camera stays over the imagery.
+      maxBounds: [w, s, e, n],
+      minZoom: 0,
       maxZoom: 20,
       attributionControl: { compact: true, customAttribution: "Marswalk · Mars 2000" },
     });
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+    const fitCover = () => {
+      map.setMinZoom(null);
+      const z = coverZoom(map, manifest.bbox);
+      map.setMinZoom(z);
+      if (map.getZoom() < z) map.jumpTo({ zoom: z });
+    };
+    fitCover();
+    map.on("resize", fitCover);
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
     const overlay = new MapboxOverlay({ interleaved: false, layers: [] });
     map.addControl(overlay);
     map.on("zoomend", () => setZoom(map.getZoom()));

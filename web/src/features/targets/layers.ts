@@ -40,57 +40,23 @@ export interface LayerCallbacks {
   onTargetDragStart: (targetId: string) => void;
   onTargetDrag: (targetId: string, lon: number, lat: number) => void;
   onTargetDragEnd: (targetId: string, lon: number, lat: number) => void;
-  onMapClick: (lon: number, lat: number) => void;
   onHazardHover: (cause: string | null) => void;
 }
 
 export function buildLayers(
-  ctx: MapContext,
+  _ctx: MapContext,
   targets: Target[],
   hazards: ApiFC | undefined,
   routes: Route[],
   activeRouteId: string | null,
   selectedTargetId: string | null,
-  pickMode: string,
+  _pickMode: string,
   draggingTargetId: string | null,
   callbacks: LayerCallbacks,
 ): Layer[] {
   const layers: Layer[] = [];
 
-  // ── 1. Zone de capture de clics carte (workaround pickMode=addTarget) ────
-  if (pickMode === "addTarget" && ctx.manifest.bbox) {
-    const [w, s, e, n] = ctx.manifest.bbox;
-    const pickData: FeatureCollection<Geometry, GeoJsonProperties> = {
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          geometry: {
-            type: "Polygon",
-            coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]],
-          },
-          properties: {},
-        },
-      ],
-    };
-    layers.push(
-      new GeoJsonLayer({
-        id: "f2-pick-area",
-        data: pickData,
-        pickable: true,
-        filled: true,
-        getFillColor: [0, 0, 0, 0],
-        onClick: (info: PickingInfo) => {
-          if (info.coordinate && info.coordinate.length >= 2) {
-            callbacks.onMapClick(info.coordinate[0]!, info.coordinate[1]!);
-          }
-          return true;
-        },
-      }),
-    );
-  }
-
-  // ── 2. Zones interdites et pénalisées ────────────────────────────────────
+  // ── 1. Zones interdites et pénalisées ────────────────────────────────────
   if (hazards?.features?.length) {
     const forbiddenFeatures = hazards.features.filter(
       (f) => f.properties?.["kind"] === "forbidden",

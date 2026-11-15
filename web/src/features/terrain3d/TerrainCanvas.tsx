@@ -181,10 +181,13 @@ function photoElement(photo: TerrainPhoto): HTMLElement {
   const el = document.createElement("button");
   el.type = "button";
   el.setAttribute("aria-label", `Rover image, sol ${photo.sol}, ${photo.camera}`);
-  el.className =
-    "grid size-6 cursor-pointer place-items-center rounded-full border border-[#1a1310] bg-[#f0e442] text-[#1a1310] shadow-[0_2px_6px_rgb(0_0_0/0.4)] transition-transform hover:scale-125 focus-visible:scale-125";
-  el.innerHTML =
-    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+  // Hundreds of images sit along the traverse: small dots that grow under the pointer,
+  // inside a 24 px hit area so they stay easy to click.
+  el.className = "group grid size-6 cursor-pointer place-items-center rounded-full";
+  const dot = document.createElement("span");
+  dot.className =
+    "size-2.5 rounded-full border border-[#1a1310] bg-[#f0e442] shadow-[0_1px_3px_rgb(0_0_0/0.45)] transition-transform group-hover:scale-[1.8] group-focus-visible:scale-[1.8]";
+  el.append(dot);
   return el;
 }
 

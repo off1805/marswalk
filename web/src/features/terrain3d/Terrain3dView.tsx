@@ -159,7 +159,7 @@ export function Terrain3dView() {
       </aside>
 
       {/* Flyover */}
-      <div className="absolute inset-x-3 bottom-3 z-10 mx-auto max-w-[44rem] sm:bottom-4">
+      <div className="absolute inset-x-3 bottom-3 z-10 mx-auto max-w-[52rem] sm:bottom-4">
         <FlyoverControls
           playing={flyover.playing}
           progressM={flyover.progressM}

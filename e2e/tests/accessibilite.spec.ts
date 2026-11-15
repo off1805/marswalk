@@ -45,19 +45,24 @@ test.beforeAll(async ({ request }) => {
   await resetTargets(request);
 });
 
-for (const theme of ["Thème basse lumière", "Thème plein soleil"] as const) {
-  test(`Carte, ${theme.toLowerCase()} : WCAG 2.1 AA`, async ({ page }) => {
+const THEMES = [
+  { label: "Night theme", key: "night" },
+  { label: "Day theme", key: "day" },
+] as const;
+
+for (const theme of THEMES) {
+  test(`Map, ${theme.key} theme : WCAG 2.1 AA`, async ({ page }) => {
     await openApp(page);
-    await page.getByRole("button", { name: theme }).click();
+    await page.getByRole("button", { name: theme.label }).click();
     await expect(page.getByRole("article", { name: /^Variante / })).toHaveCount(3, { timeout: 30_000 });
-    expect(await audit(page, `carte-${theme}`)).toEqual([]);
+    expect(await audit(page, `map-${theme.key}`)).toEqual([]);
   });
 
-  test(`Vue 3D, ${theme.toLowerCase()} : WCAG 2.1 AA`, async ({ page }) => {
+  test(`3D view, ${theme.key} theme : WCAG 2.1 AA`, async ({ page }) => {
     await openApp(page);
-    await page.getByRole("button", { name: theme }).click();
+    await page.getByRole("button", { name: theme.label }).click();
     await page.getByRole("link", { name: "3D" }).click();
     await expect(page.getByLabel("Rendu 3D du terrain martien")).toBeVisible({ timeout: 30_000 });
-    expect(await audit(page, `3d-${theme}`)).toEqual([]);
+    expect(await audit(page, `3d-${theme.key}`)).toEqual([]);
   });
 }

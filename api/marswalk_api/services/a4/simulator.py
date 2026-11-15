@@ -628,7 +628,23 @@ def _forces_return(alert: Alert) -> bool:
 
 @cache
 def get_simulator() -> A4Service:
-    return A4Service()
+    """Simulateur partagé, branché sur les plans calculés par A2.
+
+    Une sortie démarre sur un plan de ``POST /api/sites/{site_id}/plans`` (dépôt de A2), sinon
+    sur un plan enregistré ou sur ``plan-demo`` (``PlanRegistry``). Voir
+    ``tasks/change-requests/A4-source-des-plans.md``.
+    """
+    from marswalk_api.services.mission_planning.deps import get_plan_repository
+
+    sim = A4Service()
+    registry = sim.plans
+    repo = get_plan_repository()
+
+    def plan_source(plan_id: str) -> Plan | None:
+        return repo.get(plan_id) or registry(plan_id)
+
+    sim.plan_source = plan_source
+    return sim
 
 
 __all__ = [

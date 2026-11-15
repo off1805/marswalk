@@ -1,0 +1,68 @@
+# Scénario de démo de bout en bout (I2). Critère d'acceptation : trois passages de suite,
+# chacun sur une API neuve (tout son état est en mémoire), sans nouvel essai.
+name: E2E
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scenario:
+    name: Scénario de démo (3 passages)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tests e2e présents ?
+        id: present
+        run: echo "yes=$([ -f e2e/playwright.config.ts ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - if: steps.present.outputs.yes == 'true'
+        uses: astral-sh/setup-uv@v6
+      - if: steps.present.outputs.yes == 'true'
+        uses: pnpm/action-setup@v4
+      - if: steps.present.outputs.yes == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            e2e/pnpm-lock.yaml
+      - if: steps.present.outputs.yes == 'true'
+        name: Dépendances
+        run: |
+          uv sync --frozen --all-packages
+          pnpm install --frozen-lockfile
+          pnpm --dir e2e install --frozen-lockfile --ignore-workspace
+          pnpm --dir e2e exec playwright install --with-deps chromium
+      - if: steps.present.outputs.yes == 'true'
+        name: Typage des tests
+        run: pnpm --dir e2e exec tsc --noEmit
+      - if: steps.present.outputs.yes == 'true'
+        name: Build du front
+        run: pnpm --dir web exec vite build
+      - if: steps.present.outputs.yes == 'true'
+        name: Trois passages de suite
+        working-directory: e2e
+        env:
+          E2E_SKIP_BUILD: "1"
+        run: |
+          for i in 1 2 3; do
+            echo "::group::Passage $i"
+            PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report/passage-$i" \
+              pnpm exec playwright test --output "test-results/passage-$i" || { echo "::endgroup::"; echo "Échec au passage $i"; exit 1; }
+            echo "::endgroup::"
+          done
+      - if: always() && steps.present.outputs.yes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-e2e
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 14

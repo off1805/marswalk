@@ -85,7 +85,8 @@ def _build_graph_vectorized(cost_flat: np.ndarray, h: int, w: int) -> csr_matrix
 
     Nœuds : indices plats row*w + col.
     Arêtes : 8-connexité, coût = pas × (c_a + c_b) / 2.
-    Les cellules interdites (inf) ne sont pas incluses.
+    Les cellules interdites (inf) ne sont pas incluses, ni les diagonales qui coupent
+    le coin d'une cellule interdite.
     Entièrement vectorisé avec NumPy.
     """
     r_idx = np.arange(h, dtype=np.int32)[:, None] * np.ones(w, dtype=np.int32)[None, :]
@@ -112,6 +113,14 @@ def _build_graph_vectorized(cost_flat: np.ndarray, h: int, w: int) -> csr_matrix
         c_from = cost_flat[from_flat]
         c_to = cost_flat[to_flat]
         both_finite = np.isfinite(c_from) & np.isfinite(c_to)
+        if dr != 0 and dc != 0:
+            # Pas de coin coupé : un pas en diagonale passe par le coin commun aux deux
+            # cases orthogonales ; il est refusé si l'une d'elles est interdite.
+            r_from = from_flat // w
+            c_from_idx = from_flat % w
+            side_a = cost_flat[(r_from + dr) * w + c_from_idx]
+            side_b = cost_flat[r_from * w + c_from_idx + dc]
+            both_finite &= np.isfinite(side_a) & np.isfinite(side_b)
 
         if not np.any(both_finite):
             continue

@@ -24,6 +24,7 @@ from marswalk_core.schemas import (
     LineStringGeometry,
     LonLat,
     ProfileSample,
+    ReturnStatus,
     Route,
     RouteSegment,
     RouteTotals,
@@ -35,9 +36,11 @@ from marswalk_core.schemas import (
 )
 from marswalk_core.site_package import Site
 from marswalk_planner._p2 import cache as _cache
+from marswalk_planner._p2.explain import describe_slope, explain_segment
+from marswalk_planner._p2.reach import Reachability
 from marswalk_planner._p2.weights import fastest_settings, safest_settings, science_settings
 from marswalk_planner.budget import return_check
-from marswalk_planner.cost import build_cost_grid, explain_cell
+from marswalk_planner.cost import build_cost_grid
 from marswalk_planner.order import order_targets
 from marswalk_planner.return_field import return_field
 from marswalk_planner.route import plan_route
@@ -53,11 +56,13 @@ def _make_route(
     options: RouteOptions,
     variant: RouteVariant,
     field: ReturnField | None = None,
+    refused_warnings: list[str] | None = None,
 ) -> Route:
     """Calcule une variante et l'assemble en objet Route.
 
     ``field`` : champ de retour déjà calculé pour ce plan (il ne dépend que de l'habitat
     et du terrain, on le calcule une fois pour les trois variantes).
+    ``refused_warnings`` : cibles écartées faute de passage (voir ``_refuse_unreachable``).
     """
     suit = options.suit or load_suit()
 
@@ -95,10 +100,16 @@ def _make_route(
                 work_time_s=s.work_time_s,
             )
         )
-        mid = LonLat((a.lon + b.lon) / 2, (a.lat + b.lat) / 2)
-        terms = explain_cell(cost_grid, *to_analysis(site, mid.lon, mid.lat))
-        reasons = [t.reason for t in terms] if terms else [f"variante {variant.value}"]
-        explanation.append(SegmentExplanation(segment_index=i, reasons=reasons))
+        seg_pts = list(geom.coordinates[breaks[i] : breaks[i + 1] + 1])
+        fallback = i in geom.fallback_segments
+        reason = explain_segment(
+            cost_grid,
+            seg_pts,
+            fallback=fallback,
+            science_variant=variant == RouteVariant.science,
+            max_slope_deg=s.max_slope_deg,
+        )
+        explanation.append(SegmentExplanation(segment_index=i, reasons=[reason]))
 
     profile = [
         ProfileSample(
@@ -136,6 +147,26 @@ def _make_route(
         ),
     )
 
+    warnings = [*(refused_warnings or []), *cost_grid.warnings]
+    check = return_check(est, field, suit)
+    if geom.fallback_segments:
+        # Filet de sécurité : un tronçon de secours franchit une zone interdite. La
+        # variante n'est pas à suivre, et le bilan de retour le dit (E4).
+        for i in geom.fallback_segments:
+            a = geom.coordinates[breaks[i]]
+            b = geom.coordinates[breaks[i + 1]]
+            warnings.insert(
+                0,
+                f"Tronçon {i + 1} sans passage praticable : la ligne droite franchit une "
+                f"pente de {describe_slope(cost_grid, a, b):.0f}°. Variante à ne pas suivre.",
+            )
+        check = check.model_copy(
+            update={
+                "status": ReturnStatus.fail,
+                "message": "Retour non garanti : un tronçon n'a pas de passage praticable.",
+            }
+        )
+
     return Route(
         id=f"route-{variant.value}",
         variant=variant,
@@ -143,10 +174,41 @@ def _make_route(
         segments=segments,
         profile=profile,
         totals=totals,
-        return_check=return_check(est, field, suit),
+        return_check=check,
         explanation=explanation,
-        warnings=list(cost_grid.warnings),
+        warnings=warnings,
     )
+
+
+def _refuse_unreachable(
+    cost_grid: CostGrid, start: LonLat, end: LonLat, targets: list[Target]
+) -> tuple[list[Target], list[str]]:
+    """Écarte les cibles qu'aucun passage praticable ne relie au départ (E4).
+
+    Retourne les cibles gardées et un avertissement par cible écartée, qui dit pourquoi
+    (pente franchie par la ligne droite) : l'itinéraire ne coupe jamais une zone
+    interdite en silence.
+    """
+    reach = Reachability(cost_grid)
+    home = reach.component(start)
+    kept: list[Target] = []
+    warnings: list[str] = []
+    for t in targets:
+        if home != 0 and reach.component(t.position) == home:
+            kept.append(t)
+            continue
+        slope = describe_slope(cost_grid, start, t.position)
+        warnings.append(
+            f"Cible « {t.name} » écartée : aucun passage praticable depuis le départ "
+            f"(la ligne droite franchit une pente de {slope:.0f}°). Déplacez-la ou "
+            "changez de préréglage."
+        )
+    if home != 0 and reach.component(end) != home:
+        warnings.append(
+            "Aucun passage praticable entre le départ et le point d'arrivée : le retour "
+            "n'est pas garanti."
+        )
+    return kept, warnings
 
 
 _FIELD_CACHE: dict[str, ReturnField] = {}
@@ -220,10 +282,11 @@ def plan_variants(
         v_options = copy.copy(options)
         v_options.variant = variant
 
+        kept, refused = _refuse_unreachable(cost_grid, LonLat(*start), LonLat(*end), targets)
         ordered = (
-            order_targets(cost_grid, LonLat(*start), targets, v_options)
-            if options.optimize_order
-            else list(targets)
+            order_targets(cost_grid, LonLat(*start), kept, v_options)
+            if options.optimize_order and kept
+            else kept
         )
 
         if field is None:
@@ -232,7 +295,15 @@ def plan_variants(
                 site, v_settings, options, cost_grid, v_options.suit or load_suit()
             )
         route = _make_route(
-            site, cost_grid, ordered, LonLat(*start), LonLat(*end), v_options, variant, field
+            site,
+            cost_grid,
+            ordered,
+            LonLat(*start),
+            LonLat(*end),
+            v_options,
+            variant,
+            field,
+            refused,
         )
         routes.append(route)
 
@@ -298,10 +369,13 @@ def replan_from_obstacle(
 
     end = options.return_to or current_position
 
+    kept, refused = _refuse_unreachable(
+        cost_grid, current_position, LonLat(*end), remaining_targets
+    )
     ordered = (
-        order_targets(cost_grid, current_position, remaining_targets, options)
-        if options.optimize_order
-        else list(remaining_targets)
+        order_targets(cost_grid, current_position, kept, options)
+        if options.optimize_order and kept
+        else kept
     )
 
     return _make_route(
@@ -312,4 +386,5 @@ def replan_from_obstacle(
         LonLat(*end),
         options,
         options.variant or RouteVariant.safest,
+        refused_warnings=refused,
     )

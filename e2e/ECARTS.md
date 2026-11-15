@@ -12,7 +12,7 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 | 4 | Zones dangereuses | ✓ | O3, O4 |
 | 5 | Objectif scientifique | ◐ objectif par cible seulement | E2 |
 | 6 | Planifier trois cibles | ✓ 2,7 s entre la suppression d'une cible et l'affichage des variantes | |
-| 7 | Comparer les variantes | ◐ | E4, E5, E6 |
+| 7 | Comparer les variantes | ✓ après les correctifs E4, E5, E6 | |
 | 8 | Profil de la variante choisie | ✓ profil et tableau synchronisés ; côté carte, voir « Non vérifié » | |
 | 9 | Vue 3D | ◐ exagération réglable, survol en panne | E7 |
 | 10 | Sortie et astronaute virtuel | ✓ après le correctif C1 | |
@@ -26,6 +26,12 @@ Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium su
 ## Corrigé avec ces tests
 
 **C1. La sortie simulée refusait tout plan calculé.** `POST /api/eva` répondait « Plan inconnu » pour tout plan de `POST /api/sites/{site_id}/plans` : le simulateur (A4) ne lisait que `plan-demo`, comme l'annonçait `tasks/change-requests/A4-source-des-plans.md`. Aucune sortie ne pouvait démarrer depuis l'interface, et l'export GeoJSON du plan (X1) échouait de même. Correctif : `get_simulator()` lit d'abord le dépôt de plans de A2 (PR `fix/I2-integration`), avec un test dans `api/tests/a4/test_plans_a2.py`.
+
+**C2 (E4). Cible sans passage écartée et annoncée.** Avant la recherche, P2 repère les cibles qu'aucune suite de cases praticables ne relie au départ (`_p2/reach.py`) : elles sont retirées de la variante avec un avertissement « Cible « … » écartée : aucun passage praticable depuis le départ (la ligne droite franchit une pente de 65°) ». Filet de sécurité : tout tronçon resté en ligne droite de secours est signalé dans `warnings`, et `return_check` passe à `fail`. Le site fictif a désormais une rampe d'environ 200 m (pente max ≈ 13°) à l'ouest de l'habitat ; le Front du delta est atteint par ce détour. Tests : `planner/tests/p2/test_ecarts_i2.py`, étape 7 quater.
+
+**C3 (E5). Le lissage effaçait les détours.** Le « string pulling » ne regardait que les cases interdites : il redressait tout détour voulu par le coût, et les trois variantes retombaient sur la même ligne droite. Un raccourci n'est plus retenu que s'il ne coûte pas plus que le chemin brut (intégrale exacte du coût le long du segment). La recherche ne coupe plus les coins des cases interdites. Sur le fictif : 3 193 m (sûre, pente max 15°), 2 917 m (rapide, 19°), 3 158 m (science). Étape 7 ter.
+
+**C4 (E6). Une phrase par tronçon.** L'explication compare le tracé à la ligne droite entre ses extrémités : « Contourne une pente de 65° : +518 m (pente max 15,0° sur le tracé). », « Va en ligne droite (pente max 4,0° sur le tracé, traverse le sol meuble). ». Le passage par une unité minérale n'est cité que pour la variante science. Même texte pour le recalcul local pendant la sortie (A4). Étape 7 bis.
 
 **E1 corrigé. Un clic sur la carte interroge le point (étape 3).** La coquille diffuse chaque clic MapLibre par `shared/mapClick.ts` (contournement de `tasks/change-requests/F2-pickmode-map-click.md`, sans toucher au magasin gelé) ; `QueryPanel` s'y abonne en mode interrogation et part de l'habitat du manifeste. Le clic est lu sur MapLibre, donc il passe même au-dessus d'une cible ou d'une zone ; en mode interrogation, F2 ne sélectionne plus la cible cliquée. Vérifié par l'étape 3, qui contrôle aussi la première requête à l'habitat.
 
@@ -45,15 +51,15 @@ Le scénario demande un panneau qui justifie le site et les cibles par les donn�
 
 L'API sait faire (`POST /api/eva/{id}/obstacles`, `POST /api/eva/{id}/observations`) et la file hors ligne de F7 sait rejouer `addObservation`, mais aucun bouton ne les appelle. L'étape 11 et la partie « même hors ligne » du scénario ne se montrent pas. À faire : deux actions dans le panneau de sortie, l'observation passant par `useOfflineQueue().enqueue("addObservation", …)`.
 
-### E4. Sans chemin possible, le tracé coupe la falaise sans le dire (étapes 7 et 10) · critique · P2, T00 (site fictif)
+### E4. Sans chemin possible, le tracé coupe la falaise sans le dire (étapes 7 et 10) · critique · P2, T00 (site fictif) · **corrigé**
 
 Sur le site fictif, la falaise du plateau occupe toute la largeur : le Front du delta est inaccessible, A* ne trouve rien et `_plan_segment` revient à la ligne droite « de secours ». Les trois variantes passent alors par une pente de 65°, sans avertissement (`warnings` vide, alors que le code annonce le contraire) et avec « ✓ Retour 90 % ». Pendant la sortie, l'astronaute virtuel franchit la falaise et lève l'alerte « Pente trop forte, 43° ». À faire : (1) P2 signale tout tronçon de secours dans `warnings` et dans `return_check`, ou refuse la cible ; (2) le site fictif ouvre un passage praticable vers le plateau, pour que la démo de CI montre un vrai détour. À vérifier aussi sur Jezero.
 
-### E5. Les trois variantes sont identiques (étape 7) · haute · P2, I1
+### E5. Les trois variantes sont identiques (étape 7) · haute · P2, I1 · **corrigé**
 
 Même tracé, même distance, même durée pour « plus sûre », « plus rapide » et « science » sur le site fictif, y compris sur les tronçons atteignables. E4 en explique une partie, pas tout. À revoir avec les poids réglés par I1.
 
-### E6. Les explications ne disent pas la raison du détour (étape 7) · moyenne · P1, P2, F2
+### E6. Les explications ne disent pas la raison du détour (étape 7) · moyenne · P1, P2, F2 · **corrigé**
 
 Le scénario attend « contourne une pente de 24° ». L'interface affiche les termes du coût de la cellule du milieu du tronçon : « temps de traversée 2.36 s (Tobler 0,38 g × facteur sol) → contribution 1.181 · R=0.000 … ». À faire : une phrase par tronçon tirée de l'écart au tracé direct (pente évitée, obstacle contourné, zone pénalisée).
 

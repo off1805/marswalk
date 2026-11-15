@@ -23,15 +23,16 @@ test("Network badge follows the connection cut and restoration", async ({ page, 
 
 test("An already-loaded plan remains readable offline", async ({ page, context }) => {
   await openApp(page);
-  await expect(page.getByRole("article", { name: /^Variante / })).toHaveCount(3, { timeout: 30_000 });
+  await expect(page.getByRole("article", { name: /^Variant / })).toHaveCount(3, { timeout: 30_000 });
   await page.getByRole("button", { name: "Select variant Safest" }).click();
-  await expect(page.getByRole("region", { name: "Route profile" })).toContainText("Profile · Safest");
+  await openProfile(page);
+  await expect(page.getByRole("region", { name: "Route profile" })).toContainText("Safest");
   await context.setOffline(true);
   await expect(page.getByTestId("network-badge")).toHaveAccessibleName("Offline");
   // Cibles, variantes, profil et panneau sécurité restent affichés et utilisables
   await page.getByRole("button", { name: "Target Front du delta" }).click();
   await expect(page.getByLabel("Target card: Front du delta")).toBeVisible();
-  await expect(page.getByRole("article", { name: "Variante Safest" })).toContainText("Selected");
+  await expect(page.getByRole("article", { name: "Variant Safest" })).toContainText("Selected");
   await expect(page.getByRole("region", { name: "Route profile" }).getByRole("table", { name: "Segments" })).toBeVisible();
   await expect(page.getByRole("region", { name: "Safety", exact: true })).toContainText(/Reserve on return\s*\d/);
   await context.setOffline(false);

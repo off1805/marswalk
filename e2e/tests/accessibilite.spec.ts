@@ -44,24 +44,25 @@ test.beforeAll(async ({ request }) => {
   await resetTargets(request);
 });
 
+// Night mode is the default; the header button switches to full-sun mode.
 const THEMES = [
-  { label: "Night theme", key: "night" },
-  { label: "Day theme", key: "day" },
+  { name: "night", toggle: null },
+  { name: "day", toggle: "Switch to day theme (full sun)" },
 ] as const;
 
 for (const theme of THEMES) {
-  test(`Map, ${theme.key} theme : WCAG 2.1 AA`, async ({ page }) => {
+  test(`Map, ${theme.name} theme : WCAG 2.1 AA`, async ({ page }) => {
     await openApp(page);
-    await page.getByRole("button", { name: theme.label }).click();
-    await expect(page.getByRole("article", { name: /^Variante / })).toHaveCount(3, { timeout: 30_000 });
-    expect(await audit(page, `map-${theme.key}`)).toEqual([]);
+    if (theme.toggle) await page.getByRole("button", { name: theme.toggle }).click();
+    await expect(page.getByRole("article", { name: /^Variant / })).toHaveCount(3, { timeout: 30_000 });
+    expect(await audit(page, `map-${theme.name}`)).toEqual([]);
   });
 
-  test(`3D view, ${theme.key} theme : WCAG 2.1 AA`, async ({ page }) => {
+  test(`3D view, ${theme.name} theme : WCAG 2.1 AA`, async ({ page }) => {
     await openApp(page);
-    await page.getByRole("button", { name: theme.label }).click();
+    if (theme.toggle) await page.getByRole("button", { name: theme.toggle }).click();
     await page.getByRole("link", { name: "3D" }).click();
-    await expect(page.getByLabel("Rendu 3D du terrain martien")).toBeVisible({ timeout: 30_000 });
-    expect(await audit(page, `3d-${theme.key}`)).toEqual([]);
+    await expect(page.getByLabel("3D rendering of the Martian terrain")).toBeVisible({ timeout: 30_000 });
+    expect(await audit(page, `3d-${theme.name}`)).toEqual([]);
   });
 }

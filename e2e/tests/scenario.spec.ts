@@ -72,13 +72,14 @@ test("1. Open Marswalk on the site", async () => {
   const header = page.locator("header").first();
   // Site name, mission sol and local solar time
   await expect(header).toContainText(SITE === "fictif" ? "Site fictif" : /Jezero/i);
-  await expect(header).toContainText(/Sol \d+ · \d{2}:\d{2}:\d{2} LMST/);
+  await expect(header).toContainText(/Sol\s*\d+\s*\d{2}:\d{2}:\d{2}\s*LMST/);
   // Imagery: the base layer of the package is served as tiles
   expect((await tile).ok()).toBeTruthy();
-  await expect(page.getByLabel("API status")).toContainText("●");
+  await expect(page.getByLabel("API status")).toContainText("Link nominal");
 });
 
-test("2. Choisir le préréglage « Sécurité »", async () => {
+test("2. Choose the Safety preset", async () => {
+  await openTool(page, "Layers");
   const presets = page.getByRole("radiogroup", { name: "Presets" });
   await presets.getByRole("radio", { name: "Navigation" }).click();
   await expect(presets.getByRole("radio", { name: "Navigation" })).toBeChecked();
@@ -89,8 +90,8 @@ test("2. Choisir le préréglage « Sécurité »", async () => {
     await expect(page.getByLabel(`Opacity for layer ${layer}`)).toBeVisible();
   }
   // Each layer shows its source, resolution and acquisition date
-  await page.getByRole("button", { name: "Détails de la couche Pente" }).click();
-  const details = page.getByRole("button", { name: "Détails de la couche Pente" }).locator("xpath=ancestor::div[1]/..");
+  await page.getByRole("button", { name: "Details for layer Pente" }).click();
+  const details = page.getByRole("button", { name: "Details for layer Pente" }).locator("xpath=ancestor::div[1]/..");
   await expect(details).toContainText(/SYNTHETIC|HiRISE|CTX|MOLA/);
   await expect(details).toContainText(/\d+(,\d+)?\s*m/); // resolution
   await expect(details).toContainText(/\d{4}-\d{2}-\d{2}|\d{1,2} \w+ \d{4}/); // date
@@ -107,6 +108,7 @@ test("3. Click on the edge of the dunes", async ({ request }) => {
       Math.abs(Number(new URL(r.url()).searchParams.get("lon")) - habitat[0]) < 1e-6 &&
       Math.abs(Number(new URL(r.url()).searchParams.get("lat")) - habitat[1]) < 1e-6,
   );
+  await openTool(page, "Inspect");
   await page.getByRole("button", { name: "Enable query mode" }).click();
   await atHabitat;
   // Une seule section d'outils à la fois : on la referme pour cliquer sur la carte, puis on la
@@ -120,6 +122,7 @@ test("3. Click on the edge of the dunes", async ({ request }) => {
   );
   await page.mouse.click(at.x, at.y);
   await query;
+  await openTool(page, "Inspect");
   const panel = page.getByRole("region", { name: "Ground query (EF-07)" });
   for (const label of ["Altitude", "Pente", "Classe de sol", "Inertie thermique", "Minéralogie"]) {
     await expect(panel).toContainText(label);
@@ -142,21 +145,24 @@ test("4. Display hazard zones", async () => {
 
 test("5. Read the scientific objective", async () => {
   // Each target carries its objective (S1)
-  await right().getByRole("button", { name: "Cible Front du delta" }).click();
-  await expect(page.getByLabel("Fiche cible : Front du delta")).toContainText(/Argiles|carbonates/i);
-  await page.getByRole("button", { name: "Fermer la fiche" }).click();
+  await openTool(page, "Targets & route");
+  await right().getByRole("button", { name: "Target Front du delta" }).click();
+  await expect(page.getByLabel("Target card: Front du delta")).toContainText(/Argiles|carbonates/i);
+  await page.getByRole("button", { name: "Close card" }).click();
 });
 
 test("5b. Site science panel", async () => {
-  const science = page.getByRole("region", { name: /science/i });
+  await openTool(page, "Science");
+  const science = page.getByRole("region", { name: "Site science" });
   await expect(science).toContainText(/delta/i);
   await expect(science).toContainText(/clays|carbonates/i);
   await expect(science).toContainText(/olivine/i);
 });
 
 test("6. Plan three targets", async () => {
-  await right().getByRole("button", { name: `Cible ${DROPPED}` }).click();
-  const card = page.getByLabel(`Fiche cible : ${DROPPED}`);
+  await openTool(page, "Targets & route");
+  await right().getByRole("button", { name: `Target ${DROPPED}` }).click();
+  const card = page.getByLabel(`Target card: ${DROPPED}`);
   const planned = page.waitForResponse(
     (r) =>
       r.url().endsWith(`/api/sites/${SITE}/plans`) &&
@@ -170,7 +176,7 @@ test("6. Plan three targets", async () => {
   const res = await planned;
   expect(res.ok()).toBeTruthy();
   plan = (await res.json()) as PlanBody;
-  await expect(page.getByRole("article", { name: /^Variante / })).toHaveCount(3);
+  await expect(page.getByRole("article", { name: /^Variant / })).toHaveCount(3);
   // Less than 5 s between target modification and variant display (EF-05)
   const elapsed = Date.now() - t0;
   test.info().annotations.push({ type: "plan computation time", description: `${elapsed} ms` });
@@ -181,18 +187,18 @@ test("6. Plan three targets", async () => {
 });
 
 test("7. Compare the route variants", async () => {
-  const cards = page.getByRole("article", { name: /^Variante / });
+  const cards = page.getByRole("article", { name: /^Variant / });
   await expect(cards).toHaveCount(3);
   for (const name of ["Safest", "Fastest", "Science"]) {
     const c = page.getByRole("article", { name: `Variant ${name}` });
     await expect(c).toContainText("Distance");
-    await expect(c).toContainText("Durée totale");
+    await expect(c).toContainText("Total duration");
     // No variant is imposed automatically
-    await expect(c.getByRole("button", { name: `Choisir la variante ${name}` })).toBeVisible();
+    await expect(c.getByRole("button", { name: `Select variant ${name}` })).toBeVisible();
   }
-  await expect(page.getByText("Choisie", { exact: true })).toHaveCount(0);
+  await expect(cards.getByText("Selected", { exact: true })).toHaveCount(0);
   // Detour reason: at least one variant explains its segments
-  const explanations = page.getByText(/Explication par tronçon/);
+  const explanations = page.getByText(/Segment explanation/);
   expect(await explanations.count()).toBeGreaterThan(0);
   await explanations.first().click();
   await expect(cards.locator("details[open] li").first()).not.toBeEmpty();
@@ -215,35 +221,41 @@ test("7c. Three different route traces", async () => {
 });
 
 test("7d. No variant silently crosses a forbidden zone", async () => {
-  const labels: Record<string, string> = { safest: "Plus sûre", fastest: "Plus rapide", science: "Science" };
+  const labels: Record<string, string> = { safest: "Safest", fastest: "Fastest", science: "Science" };
   for (const r of plan.routes) {
     if (r.totals.max_slope_deg <= plan.settings.max_slope_deg) continue;
     // A slope beyond the forbidden threshold is only acceptable if the variant says so.
     expect(r.warnings.length, `${r.variant}: max slope ${r.totals.max_slope_deg}° without warning`).toBeGreaterThan(0);
-    await expect(page.getByRole("article", { name: `Variante ${labels[r.variant]}` })).toContainText("▲");
+    await expect(page.getByRole("article", { name: `Variant ${labels[r.variant]}` })).toContainText("▲");
   }
 });
 
 test("8. Inspect the route profile of the chosen variant", async () => {
-  await page.getByRole("button", { name: "Choisir la variante Plus sûre" }).click();
-  await expect(page.getByRole("article", { name: "Variante Plus sûre" })).toContainText("Choisie");
-  const profile = page.getByRole("region", { name: "Profil d'itinéraire" });
-  await expect(profile).toContainText("Profil · Plus sûre");
-  await expect(profile.getByTestId("profile-totals")).toContainText(/Durée/);
-  await expect(profile.getByTestId("profile-totals")).toContainText(/Pente max/);
-  await expect(profile.getByTestId("totals-check")).toContainText("conformes");
-  await expect(profile.getByRole("table", { name: "Tronçons" }).locator("tbody tr")).toHaveCount(4); // 3 targets + return
+  await page.getByRole("button", { name: "Select variant Safest" }).click();
+  await expect(page.getByRole("article", { name: "Variant Safest" })).toContainText("Selected");
+  await openProfile(page);
+  const profile = page.getByRole("region", { name: "Route profile" });
+  await expect(profile).toContainText("Safest");
+  await expect(profile.getByTestId("profile-totals")).toContainText(/Duration/);
+  await expect(profile.getByTestId("profile-totals")).toContainText(/Max slope/);
+  await expect(profile.getByTestId("totals-check")).toContainText("consistent");
+  await expect(profile.getByRole("table", { name: "Segments" }).locator("tbody tr")).toHaveCount(4); // 3 targets + return
   // Hovering the profile moves the marker: the hovered segment row is highlighted
-  const chart = profile.getByLabel("Profil d'altitude et de pente le long de l'itinéraire");
-  const box = (await chart.boundingBox())!;
-  await page.mouse.move(box.x + box.width * 0.3, box.y + box.height / 2);
-  await expect(profile.locator("tbody tr[aria-current]")).toHaveCount(1);
+  const chart = profile.getByLabel("Elevation and slope profile along the route");
+  let step = 0;
+  await expect(async () => {
+    const box = (await chart.boundingBox())!;
+    const x = box.x + box.width * (0.3 + 0.02 * (step++ % 5));
+    await page.mouse.move(x - 8, box.y + box.height / 2);
+    await page.mouse.move(x, box.y + box.height / 2, { steps: 4 });
+    await expect(profile.locator("tbody tr[aria-current]")).toHaveCount(1, { timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
   // Conversely: hovering a segment row updates the profile position
   await profile.getByTestId("segment-2").hover();
   await expect(profile.getByTestId("segment-2")).toHaveAttribute("aria-current", "true");
   // Return reserve and point of no return are displayed
-  await expect(safety()).toContainText(/Réserve au retour\s*\d/);
-  await expect(safety()).toContainText(/Point de non-retour\s*à /);
+  await expect(safety()).toContainText(/Reserve on return\s*\d/);
+  await expect(safety()).toContainText(/Point of no return\s*in /);
 });
 
 test("9. View the site in 3D", async () => {
@@ -259,8 +271,8 @@ test("9. View the site in 3D", async () => {
 });
 
 test("9b. Terrain flyover along the route", async () => {
-  await page.getByRole("button", { name: "Lancer le survol" }).click();
-  await expect(page.getByRole("button", { name: "Mettre en pause" })).toBeVisible();
+  await page.getByRole("button", { name: "Start flyover" }).click();
+  await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
   await expect
     .poll(async () => Number(await page.getByRole("slider", { name: "Flyover progress" }).inputValue()))
     .toBeGreaterThan(0);
@@ -268,7 +280,7 @@ test("9b. Terrain flyover along the route", async () => {
 });
 
 test("9c. Return to the map view", async () => {
-  await page.getByRole("link", { name: "Carte" }).click();
+  await page.getByRole("link", { name: "Map" }).click();
   await expect(page).toHaveURL(/\/(\?|$)/);
   await openTool(page, "Targets & route");
   await expect(page.getByRole("article", { name: "Variant Safest" })).toContainText("Selected");
@@ -283,10 +295,10 @@ test("10. Start the EVA and launch the virtual astronaut at high speed", async (
   const res = await started;
   expect(res.ok(), await res.text()).toBeTruthy();
   evaId = ((await res.json()) as { id: string }).id;
-  await expect(s).toContainText(`Sortie ${evaId} · ● Temps réel`, { timeout: 15_000 });
+  await expect(s).toContainText(`EVA ${evaId} · ● Live`, { timeout: 15_000 });
   // Consumables, dose and position arrive via WebSocket and update live
-  await expect(s.locator('[data-gauge="Oxygène"]')).toContainText(/\d+(,\d+)? %/, { timeout: 15_000 });
-  await expect(s.locator('[data-gauge="Dose reçue"]')).toContainText(/\d+(,\d+)? µSv/);
+  await expect(s.locator('[data-gauge="Oxygen"]')).toContainText(/\d+([.,]\d+)? %/, { timeout: 15_000 });
+  await expect(s.locator('[data-gauge="Radiation dose received"]')).toContainText(/\d+([.,]\d+)? µSv/);
   const telemetry = () => frames.filter((f) => f.type === "telemetry").map((f) => f.payload);
   await expect.poll(() => telemetry().length, { timeout: 30_000 }).toBeGreaterThan(2);
   const t = telemetry();
@@ -298,7 +310,8 @@ test("10. Start the EVA and launch the virtual astronaut at high speed", async (
 });
 
 test("11. Report an obstacle and log an observation", async () => {
-  const field = page.getByRole("region", { name: "Relevés de terrain" });
+  await openTool(page, "Field log");
+  const field = page.getByRole("region", { name: "Field reports" });
   await expect(field).toBeVisible();
   // Obstacle: reported ahead of the astronaut, the API recalculates the local detour
   const obstacle = page.waitForResponse(
@@ -307,7 +320,7 @@ test("11. Report an obstacle and log an observation", async () => {
   await field.getByRole("button", { name: /Report an obstacle/ }).click();
   const obstacleRes = await obstacle;
   expect(obstacleRes.ok(), await obstacleRes.text()).toBeTruthy();
-  await expect(field.getByRole("status")).toContainText("Obstacle signalé");
+  await expect(field.getByRole("status")).toContainText("Obstacle reported");
   // Observation: a note at the current position, added to the logbook
   await field.getByLabel("Note").fill(OBSERVATION);
   const observation = page.waitForResponse(
@@ -326,8 +339,8 @@ test("12. Simulated solar eruption", async () => {
   const shownAt = Date.now();
   await expect(alert).toHaveAttribute("role", "alert");
   await expect(alert).toContainText(/abri|retour/i);
-  await expect(alert).toContainText("➜"); // recommended action
-  await expect(alert.getByRole("button", { name: /^Acquitter : / })).toBeVisible();
+  await expect(alert).toContainText("→"); // recommended action
+  await expect(alert.getByRole("button", { name: /^Acknowledge: / })).toBeVisible();
   // Less than 1 s between WebSocket message receipt and banner display
   const id = await alert.getAttribute("data-alert-id");
   const received = frames.find((f) => f.type === "alert" && f.payload.id === id);
@@ -379,8 +392,9 @@ test("14. Forced return and logbook export", async () => {
   expect(reasons.length, "route_updated message received").toBeGreaterThan(0);
   expect(reasons.some((r) => /retour|habitat/i.test(r)), reasons.join(" | ")).toBeTruthy();
   // The field logbook exports as GeoJSON
-  await page.getByRole("link", { name: "🖶 Carnet complet" }).click();
-  await expect(page.getByRole("heading", { name: `Carnet de terrain · ${evaId}` })).toBeVisible();
+  await openTool(page, "Export");
+  await page.getByRole("link", { name: "🖶 Full logbook" }).click();
+  await expect(page.getByRole("heading", { name: `Field logbook · ${evaId}` })).toBeVisible();
   const download: Promise<Download> = page.waitForEvent("download");
   await page.getByRole("button", { name: "⤓ GeoJSON" }).click();
   const file = await (await download).path();
@@ -391,7 +405,7 @@ test("14. Forced return and logbook export", async () => {
   // The obstacle and observation from step 11 are in the logbook
   const text = JSON.stringify(geo);
   expect(text).toContain(OBSERVATION);
-  expect(text).toMatch(/Obstacle signalé/);
+  expect(text).toMatch(/Obstacle reported/);
 });
 
 test("14b. A new EVA after the eruption progresses normally", async () => {

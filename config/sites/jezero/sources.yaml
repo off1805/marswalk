@@ -1,0 +1,62 @@
+# Sources de données brutes pour le site Jezero (D1).
+# Télécharger via D0 (pipeline/marswalk_pipeline/fetch/) ou manuellement depuis Mars Trek.
+# Format : identifiant du produit PDS, URL, date de prise de vue.
+# Ce fichier est géré par D1 (ownership.yaml).
+
+# NOTE : Ce fichier est un modèle. Les vraies données Jezero sont dans data/raw/jezero/.
+# Les URLs Mars Trek sont indicatives ; le téléchargement se fait via D0.
+
+layers:
+  hirise_vis:
+    instrument: HiRISE
+    mission: MRO
+    product_id: ESP_046060_1985
+    url: https://www.uahirise.org/ESP_046060_1985
+    date: "2016-10-18"
+    file: hirise_vis.img
+    note: "Imagerie HiRISE couleur du site d'atterrissage Mars 2020"
+
+  hirise_dem:
+    instrument: HiRISE
+    mission: MRO
+    product_id: DTEEC_024919_1985_025131_1985_A01
+    url: https://www.uahirise.org/dtm/dtm.php?ID=ESP_024919_1985
+    date: "2012-03-07"
+    file: hirise_dem.img
+    note: "MNT HiRISE DTM zone d'atterrissage Jezero, résolution ~1 m/px"
+
+  ctx_vis:
+    instrument: CTX
+    mission: MRO
+    product_id: B01_009771_1985_XI_18N282W
+    url: https://www.mars.asu.edu/data/ctx/
+    date: "2008-11-09"
+    file: ctx_vis.img
+    note: "Mosaïque CTX sur le delta Jezero, résolution ~6 m/px"
+
+  dem_mola:
+    instrument: MOLA
+    mission: MGS
+    product_id: MEGT90N000FB
+    url: https://astrogeology.usgs.gov/search/details/Mars/GlobalSurveyor/MOLA/Mars_MGS_MOLA_DEM_mosaic_global_463m/cub
+    date: "2003-01-01"
+    file: mola_dem.img
+    note: "MNT MOLA global 463 m/px, repli si HiRISE ne couvre pas l'emprise"
+
+  thermal_inertia:
+    instrument: THEMIS
+    mission: Mars Odyssey
+    product_id: THEMA_global_100ppd_v2
+    url: https://astrogeology.usgs.gov/search/map/Mars/Odyssey/THEMIS-IR-Thermal/Mars_MO_THEMIS_IR-Day_mosaic_global_100m_v12
+    date: "2014-01-01"
+    file: themis_ti.img
+    note: "Mosaïque THEMIS inertie thermique diurne, 100 m/px"
+
+  crism_minerals:
+    instrument: CRISM
+    mission: MRO
+    product_id: HRL000040FF_07_IF182L_TRRL
+    url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-3-rdr-targeted-v1/
+    date: "2008-11-09"
+    file: crism_minerals.img
+    note: "Produit CRISM ciblé sur le delta Jezero, résolution ~18 m/px"

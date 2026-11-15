@@ -1,55 +1,65 @@
-# e2e : tests de bout en bout du scénario de démo (I2)
+# e2e: end-to-end tests for the demo scenario (I2)
 
-Tests Playwright qui rejouent `docs/scenario-demo.md` dans l'interface web, la carte et la vue 3D, plus un test hors ligne et un contrôle d'accessibilité automatique (axe-core). Les écarts trouvés sont dans [`ECARTS.md`](ECARTS.md).
+Playwright tests that replay `docs/scenario-demo.md` in the web interface — map and 3D view —
+plus an offline test and an automatic accessibility audit (axe-core).
+Gaps found during the last run are listed in [`ECARTS.md`](ECARTS.md).
 
-## Lancer
+## Running
 
-Prérequis : `make install` à la racine (Python avec uv, front avec pnpm).
+Prerequisites: `make install` at the repo root (Python with uv, front with pnpm).
 
 ```bash
 cd e2e
 pnpm install --ignore-workspace
-pnpm exec playwright install chromium   # une fois
-pnpm test                                # un passage
-pnpm test:3x                             # trois passages de suite, chacun sur une API neuve
-pnpm report                              # rapport HTML du dernier passage
+pnpm exec playwright install chromium   # once
+pnpm test                                # single run
+pnpm test:3x                             # three runs in a row, each on a fresh API
+pnpm report                              # HTML report from the last run
 ```
 
-Playwright lance lui-même l'API (port 8100, sans base) et le front construit servi par `vite preview` (port 4173). Le build de production est nécessaire pour le service worker du mode hors ligne.
+Playwright launches the API itself (port 8100, no database) and the production front served
+by `vite preview` (port 4173). A production build is required for the offline service worker.
 
-| Variable | Effet |
+| Variable | Effect |
 | --- | --- |
-| `E2E_SITE=jezero` | Joue le scénario sur Jezero (le paquet doit être installé dans `data/packages/`) |
-| `E2E_REUSE=1` | Réutilise une API et un front déjà lancés sur les ports 8100 et 4173 |
-| `E2E_SKIP_BUILD=1` | Sert `web/dist` sans le reconstruire |
-| `E2E_API_PORT`, `E2E_WEB_PORT` | Autres ports |
+| `E2E_SITE=jezero` | Runs the scenario on Jezero (the package must be installed under `data/packages/`) |
+| `E2E_REUSE=1` | Reuses an API and front already running on ports 8100 and 4173 |
+| `E2E_SKIP_BUILD=1` | Serves `web/dist` without rebuilding |
+| `E2E_API_PORT`, `E2E_WEB_PORT` | Alternative ports |
 
-L'API garde cibles, plans, sorties et alertes en mémoire : un passage modifie cet état (une cible supprimée, une éruption jouée). `pnpm test:3x` relance donc les serveurs à chaque passage, comme la CI.
+The API keeps targets, plans, EVAs and alerts in memory: one run mutates that state (a target
+deleted, an eruption played). `pnpm test:3x` therefore restarts the servers for each run,
+as CI does.
 
-## Contenu
+## Contents
 
-| Fichier | Rôle |
+| File | Role |
 | --- | --- |
-| `tests/scenario.spec.ts` | Les 14 étapes du scénario, une par test, jouées dans l'ordre sur la même page |
-| `tests/hors-ligne.spec.ts` | Coupure du réseau en cours d'usage, réouverture sans réseau (ENF-01) |
-| `tests/accessibilite.spec.ts` | axe-core, WCAG 2.1 A et AA, carte et 3D, thèmes sombre et plein soleil (ENF-06) |
-| `tests/helpers.ts` | Ouverture de l'application, remise des cibles de départ, position d'un point à l'écran |
-| `ECARTS.md` | Rapport des écarts : ce qui ne passe pas, pourquoi, et qui le corrige |
+| `tests/scenario.spec.ts` | The 14 scenario steps, one per test, played in order on the same page |
+| `tests/hors-ligne.spec.ts` | Network cut during use, reopening without network (ENF-01) |
+| `tests/accessibilite.spec.ts` | axe-core, WCAG 2.1 A and AA, map and 3D, dark and daylight themes (ENF-06) |
+| `tests/helpers.ts` | App opening, target reset, screen position of a geographic point |
+| `ECARTS.md` | Gap report: what does not pass, why, and who fixes it |
 
-## Écarts et `fixme`
+## Gaps and `fixme`
 
-Une étape que l'application ne permet pas encore est marquée `test.fixme(true, "Écart En …")` : elle est sautée, le reste du scénario continue et le rapport la montre. Le corps du test décrit déjà ce qu'il faut vérifier. Quand l'écart est corrigé, retirer la ligne `fixme` et relancer.
+A step that the application does not yet support is marked `test.fixme(true, "Gap En …")`:
+it is skipped, the rest of the scenario continues, and the report shows it. The test body
+already describes what to verify. When the gap is fixed, remove the `fixme` line and rerun.
 
-L'audit d'accessibilité tolère les violations listées dans `KNOWN` (une règle et un motif par écart) et échoue sur toute autre. Il joint le rapport axe complet de chaque vue au résultat.
+The accessibility audit tolerates violations listed in `KNOWN` (one rule and one pattern per
+gap) and fails on any other. It attaches the full axe report for each view to the result.
 
-## Mesures relevées par les tests
+## Measurements recorded by the tests
 
-Chaque passage note dans le rapport HTML :
+Each run annotates the HTML report with:
 
-- la durée entre la modification des cibles et l'affichage des trois variantes (EF-05, limite 5 s) ;
-- le délai entre la réception d'une alerte par WebSocket et son affichage (limite 1 s) ;
-- les débits de dose reçus pendant l'éruption simulée.
+- the time between target modification and display of the three variants (EF-05, limit 5 s);
+- the delay between WebSocket alert receipt and banner display (limit 1 s);
+- the dose rates received during the simulated eruption.
 
-## Intégration continue
+## Continuous integration
 
-Le job « Scénario de démo » (`.github/workflows/e2e.yml`) construit le front une fois, puis joue la suite trois fois de suite, chacune sur une API neuve, sans nouvel essai. Les rapports HTML des trois passages sont joints au job.
+The "Demo scenario" job (`.github/workflows/e2e.yml`) builds the front once, then runs the
+suite three times in a row, each on a fresh API, without retries. The HTML reports from all
+three runs are attached to the job.

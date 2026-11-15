@@ -1,109 +1,203 @@
-# Rapport des écarts du scénario de démo (I2)
+# Demo scenario gap report (I2)
 
-Relevé le 15 novembre 2026 en rejouant `docs/scenario-demo.md` dans Chromium sur le site fictif, front construit (`vite build` puis `vite preview`), API neuve sans base. Chaque écart porte un numéro repris dans les tests : une étape bloquée par un écart est marquée `test.fixme("Écart En …")`, et l'audit d'accessibilité tolère les violations listées ici une à une. Corriger un écart, c'est aussi retirer son `fixme` (ou sa ligne de `KNOWN` dans `tests/accessibilite.spec.ts`) pour que le test le vérifie.
+Recorded on 15 November 2026 by replaying `docs/scenario-demo.md` in Chromium on the
+fictif site, production front (`vite build` then `vite preview`), fresh API without database.
+Each gap has a number referenced in the tests: a step blocked by a gap is marked
+`test.fixme("Gap En …")`, and the accessibility audit tolerates the violations listed here
+one by one. Fixing a gap means also removing its `fixme` (or its line from `KNOWN` in
+`tests/accessibilite.spec.ts`) so the test verifies it.
 
-## Bilan par étape
+## Status per step
 
-| # | Étape | État | Écart |
+| # | Step | Status | Gap |
 | --- | --- | --- | --- |
-| 1 | Ouvrir Marswalk sur le site | ✓ | |
-| 2 | Préréglage « Sécurité » | ✓ | |
-| 3 | Cliquer sur le bord des dunes | ✓ après le correctif de E1 | |
-| 4 | Zones dangereuses | ✓ | O3, O4 |
-| 5 | Objectif scientifique | ◐ objectif par cible seulement | E2 |
-| 6 | Planifier trois cibles | ✓ 2,7 s entre la suppression d'une cible et l'affichage des variantes | |
-| 7 | Comparer les variantes | ✓ après les correctifs E4, E5, E6 | |
-| 8 | Profil de la variante choisie | ✓ profil et tableau synchronisés ; côté carte, voir « Non vérifié » | |
-| 9 | Vue 3D | ◐ exagération réglable, survol en panne | E7 |
-| 10 | Sortie et astronaute virtuel | ✓ après le correctif C1 | |
-| 11 | Obstacle et observation | ✓ après le correctif de E3 | |
-| 12 | Éruption solaire | ✓ alerte affichée 0,4 s après sa réception | |
-| 13 | Acquitter l'alerte | ✓ | |
-| 14 | Retour forcé, carnet en GeoJSON | ✓ nouvelle sortie après l'éruption : corrigé (E8) | |
-| — | Hors ligne (ENF-01) | ✓ réouverture hors ligne : corrigé (E9) | |
-| — | Accessibilité (axe, WCAG 2.1 AA) | ◐ | E10, E11 |
+| 1 | Open Marswalk on the site | ✓ | |
+| 2 | Safety preset | ✓ | |
+| 3 | Click on the dune edge | ✓ after fix E1 | |
+| 4 | Hazard zones | ✓ | O3, O4 |
+| 5 | Scientific objective | ◐ per-target objective only | E2 |
+| 6 | Plan three targets | ✓ 2.7 s between target deletion and variant display | |
+| 7 | Compare variants | ✓ after fixes E4, E5, E6 | |
+| 8 | Chosen variant profile | ✓ profile and table synchronised; map marker: see "Not verified" | |
+| 9 | 3D view | ◐ exaggeration adjustable, flyover broken | E7 |
+| 10 | EVA and virtual astronaut | ✓ after fix C1 | |
+| 11 | Obstacle and observation | ✓ after fix E3 | |
+| 12 | Solar eruption | ✓ alert displayed 0.4 s after receipt | |
+| 13 | Acknowledge the alert | ✓ | |
+| 14 | Forced return, GeoJSON logbook | ✓ new EVA after eruption: fixed (E8) | |
+| — | Offline (ENF-01) | ✓ offline reopen: fixed (E9) | |
+| — | Accessibility (axe, WCAG 2.1 AA) | ◐ | E10, E11 |
 
-## Corrigé avec ces tests
+## Fixed with these tests
 
-**C1. La sortie simulée refusait tout plan calculé.** `POST /api/eva` répondait « Plan inconnu » pour tout plan de `POST /api/sites/{site_id}/plans` : le simulateur (A4) ne lisait que `plan-demo`, comme l'annonçait `tasks/change-requests/A4-source-des-plans.md`. Aucune sortie ne pouvait démarrer depuis l'interface, et l'export GeoJSON du plan (X1) échouait de même. Correctif : `get_simulator()` lit d'abord le dépôt de plans de A2 (PR `fix/I2-integration`), avec un test dans `api/tests/a4/test_plans_a2.py`.
+**C1. The simulated EVA rejected every computed plan.** `POST /api/eva` returned "Plan not
+found" for any plan from `POST /api/sites/{site_id}/plans`: the simulator (A4) only read
+`plan-demo`, as announced in `tasks/change-requests/A4-source-des-plans.md`. No EVA could
+start from the UI, and the GeoJSON plan export (X1) failed likewise. Fix: `get_simulator()`
+first reads the A2 plan repository (PR `fix/I2-integration`), with a test in
+`api/tests/a4/test_plans_a2.py`.
 
-**C2 (E4). Cible sans passage écartée et annoncée.** Avant la recherche, P2 repère les cibles qu'aucune suite de cases praticables ne relie au départ (`_p2/reach.py`) : elles sont retirées de la variante avec un avertissement « Cible « … » écartée : aucun passage praticable depuis le départ (la ligne droite franchit une pente de 65°) ». Filet de sécurité : tout tronçon resté en ligne droite de secours est signalé dans `warnings`, et `return_check` passe à `fail`. Le site fictif a désormais une rampe d'environ 200 m (pente max ≈ 13°) à l'ouest de l'habitat ; le Front du delta est atteint par ce détour. Tests : `planner/tests/p2/test_ecarts_i2.py`, étape 7 quater.
+**C2 (E4). An unreachable target is excluded and announced.** Before routing, P2 identifies
+targets that no sequence of walkable cells connects to the start
+(`_p2/reach.py`): they are removed from the variant with the warning
+"Target '…' excluded: no walkable path from the start (straight line crosses a 65° slope)".
+Safety net: any segment that fell back to the straight-line emergency path is flagged in
+`warnings`, and `return_check` moves to `fail`. The fictif site now has a ~200 m ramp
+(max slope ≈ 13°) west of the habitat; the Delta Front is reached via this detour.
+Tests: `planner/tests/p2/test_ecarts_i2.py`, step 7d.
 
-**C3 (E5). Le lissage effaçait les détours.** Le « string pulling » ne regardait que les cases interdites : il redressait tout détour voulu par le coût, et les trois variantes retombaient sur la même ligne droite. Un raccourci n'est plus retenu que s'il ne coûte pas plus que le chemin brut (intégrale exacte du coût le long du segment). La recherche ne coupe plus les coins des cases interdites. Sur le fictif : 3 193 m (sûre, pente max 15°), 2 917 m (rapide, 19°), 3 158 m (science). Étape 7 ter.
+**C3 (E5). Smoothing erased detours.** String-pulling only checked forbidden cells: it
+straightened any cost-driven detour, and all three variants fell back to the same straight
+line. A shortcut is now retained only if its cost is no higher than the raw path (exact cost
+integral along the segment). Routing no longer cuts corners of forbidden cells.
+On fictif: 3,193 m (safest, max slope 15°), 2,917 m (fastest, 19°), 3,158 m (science).
+Step 7c.
 
-**C4 (E6). Une phrase par tronçon.** L'explication compare le tracé à la ligne droite entre ses extrémités : « Contourne une pente de 65° : +518 m (pente max 15,0° sur le tracé). », « Va en ligne droite (pente max 4,0° sur le tracé, traverse le sol meuble). ». Le passage par une unité minérale n'est cité que pour la variante science. Même texte pour le recalcul local pendant la sortie (A4). Étape 7 bis.
+**C4 (E6). One sentence per segment.** The explanation compares the trace to the straight
+line between its endpoints: "Bypasses a 65° slope: +518 m (max slope 15.0° on the trace).",
+"Goes straight (max slope 4.0° on the trace, crosses loose soil).". Passing through a mineral
+unit is only cited for the science variant. Same text for the local recalculation during the
+EVA (A4). Step 7b.
 
-**E1 corrigé. Un clic sur la carte interroge le point (étape 3).** La coquille diffuse chaque clic MapLibre par `shared/mapClick.ts` (contournement de `tasks/change-requests/F2-pickmode-map-click.md`, sans toucher au magasin gelé) ; `QueryPanel` s'y abonne en mode interrogation et part de l'habitat du manifeste. Le clic est lu sur MapLibre, donc il passe même au-dessus d'une cible ou d'une zone ; en mode interrogation, F2 ne sélectionne plus la cible cliquée. Vérifié par l'étape 3, qui contrôle aussi la première requête à l'habitat.
+**E1 fixed. A map click queries the point (step 3).** The shell now broadcasts each MapLibre
+click via `shared/mapClick.ts` (workaround for `tasks/change-requests/F2-pickmode-map-click.md`,
+without touching the frozen store); `QueryPanel` subscribes to it in query mode and defaults
+to the manifest habitat. The click is captured on MapLibre, so it fires even over a target or
+zone; in query mode, F2 no longer selects the clicked target. Verified by step 3, which also
+checks the first request at the habitat.
 
-**E3 corrigé. Obstacle et observation pendant la sortie (étape 11).** Panneau « Relevés de terrain » (F7), affiché sous « Sécurité » tant qu'une sortie est suivie : « Signaler un obstacle » poste `POST /api/eva/{id}/obstacles` 50 m devant l'astronaute sur son tracé (rayon 6 m) ; « Noter l'observation » poste à la position courante et, sans réseau ou en cas d'échec, passe par `useOfflineQueue().enqueue("addObservation", …)` avec l'identifiant de la sortie. Le rejeu est désormais gardé au niveau du module, pour qu'une opération ne soit pas rejouée par chaque panneau qui utilise la file. Vérifié par l'étape 11, et l'étape 14 contrôle que l'obstacle et l'observation sont dans le carnet GeoJSON.
+**E3 fixed. Obstacle and observation during the EVA (step 11).** "Field survey" panel (F7),
+shown under "Safety" while an EVA is tracked: "Report obstacle" posts
+`POST /api/eva/{id}/obstacles` 50 m ahead of the astronaut on the route (radius 6 m);
+"Log observation" posts at the current position and, without network or on failure, goes
+through `useOfflineQueue().enqueue("addObservation", …)` with the EVA id. Replay is now
+kept at module level, so an operation is not replayed by every panel using the queue.
+Verified by step 11; step 14 checks that obstacle and observation are in the GeoJSON logbook.
 
-## Écarts ouverts
+## Open gaps
 
-Gravité : **critique** = risque pour la sécurité présentée ; **haute** = une étape de la démo ne se joue pas ; **moyenne** = l'étape se joue mais ne montre pas ce que dit le scénario ; **basse** = finition.
+Severity: **critical** = safety risk in the presentation; **high** = a demo step cannot be
+played; **medium** = the step plays but does not show what the scenario says; **low** = polish.
 
-### E2. Pas de panneau science du site (étape 5) · moyenne · S1, F2
+### E2. No site science panel (step 5) · medium · S1, F2
 
-Le scénario demande un panneau qui justifie le site et les cibles par les données NASA (delta, argiles et carbonates, olivine). L'interface n'affiche que l'objectif de chaque cible dans sa fiche ; `docs/science/jezero.md` n'est repris nulle part.
+The scenario expects a panel justifying the site and targets with NASA data (delta, clays and
+carbonates, olivine). The UI only shows each target's objective in its card;
+`docs/science/jezero.md` is not surfaced anywhere.
 
-**Corrigé** (branche `fix/I2-ecarts-science-finitions`) : panneau « Science du site » dans la colonne gauche (F2, `SciencePanel.tsx`), résumé de `jezero.md` avec ses sources ; le test 5 bis n'est plus en `fixme`.
+**Fixed** (branch `fix/I2-ecarts-science-finitions`): "Site science" panel in the left column
+(F2, `SciencePanel.tsx`), summary of `jezero.md` with its sources; test 5b is no longer `fixme`.
 
-### E3. Ni signalement d'obstacle ni observation dans l'interface (étape 11) · haute · F4, F7, X1
+### E3. No obstacle report or observation in the UI (step 11) · high · F4, F7, X1
 
-L'API sait faire (`POST /api/eva/{id}/obstacles`, `POST /api/eva/{id}/observations`) et la file hors ligne de F7 sait rejouer `addObservation`, mais aucun bouton ne les appelle. L'étape 11 et la partie « même hors ligne » du scénario ne se montrent pas. À faire : deux actions dans le panneau de sortie, l'observation passant par `useOfflineQueue().enqueue("addObservation", …)`.
+The API can do it (`POST /api/eva/{id}/obstacles`, `POST /api/eva/{id}/observations`) and F7's
+offline queue knows how to replay `addObservation`, but no button calls them. Step 11 and the
+"even offline" part of the scenario are not shown. To do: two actions in the EVA panel, the
+observation going through `useOfflineQueue().enqueue("addObservation", …)`.
 
-### E4. Sans chemin possible, le tracé coupe la falaise sans le dire (étapes 7 et 10) · critique · P2, T00 (site fictif) · **corrigé**
+### E4. Without a walkable path, the trace silently crosses the cliff (steps 7 and 10) · critical · P2, T00 (fictif site) · **fixed**
 
-Sur le site fictif, la falaise du plateau occupe toute la largeur : le Front du delta est inaccessible, A* ne trouve rien et `_plan_segment` revient à la ligne droite « de secours ». Les trois variantes passent alors par une pente de 65°, sans avertissement (`warnings` vide, alors que le code annonce le contraire) et avec « ✓ Retour 90 % ». Pendant la sortie, l'astronaute virtuel franchit la falaise et lève l'alerte « Pente trop forte, 43° ». À faire : (1) P2 signale tout tronçon de secours dans `warnings` et dans `return_check`, ou refuse la cible ; (2) le site fictif ouvre un passage praticable vers le plateau, pour que la démo de CI montre un vrai détour. À vérifier aussi sur Jezero.
+On the fictif site, the plateau cliff spans the full width: the Delta Front is unreachable,
+A* finds nothing and `_plan_segment` falls back to the straight emergency line. All three
+variants cross a 65° slope, without warnings (`warnings` is empty despite the code claiming
+otherwise) and with "✓ Return 90%". During the EVA the virtual astronaut climbs the cliff and
+triggers the "Slope too steep, 43°" alert. To do: (1) P2 flags every emergency-line segment
+in `warnings` and `return_check`, or rejects the target; (2) the fictif site opens a walkable
+passage to the plateau so the CI demo shows a real detour. Also check on Jezero.
 
-### E5. Les trois variantes sont identiques (étape 7) · haute · P2, I1 · **corrigé**
+### E5. All three variants are identical (step 7) · high · P2, I1 · **fixed**
 
-Même tracé, même distance, même durée pour « plus sûre », « plus rapide » et « science » sur le site fictif, y compris sur les tronçons atteignables. E4 en explique une partie, pas tout. À revoir avec les poids réglés par I1.
+Same trace, same distance, same duration for "safest", "fastest" and "science" on the fictif
+site, including on reachable segments. E4 explains part of it, not all. To revisit with weights
+tuned by I1.
 
-### E6. Les explications ne disent pas la raison du détour (étape 7) · moyenne · P1, P2, F2 · **corrigé**
+### E6. Explanations do not state the reason for the detour (step 7) · medium · P1, P2, F2 · **fixed**
 
-Le scénario attend « contourne une pente de 24° ». L'interface affiche les termes du coût de la cellule du milieu du tronçon : « temps de traversée 2.36 s (Tobler 0,38 g × facteur sol) → contribution 1.181 · R=0.000 … ». À faire : une phrase par tronçon tirée de l'écart au tracé direct (pente évitée, obstacle contourné, zone pénalisée).
+The scenario expects "bypasses a 24° slope". The UI displays cost-cell terms for the midpoint
+of the segment: "traversal time 2.36 s (Tobler 0.38g × soil factor) → contribution 1.181 · R=0.000 …".
+To do: one plain-language sentence per segment derived from the deviation from the direct trace
+(slope avoided, obstacle bypassed, penalized zone).
 
-### E7. Le survol 3D s'arrête aussitôt lancé (étape 9) · moyenne · F6
+### E7. The 3D flyover stops immediately after launch (step 9) · medium · F6
 
-`useTerrain3dData` reconstruit `activeProfile` à chaque rendu ; l'effet de `useFlyover` qui remet le survol à zéro « quand l'itinéraire change » se déclenche donc à chaque rendu et repasse `playing` à faux. Correctif d'une ligne : `useMemo` sur `activeProfile`.
+`useTerrain3dData` rebuilds `activeProfile` on every render; the `useFlyover` effect that
+resets the flyover "when the route changes" fires on every render and sets `playing` back to
+false. One-line fix: `useMemo` on `activeProfile`.
 
-**Corrigé** : `activeProfile` et `terrainConfig` mémorisés dans `useTerrain3dData` ; le test 9 bis n'est plus en `fixme`.
+**Fixed**: `activeProfile` and `terrainConfig` memoised in `useTerrain3dData`; test 9b is
+no longer `fixme`.
 
-### E8. Après l'éruption, toute nouvelle sortie s'arrête sur place (après l'étape 14) · haute · A3, A4
+### E8. After the eruption, any new EVA stops in place (after step 14) · high · A3, A4
 
-Les alertes danger levées par le scénario `solar-event` restent actives (sans sortie rattachée) après l'arrêt du scénario, même acquittées, alors que le débit de dose est revenu à 16 µSv/h. Toute sortie lancée ensuite se termine en une dizaine de secondes sans avoir avancé (0 m). Seul un redémarrage de l'API rétablit la démo. À faire : lever les alertes quand la condition disparaît (`alert_cleared`) et ne forcer le retour que sur les alertes de la sortie en cours ; L1 en aura besoin pour sa commande de réinitialisation.
+Danger alerts raised by the `solar-event` scenario remain active (without an attached EVA)
+after the scenario stops, even when acknowledged, while the dose rate has returned to 16 µSv/h.
+Any EVA launched afterwards ends within ten seconds without having moved (0 m). Only an API
+restart restores the demo. To do: raise `alert_cleared` when the condition disappears and only
+force return for alerts belonging to the current EVA; L1 will need this for its reset command.
 
-**Corrigé** (PR `fix/E8-E9-alertes-hors-ligne`). À la fin d'un scénario (arrêt ou durée écoulée), A3 lève ses alertes de site avec `alert_cleared` (« fin du scénario ») puis réévalue les conditions réelles (`AlertEngine.clear_scope`). A4 ne force plus le retour sur une alerte de site déjà acquittée au départ de la sortie. Vérifié par le test « 14 bis » et deux tests de `api/tests/a4/test_simulator.py`.
+**Fixed** (PR `fix/E8-E9-alertes-hors-ligne`). At the end of a scenario (stopped or elapsed),
+A3 raises `alert_cleared` for its site-level alerts ("end of scenario") then re-evaluates real
+conditions (`AlertEngine.clear_scope`). A4 no longer forces return for a site-level alert
+already acknowledged before the EVA started. Verified by test 14b and two tests in
+`api/tests/a4/test_simulator.py`.
 
-### E9. Pas de service worker : l'application ne se rouvre pas hors ligne (ENF-01) · haute · F7
+### E9. No service worker: the application does not reopen offline (ENF-01) · high · F7
 
-`web/src/features/offline/vite.ts` charge `vite-plugin-pwa` par `require`, qui n'existe pas dans la configuration Vite en ESM ; l'erreur est avalée par le `catch` et le greffon n'est jamais ajouté. Le build ne produit ni `sw.js` ni manifeste, rien n'est mis en cache. L'indicateur réseau et les données déjà chargées tiennent, mais un rechargement sans réseau donne une page vide. À faire : `import { VitePWA } from "vite-plugin-pwa"` en tête de fichier.
+`web/src/features/offline/vite.ts` loads `vite-plugin-pwa` via `require`, which does not exist
+in the ESM Vite configuration; the error is swallowed by the `catch` and the plugin is never
+added. The build produces neither `sw.js` nor a manifest, nothing is cached. The network badge
+and already-loaded data hold up, but a reload without network gives a blank page. To do:
+`import { VitePWA } from "vite-plugin-pwa"` at the top of the file.
 
-**Corrigé** (PR `fix/E8-E9-alertes-hors-ligne`). Import ESM ; le build produit `sw.js` et `manifest.webmanifest`. Trois réglages suivent : le bundle principal (3 Mo) dépassait la limite de pré-cache de 2 Mo, les motifs `/api/` et `/tiles/` étaient des RegExp que Workbox compare à l'URL complète (rien n'était mis en cache), et `index.html` sert maintenant de repli de navigation. Le test « L'application se rouvre sans réseau » attend que la carte soit chargée avant de couper le réseau. Reste : les icônes `icon-192.png` et `icon-512.png` du manifeste n'existent pas dans `web/public` (sans effet sur le hors ligne).
+**Fixed** (PR `fix/E8-E9-alertes-hors-ligne`). ESM import; the build produces `sw.js` and
+`manifest.webmanifest`. Three adjustments follow: the main bundle (3 MB) exceeded the 2 MB
+pre-cache limit, the `/api/` and `/tiles/` patterns were RegExps that Workbox compares against
+the full URL (nothing was cached), and `index.html` now serves as the navigation fallback.
+Test "The application reopens without network" waits for the map to load before cutting the
+network. Remaining: the `icon-192.png` and `icon-512.png` manifest icons do not exist in
+`web/public` (no effect on offline).
 
-### E10. Couleurs d'état écrites en texte trop peu contrastées · moyenne · T00 (jetons), F2, F3, F4
+### E10. State colors written as text with insufficient contrast · medium · T00 (tokens), F2, F3, F4
 
-Le vert « Normal » #009e73, l'orange #e69f00 et le vermillon #d55e00 servent de couleur de texte. Rapport de contraste : 4,45:1 sur le thème sombre, 2,3 à 3,9:1 sur le thème « plein soleil », au lieu de 4,5:1. Le thème clair, prévu pour la lecture en plein soleil (ENF-06), est le plus touché : jauges du panneau sécurité, « Retour » des variantes, légende du profil, tableau météo. À faire : une variante foncée de chaque couleur d'état pour le texte, la couleur vive restant pour les pastilles et les tracés.
+Green "Normal" #009e73, orange #e69f00 and vermilion #d55e00 are used as text color. Contrast
+ratio: 4.45:1 on the dark theme, 2.3–3.9:1 on the "daylight" theme, instead of the required
+4.5:1. The light theme, intended for readability in direct sunlight (ENF-06), is most affected:
+safety panel gauges, variant "Return" labels, profile legend, weather table. To do: a darker
+variant of each state color for text use, keeping the vivid color for dots and traces.
 
-**Corrigé** : jetons `--text-ok`, `--text-caution`, `--text-danger`, `--text-info` par thème (au moins 4,8:1 sur toutes les surfaces), `textColors` côté JS, texte noir sur les pastilles orange et vermillon ; ligne retirée de `KNOWN`.
+**Fixed**: tokens `--text-ok`, `--text-caution`, `--text-danger`, `--text-info` per theme
+(at least 4.8:1 on all surfaces), `textColors` on the JS side, black text on orange and
+vermilion dots; line removed from `KNOWN`.
 
-### E11. `aria-label` sur un `div` sans rôle dans la vue 3D · basse · F6
+### E11. `aria-label` on a `div` without a role in the 3D view · low · F6
 
-L'élément `.inset-0` du rendu 3D porte un `aria-label` interdit sans rôle. Ajouter `role="img"` (ou retirer l'étiquette, le canevas en porte déjà une).
+The `.inset-0` element of the 3D render carries an `aria-label` that is invalid without a
+role. Add `role="img"` (or remove the label; the canvas already carries one).
 
-**Corrigé** : `role="img"` ajouté ; ligne retirée de `KNOWN`.
+**Fixed**: `role="img"` added; line removed from `KNOWN`.
 
-## Observations sans test dédié
+## Observations without a dedicated test
 
-- **O1. Accents manquants dans les étiquettes de la carte.** « Unité à olivine » s'affiche « Unit    olivine » : la police des étiquettes deck.gl n'a pas les caractères accentués (F2). **Corrigé** : `characterSet: "auto"` sur les `TextLayer` de F2.
-- **O2. Recalcul local après obstacle à la limite.** `api/tests/a4/test_demo.py` mesure 2,0 s dans le conteneur de cloud (échec à 2 004 ms pour une limite de 2 000 ms, sans lien avec le correctif C1) ; I1 a mesuré 2,9 s sur Jezero pour un objectif de 2 s. Vert dans la CI GitHub.
-- **O3. Zones interdites en vermillon, pas en rouge.** Le scénario dit « rouge » ; la palette pour daltoniens utilise le vermillon #d55e00 avec l'icône ⛔. Choix défendable, à aligner dans le texte du scénario.
-- **O4. Cause des zones toujours « pente ».** `GET /hazards` ne renvoie que des zones de cause `slope` sur le fictif ; les ruptures de pente et les obstacles ne sont pas cités comme cause.
-- **O5. Tout l'état de l'API vit en mémoire.** Cibles, plans, sorties et alertes ne passent pas par PostGIS : un redémarrage efface tout, et deux processus ne partagent rien. Les tests partent donc d'une API neuve à chaque passage ; L1 devra en tenir compte.
-- **O6. `uv.lock` pas à jour.** `uv run` sans `--frozen` le réécrit (ajout de matplotlib et de ses dépendances). La CI utilise `--frozen` et n'est pas touchée.
+- **O1. Missing accents in map labels.** "Unité à olivine" renders as "Unit    olivine": the
+  deck.gl label font lacks accented characters (F2). **Fixed**: `characterSet: "auto"` on F2's `TextLayer` instances.
+- **O2. Local recalculation after edge-case obstacle.** `api/tests/a4/test_demo.py` measures
+  2.0 s in the cloud container (failure at 2,004 ms against a 2,000 ms limit, unrelated to fix
+  C1); I1 measured 2.9 s on Jezero against a 2 s target. Green in GitHub CI.
+- **O3. Forbidden zones in vermilion, not red.** The scenario says "red"; the colorblind-safe
+  palette uses vermilion #d55e00 with the ⛔ icon. Defensible choice; align the scenario text.
+- **O4. Zone cause is always "slope".** `GET /hazards` only returns zones with cause `slope`
+  on the fictif site; scarps and obstacles are not cited as causes.
+- **O5. All API state lives in memory.** Targets, plans, EVAs and alerts do not go through
+  PostGIS: a restart wipes everything, and two processes share nothing. Tests therefore start
+  from a fresh API on each run; L1 will need to account for this.
+- **O6. `uv.lock` out of date.** `uv run` without `--frozen` rewrites it (adds matplotlib
+  and its dependencies). CI uses `--frozen` and is unaffected.
 
-## Non vérifié automatiquement
+## Not verified automatically
 
-- La synchronisation du profil avec la carte (étape 8) : le repère est dessiné dans le canevas WebGL. Les tests vérifient le profil et le tableau des tronçons ; le repère sur la carte reste à regarder à l'œil.
-- Le rendu visuel des couches, des tracés et de la 3D : les tests vérifient que les canevas s'affichent et que les données arrivent, pas l'image.
-- Jezero : les tests tournent sur le site fictif dans la CI. Ils se lancent sur Jezero avec `E2E_SITE=jezero` sur une machine où le paquet est installé.
+- Profile-to-map synchronisation (step 8): the marker is drawn on the WebGL canvas. Tests
+  verify the profile and segment table; the map marker remains a visual check.
+- Visual rendering of layers, traces and 3D: tests verify that canvases display and that data
+  arrives, not the actual image.
+- Jezero: tests run on the fictif site in CI. They can be run on Jezero with
+  `E2E_SITE=jezero` on a machine where the package is installed.

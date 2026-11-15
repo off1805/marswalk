@@ -9,7 +9,6 @@ from scipy.ndimage import binary_dilation
 def _make_disk(radius_px: float) -> np.ndarray:
     """Crée un élément structurant disque de rayon radius_px."""
     r = int(np.ceil(radius_px))
-    size = 2 * r + 1
     y, x = np.ogrid[-r : r + 1, -r : r + 1]
     disk = (x**2 + y**2) <= radius_px**2
     return disk

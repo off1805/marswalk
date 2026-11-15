@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from marswalk_pipeline.derived.loose_soil import compute_loose_soil
 
@@ -31,7 +30,9 @@ class TestHighTiGivesRock:
         result = compute_loose_soil(ti, hi, nodata=NODATA)
         valid = result != NODATA
         assert valid.any()
-        assert np.all(result[valid] == 0.0), f"TI=400 devrait donner classe 0, got {np.unique(result[valid])}"
+        assert np.all(result[valid] == 0.0), (
+            f"TI=400 devrait donner classe 0, got {np.unique(result[valid])}"
+        )
 
 
 class TestLowTiLoose:
@@ -54,7 +55,9 @@ class TestDuneCondition:
         """TI=150 + texture faible → classe 3 (dune)."""
         ti = _make_ti(150.0)
         hi = _make_hi(128.0, noisy=False)  # texture=0 → classe dune
-        result = compute_loose_soil(ti, hi, nodata=NODATA, ti_dune=170.0, texture_dune_threshold=5.0)
+        result = compute_loose_soil(
+            ti, hi, nodata=NODATA, ti_dune=170.0, texture_dune_threshold=5.0
+        )
         valid = result != NODATA
         assert valid.any()
         # Avec texture=0 et TI=150 < 170 → tout devrait être classe 3

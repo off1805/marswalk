@@ -44,7 +44,6 @@ class TestDeriveOnFictifSite:
         """run_derive('fictif') produit les 8 couches."""
         derived_dir, results = fictif_derived_dir
 
-        produced = [name for name, stat in results.items() if stat == "ok"]
         for layer in EXPECTED_LAYERS:
             assert layer in results, f"Couche {layer} absente du résultat"
             path = derived_dir / f"{layer}.tif"
@@ -60,13 +59,12 @@ class TestDeriveOnFictifSite:
 class TestDerivedFilesHaveCorrectGrid:
     def test_derived_files_have_correct_grid(self, fictif_derived_dir):
         """Toutes les sorties ont exactement la même grille que dem.tif."""
-        derived_dir, results = fictif_derived_dir
+        derived_dir, _results = fictif_derived_dir
 
         with rasterio.open(FICTIF_COG / "dem.tif") as ref_ds:
             ref_w = ref_ds.width
             ref_h = ref_ds.height
             ref_tf = ref_ds.transform
-            ref_crs = ref_ds.crs
 
         for layer in EXPECTED_LAYERS:
             path = derived_dir / f"{layer}.tif"
@@ -84,7 +82,7 @@ class TestDerivedFilesHaveCorrectGrid:
 
     def test_derived_files_are_float32(self, fictif_derived_dir):
         """Toutes les sorties sont en float32."""
-        derived_dir, results = fictif_derived_dir
+        derived_dir, _results = fictif_derived_dir
         for layer in EXPECTED_LAYERS:
             path = derived_dir / f"{layer}.tif"
             if not path.exists():
@@ -94,7 +92,7 @@ class TestDerivedFilesHaveCorrectGrid:
 
     def test_derived_files_have_nodata(self, fictif_derived_dir):
         """Toutes les sorties ont nodata=-9999."""
-        derived_dir, results = fictif_derived_dir
+        derived_dir, _results = fictif_derived_dir
         for layer in EXPECTED_LAYERS:
             path = derived_dir / f"{layer}.tif"
             if not path.exists():

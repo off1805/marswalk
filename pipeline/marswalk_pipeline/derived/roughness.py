@@ -37,7 +37,7 @@ def compute_roughness(
     nodata_mask = np.isclose(dem, nodata, rtol=0, atol=1.0)
 
     # Taille de fenêtre en pixels, impaire
-    win_px = int(round(window_m / resolution_m))
+    win_px = round(window_m / resolution_m)
     if win_px < 1:
         win_px = 1
     if win_px % 2 == 0:

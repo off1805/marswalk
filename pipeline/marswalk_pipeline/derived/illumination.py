@@ -76,12 +76,7 @@ def compute_illumination(
         #   → on scanne de droite à gauche (de cols-1 vers 0)
         # sun_dc < 0 : soleil est à l'ouest → le bord OUEST (col=0) est ensoleillé
         #   → on scanne de gauche à droite (de 0 vers cols-1)
-        if sun_dc > 0:
-            col_order = range(cols - 1, -1, -1)
-        else:
-            col_order = range(cols)
-
-        # max_norm[r] = max de norm_elev pour les pixels précédents du rayon
+        col_order = range(cols - 1, -1, -1) if sun_dc > 0 else range(cols)
         # norm_elev = elev + sun_slope * dist_from_start
         max_norm = np.full(rows, -np.inf, dtype=np.float64)
 
@@ -109,7 +104,10 @@ def compute_illumination(
             hi_only = (h_lo <= -np.inf) & (h_hi > -np.inf)
 
             prev_max = np.full(rows, -np.inf, dtype=np.float64)
-            prev_max[both_valid] = h_lo[both_valid] * (1.0 - frac[both_valid]) + h_hi[both_valid] * frac[both_valid]
+            prev_max[both_valid] = (
+                h_lo[both_valid] * (1.0 - frac[both_valid])
+                + h_hi[both_valid] * frac[both_valid]
+            )
             prev_max[lo_only] = h_lo[lo_only]
             prev_max[hi_only] = h_hi[hi_only]
 
@@ -141,10 +139,7 @@ def compute_illumination(
         #   → scan bottom to top (rows-1 to 0)
         # sun_dr < 0 : soleil est au nord (haut) → le bord NORD (row=0) est ensoleillé
         #   → scan top to bottom (0 to rows-1)
-        if sun_dr > 0:
-            row_order = range(rows - 1, -1, -1)
-        else:
-            row_order = range(rows)
+        row_order = range(rows - 1, -1, -1) if sun_dr > 0 else range(rows)
 
         max_norm = np.full(cols, -np.inf, dtype=np.float64)
 
@@ -170,7 +165,10 @@ def compute_illumination(
             hi_only = (h_lo <= -np.inf) & (h_hi > -np.inf)
 
             prev_max = np.full(cols, -np.inf, dtype=np.float64)
-            prev_max[both_valid] = h_lo[both_valid] * (1.0 - frac[both_valid]) + h_hi[both_valid] * frac[both_valid]
+            prev_max[both_valid] = (
+                h_lo[both_valid] * (1.0 - frac[both_valid])
+                + h_hi[both_valid] * frac[both_valid]
+            )
             prev_max[lo_only] = h_lo[lo_only]
             prev_max[hi_only] = h_hi[hi_only]
 

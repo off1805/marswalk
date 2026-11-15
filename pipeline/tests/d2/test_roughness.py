@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from marswalk_pipeline.derived.roughness import compute_roughness
 

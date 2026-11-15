@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from marswalk_pipeline.derived.radio_coverage import compute_radio_coverage
 
@@ -17,7 +16,9 @@ class TestFlatAllVisible:
         size = 50
         dem = np.full((size, size), -2500.0, dtype=np.float32)
         hab = (size // 2, size // 2)
-        result = compute_radio_coverage(dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA)
+        result = compute_radio_coverage(
+            dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA
+        )
         valid = result != NODATA
         assert valid.any()
         assert np.all(result[valid] == 1.0), (
@@ -35,7 +36,9 @@ class TestBehindHillInvisible:
         # Colline entre l'habitat et la cible
         dem[45:55, 30:35] = -2440.0  # +60m de relief
 
-        result = compute_radio_coverage(dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA, n_angles=3600)
+        result = compute_radio_coverage(
+            dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA, n_angles=3600
+        )
 
         # Les pixels très loin derrière la colline doivent être en ombre
         far_behind = result[48:52, 60:70]
@@ -51,7 +54,9 @@ class TestHabitatItselfVisible:
         size = 50
         dem = np.full((size, size), -2500.0, dtype=np.float32)
         hab = (25, 25)
-        result = compute_radio_coverage(dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA)
+        result = compute_radio_coverage(
+            dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA
+        )
         assert result[hab[0], hab[1]] == 1.0, "L'habitat lui-même doit être visible"
 
 
@@ -62,7 +67,9 @@ class TestNodataPropagation:
         dem = np.full((size, size), -2500.0, dtype=np.float32)
         dem[10, 10] = NODATA
         hab = (25, 25)
-        result = compute_radio_coverage(dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA)
+        result = compute_radio_coverage(
+            dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA
+        )
         assert result[10, 10] == NODATA
 
 
@@ -73,7 +80,9 @@ class TestBinaryOutput:
         dem = np.full((size, size), -2500.0, dtype=np.float32)
         dem[10, 10] = NODATA
         hab = (25, 25)
-        result = compute_radio_coverage(dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA)
+        result = compute_radio_coverage(
+            dem, hab, antenna_height_m=3.0, resolution_m=RES, nodata=NODATA
+        )
         allowed = {0.0, 1.0, NODATA}
         unique_vals = set(np.unique(result).tolist())
         assert unique_vals.issubset(allowed), f"Valeurs inattendues : {unique_vals - allowed}"

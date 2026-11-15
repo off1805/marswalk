@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from marswalk_pipeline.derived.hillshade import compute_hillshade
 
@@ -14,7 +13,9 @@ RES = 1.0
 class TestFlatDem:
     def test_flat_dem_gives_uniform_hillshade(self, flat_dem):
         """DEM plat → hillshade uniforme (même valeur partout)."""
-        hs = compute_hillshade(flat_dem, RES, sun_azimuth_deg=315.0, sun_altitude_deg=45.0, nodata=NODATA)
+        hs = compute_hillshade(
+            flat_dem, RES, sun_azimuth_deg=315.0, sun_altitude_deg=45.0, nodata=NODATA
+        )
         valid = hs != NODATA
         assert valid.any()
         vals = hs[valid]
@@ -27,7 +28,9 @@ class TestFlatDem:
 class TestRange:
     def test_range_0_255(self, dem_with_cliff):
         """Toutes les valeurs ∈ [0, 255]."""
-        hs = compute_hillshade(dem_with_cliff, RES, sun_azimuth_deg=315.0, sun_altitude_deg=30.0, nodata=NODATA)
+        hs = compute_hillshade(
+            dem_with_cliff, RES, sun_azimuth_deg=315.0, sun_altitude_deg=30.0, nodata=NODATA
+        )
         valid = hs != NODATA
         assert valid.any()
         assert float(hs[valid].min()) >= 0.0
@@ -58,15 +61,20 @@ class TestDirectionalSensitivity:
             -2500.0 + cols * 0.577, (size, size)
         ).copy().astype(np.float32)
 
-        hs_east = compute_hillshade(dem_east_facing, RES, sun_azimuth_deg=90.0, sun_altitude_deg=30.0, nodata=NODATA)
-        hs_west = compute_hillshade(dem_west_facing, RES, sun_azimuth_deg=90.0, sun_altitude_deg=30.0, nodata=NODATA)
+        hs_east = compute_hillshade(
+            dem_east_facing, RES, sun_azimuth_deg=90.0, sun_altitude_deg=30.0, nodata=NODATA
+        )
+        hs_west = compute_hillshade(
+            dem_west_facing, RES, sun_azimuth_deg=90.0, sun_altitude_deg=30.0, nodata=NODATA
+        )
 
         valid_e = hs_east != NODATA
         valid_w = hs_west != NODATA
         mean_e = float(hs_east[valid_e].mean())
         mean_w = float(hs_west[valid_w].mean())
         assert mean_e > mean_w, (
-            f"Pente exposée est devrait être plus lumineuse avec Soleil à l'est : {mean_e:.1f} vs {mean_w:.1f}"
+            "Pente exposée est devrait être plus lumineuse avec Soleil à l'est : "
+            f"{mean_e:.1f} vs {mean_w:.1f}"
         )
 
 
@@ -75,5 +83,7 @@ class TestNodataPropagation:
         """Les pixels nodata en entrée → nodata en sortie."""
         dem = flat_dem.copy()
         dem[30, 30] = NODATA
-        hs = compute_hillshade(dem, RES, sun_azimuth_deg=315.0, sun_altitude_deg=45.0, nodata=NODATA)
+        hs = compute_hillshade(
+            dem, RES, sun_azimuth_deg=315.0, sun_altitude_deg=45.0, nodata=NODATA
+        )
         assert hs[30, 30] == NODATA

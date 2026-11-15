@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from marswalk_pipeline.derived.illumination import compute_illumination
 
@@ -16,7 +15,9 @@ class TestFlatAllLit:
         """DEM plat → tout éclairé (aucune ombre)."""
         size = 100
         dem = np.full((size, size), -2500.0, dtype=np.float32)
-        result = compute_illumination(dem, RES, sun_azimuth_deg=90.0, sun_altitude_deg=20.0, nodata=NODATA)
+        result = compute_illumination(
+            dem, RES, sun_azimuth_deg=90.0, sun_altitude_deg=20.0, nodata=NODATA
+        )
         valid = result != NODATA
         assert valid.any()
         assert np.all(result[valid] == 1.0), (
@@ -39,14 +40,18 @@ class TestEastFacingSlopeLit:
         ).copy().astype(np.float32)
 
         # Soleil à l'est (azimut=90°, altitude=20°)
-        result = compute_illumination(dem, RES, sun_azimuth_deg=90.0, sun_altitude_deg=20.0, nodata=NODATA)
+        result = compute_illumination(
+            dem, RES, sun_azimuth_deg=90.0, sun_altitude_deg=20.0, nodata=NODATA
+        )
         valid = result != NODATA
         assert valid.any()
         # La majorité des pixels doit être éclairée
         n_lit = int(np.sum(result[valid] == 1.0))
         n_total = int(np.sum(valid))
         frac_lit = n_lit / n_total
-        assert frac_lit > 0.5, f"Pente exposée est devrait être majoritairement éclairée : {frac_lit:.2f}"
+        assert frac_lit > 0.5, (
+            f"Pente exposée est devrait être majoritairement éclairée : {frac_lit:.2f}"
+        )
 
 
 class TestDeepValleyShadowed:
@@ -81,7 +86,9 @@ class TestBinaryOutput:
         dem = np.full((size, size), -2500.0, dtype=np.float32)
         dem[10, 10] = NODATA
         dem[:, 25:30] = -2420.0  # crête
-        result = compute_illumination(dem, RES, sun_azimuth_deg=90.0, sun_altitude_deg=20.0, nodata=NODATA)
+        result = compute_illumination(
+            dem, RES, sun_azimuth_deg=90.0, sun_altitude_deg=20.0, nodata=NODATA
+        )
         allowed = {0.0, 1.0, NODATA}
         unique_vals = set(np.unique(result).tolist())
         assert unique_vals.issubset(allowed), f"Valeurs inattendues : {unique_vals - allowed}"

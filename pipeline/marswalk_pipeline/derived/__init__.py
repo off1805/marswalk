@@ -1,4 +1,6 @@
-"""Couches dérivées (D2) : slope, roughness, hillshade, obstacles, scarps, loose_soil, radio_coverage, illumination."""
+"""Couches dérivées (D2) : slope, roughness, hillshade, obstacles, scarps, loose_soil,
+radio_coverage, illumination.
+"""
 
 from __future__ import annotations
 
@@ -7,7 +9,6 @@ from typing import Any
 
 import numpy as np
 import rasterio
-import rasterio.crs
 import rasterio.transform
 
 from marswalk_core.config import load_site_config
@@ -23,14 +24,14 @@ from .scarps import compute_scarps
 from .slope import compute_slope
 
 __all__ = [
-    "compute_slope",
-    "compute_roughness",
     "compute_hillshade",
-    "compute_obstacles",
-    "compute_scarps",
-    "compute_loose_soil",
-    "compute_radio_coverage",
     "compute_illumination",
+    "compute_loose_soil",
+    "compute_obstacles",
+    "compute_radio_coverage",
+    "compute_roughness",
+    "compute_scarps",
+    "compute_slope",
     "run_derive",
 ]
 
@@ -137,7 +138,6 @@ def _get_habitat_px(
     au centre géométrique de la grille (comportement sûr avant la calibration I1).
     """
     hab = cfg.get("habitat", {})
-    rows = int(round((dem_transform.f - (dem_transform.f + dem_transform.e * 5000)) / resolution_m))
     # Centre de grille par défaut : milieu de width × height
     # On n'a pas la taille ici, donc on utilise un fallback symbolique (0,0) ; sera clampé
     default_col = 0
@@ -149,13 +149,13 @@ def _get_habitat_px(
         # Coordonnées absolues dans le CRS d'analyse (EQC en mètres).
         # col = (x_abs - x_origin) / res
         # row = (y_origin - y_abs) / res   (y décroît vers le bas)
-        col = int(round((hab_x_m - dem_transform.c) / resolution_m))
-        row = int(round((dem_transform.f - hab_y_m) / resolution_m))
+        col = round((hab_x_m - dem_transform.c) / resolution_m)
+        row = round((dem_transform.f - hab_y_m) / resolution_m)
 
     elif isinstance(hab, list) and len(hab) == 2:
         # Format [lon, lat] en degrés
         import math
-        import rasterio.crs
+
         crs_str = cfg.get("analysis_crs", "")
         try:
             # Conversion lon/lat → x/y en mètres dans le CRS d'analyse
@@ -164,7 +164,7 @@ def _get_habitat_px(
             #      y = lat * pi/180 * R
             lon_deg = float(hab[0])
             lat_deg = float(hab[1])
-            R = 3_396_190.0
+            radius_m = 3_396_190.0
             lat_ts = 0.0
             lon_0 = 0.0
             for token in crs_str.split():
@@ -173,11 +173,11 @@ def _get_habitat_px(
                 elif token.startswith("+lon_0="):
                     lon_0 = float(token[7:])
                 elif token.startswith("+R="):
-                    R = float(token[3:])
-            x_m = (lon_deg - lon_0) * math.pi / 180.0 * math.cos(math.radians(lat_ts)) * R
-            y_m = lat_deg * math.pi / 180.0 * R
-            col = int(round((x_m - dem_transform.c) / resolution_m))
-            row = int(round((dem_transform.f - y_m) / resolution_m))
+                    radius_m = float(token[3:])
+            x_m = (lon_deg - lon_0) * math.pi / 180.0 * math.cos(math.radians(lat_ts)) * radius_m
+            y_m = lat_deg * math.pi / 180.0 * radius_m
+            col = round((x_m - dem_transform.c) / resolution_m)
+            row = round((dem_transform.f - y_m) / resolution_m)
         except Exception:
             col = default_col
             row = default_row
@@ -247,7 +247,7 @@ def run_derive(
     if not dem_path.exists():
         return {"error": f"DEM introuvable : {dem_path}"}
 
-    dem, dem_transform, dem_crs, resolution_m = _read_dem(dem_path)
+    dem, dem_transform, _dem_crs, resolution_m = _read_dem(dem_path)
 
     # Résolution (depuis config si disponible, sinon depuis le raster)
     if cfg.get("resolution_m"):
@@ -386,8 +386,8 @@ def _resample_to_dem(
     dem_path: Path,
 ) -> np.ndarray:
     """Reprojette un raster vers la grille du DEM si les tailles diffèrent."""
-    import rasterio.warp
     import rasterio.enums
+    import rasterio.warp
 
     with rasterio.open(dem_path) as dem_ds:
         dem_transform = dem_ds.transform

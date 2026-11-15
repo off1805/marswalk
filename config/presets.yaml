@@ -9,12 +9,15 @@ presets:
       scarps: { visible: true, opacity: 0.8 }
       obstacles: { visible: true, opacity: 0.8 }
       radio_coverage: { visible: false, opacity: 0.5 }
+      rover_traverse: { visible: true, opacity: 0.8 }
+      ground_images: { visible: true, opacity: 1.0 }
   science:
     title: Science
     layers:
       hirise_vis: { visible: true, opacity: 1.0 }
       crism_minerals: { visible: true, opacity: 0.6 }
       thermal_inertia: { visible: false, opacity: 0.6 }
+      rover_traverse: { visible: true, opacity: 1.0 }
       ground_images: { visible: true, opacity: 1.0 }
   navigation:
     title: Navigation
@@ -23,3 +26,4 @@ presets:
       hillshade: { visible: false, opacity: 0.5 }
       rover_traverse: { visible: true, opacity: 1.0 }
       radio_coverage: { visible: false, opacity: 0.4 }
+      ground_images: { visible: true, opacity: 1.0 }

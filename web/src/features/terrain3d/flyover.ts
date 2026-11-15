@@ -26,7 +26,7 @@ export const EXAGGERATION_STEPS = [1, 2, 3, 5, 10] as const;
 export type ExaggerationFactor = (typeof EXAGGERATION_STEPS)[number];
 
 /** Vitesses de survol (facteur temps). */
-export const SPEED_STEPS = [0.5, 1, 2, 5] as const;
+export const SPEED_STEPS = [0.5, 1, 2, 5, 10, 20] as const;
 export type FlyoverSpeed = (typeof SPEED_STEPS)[number];
 
 /** État de l'animation de survol. */

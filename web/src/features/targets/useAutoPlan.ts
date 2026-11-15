@@ -10,6 +10,12 @@ import { api, type Target, type Plan } from "@/shared/api/client";
 import { queryKeys } from "@/shared/queryKeys";
 import { useShared } from "@/shared/store";
 
+function sameTargets(planIds: string[], targets: Target[]): boolean {
+  if (planIds.length !== targets.length) return false;
+  const ids = new Set(targets.map((t) => t.id));
+  return planIds.every((id) => ids.has(id));
+}
+
 export function useAutoPlan(targets: Target[] | undefined) {
   const siteId = useShared((s) => s.siteId);
   const setActivePlan = useShared((s) => s.setActivePlan);
@@ -28,6 +34,25 @@ export function useAutoPlan(targets: Target[] | undefined) {
         setActivePlan(null);
         setActiveRoute(null);
         return;
+      }
+
+      // Le plan actif (restauré après un rechargement, ou déjà calculé) couvre-t-il
+      // exactement ces cibles ? Alors on le garde, avec la variante choisie : le
+      // recalculer créerait un nouveau plan et effacerait ce choix.
+      const { activePlanId, activeRouteId } = useShared.getState();
+      if (activePlanId) {
+        let current = qc.getQueryData<Plan>(queryKeys.plan(activePlanId));
+        if (!current) {
+          const { data } = await api.GET("/api/plans/{plan_id}", {
+            params: { path: { plan_id: activePlanId } },
+          });
+          current = data as Plan | undefined;
+          if (current) qc.setQueryData(queryKeys.plan(current.id), current);
+        }
+        if (current && sameTargets(current.target_ids, tgts)) {
+          if (!activeRouteId && current.selected_route_id) setActiveRoute(current.selected_route_id);
+          return;
+        }
       }
 
       // Cancel previous in-flight request

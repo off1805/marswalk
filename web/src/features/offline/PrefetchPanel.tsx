@@ -41,7 +41,7 @@ export function PrefetchPanel({
       </h3>
 
       {!cacheAvailable && (
-        <p className="mb-2 text-xs text-[var(--color-caution)]">
+        <p className="mb-2 text-xs text-[var(--text-caution)]">
           ▲ Service worker not active — prefetch requires a production build.
         </p>
       )}
@@ -82,7 +82,7 @@ export function PrefetchPanel({
 
       {/* Error */}
       {error && (
-        <p className="mb-2 text-xs text-[var(--color-danger)]" role="alert">
+        <p className="mb-2 text-xs text-[var(--text-danger)]" role="alert">
           ⛔ {error}
         </p>
       )}

@@ -25,6 +25,10 @@ make site-package SITE=jezero    # sans refaire l'ingestion, si data/work/jezero
 
 Les couches portent leur provenance (instrument, produit, URL, incertitude de recalage tirée de `coreg_report.md`). `crism_minerals` est marquée `degraded` : les deux cubes MTRDR ne couvrent qu'environ la moitié de l'emprise, et P1 applique alors la marge de 15 %.
 
+## Zones « hors radio » (après I2)
+
+Sur Jezero, 57 % de l'emprise est hors de vue du mât de l'habitat, et `GET /hazards` dessinait toute cette surface en orange. Deux changements : le rover relaie la radio (`rover_antenna_height_m`, 2 m par défaut), ce qui porte la couverture à 51 % ; et la cause `no_radio` n'est dessinée que si le préréglage exige la radio (`require_radio`, vrai en « prudent »). La pénalité reste dans la grille de coût dans tous les cas.
+
 ## Correctifs nécessaires hors de I1
 
 Faits dans une PR séparée (`fix/I1-jezero`), parce qu'ils touchent D2, P1, P2, P3, A2 et la coquille du front :

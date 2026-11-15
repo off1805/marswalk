@@ -62,7 +62,7 @@ export function TargetsPanel() {
         {/* Computing indicator */}
         {computing && (
           <div
-            className="mb-2 flex items-center gap-2 rounded bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--color-info)]"
+            className="mb-2 flex items-center gap-2 rounded bg-[var(--surface-2)] px-2 py-1 text-xs text-[var(--text-info)]"
             role="status"
             aria-live="polite"
             aria-label="Route calculation in progress"

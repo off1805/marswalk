@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import type { MapContext, MapSourceSpec } from "./feature";
 import { registry } from "./registry";
 import { tileUrl, type SiteManifest } from "@/shared/api/client";
+import { emitMapClick } from "@/shared/mapClick";
 import { useShared } from "@/shared/store";
 
 const BASE_LAYERS = ["hirise_vis", "ctx_vis", "hillshade"];
@@ -96,6 +97,7 @@ export function MapView({ manifest }: { manifest: SiteManifest }) {
     const overlay = new MapboxOverlay({ interleaved: false, layers: [] });
     map.addControl(overlay);
     map.on("zoomend", () => setZoom(map.getZoom()));
+    map.on("click", (e) => emitMapClick({ lon: e.lngLat.lng, lat: e.lngLat.lat }));
     map.on("load", () => setReady(true));
     mapRef.current = map;
     overlayRef.current = overlay;

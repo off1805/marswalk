@@ -5,7 +5,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useShared } from "@/shared/store";
-import { colors } from "@/shared/theme";
+import { colors, textColors } from "@/shared/theme";
 import { injectQueryClient } from "./mapLayers";
 import { ProfileChart } from "./ProfileChart";
 import {
@@ -113,7 +113,13 @@ export function ProfilePanel() {
     <section aria-label="Route profile" className="flex h-full min-h-0 flex-col gap-1 px-3 py-2">
       <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
         <h2 className="font-bold">
-          Profile · <span style={{ color: lineColor }}>{VARIANT_LABEL[route.variant] ?? route.variant}</span>
+          Profile ·{" "}
+          <span
+            aria-hidden="true"
+            className="mr-1 inline-block h-2.5 w-2.5 rounded-full align-middle"
+            style={{ background: lineColor }}
+          />
+          {VARIANT_LABEL[route.variant] ?? route.variant}
         </h2>
         {choice.preview && (
           <span className="text-xs text-[var(--text-muted)]">
@@ -136,18 +142,23 @@ export function ProfilePanel() {
             ✓ Profile totals consistent with variant
           </span>
         ) : (
-          <span role="alert" className="text-xs font-bold" style={{ color: colors.caution }} data-testid="totals-check">
+          <span role="alert" className="text-xs font-bold" style={{ color: textColors.caution }} data-testid="totals-check">
             ▲ Profile / variant mismatch:{" "}
             {derived.mismatches.map((m) => m.field).join(", ")}
           </span>
         )}
         <span className="ml-auto flex gap-3 text-xs">
           <span>
-            <span style={{ color: lineColor }}>━</span> elevation ·{" "}
+            <span
+              aria-hidden="true"
+              className="mr-1 inline-block h-0.5 w-4 align-middle"
+              style={{ background: lineColor }}
+            />
+            elevation ·{" "}
             <span className="text-[var(--text-muted)]">┅</span> slope
           </span>
-          <span style={{ color: colors.caution }}>▲ slope ≥ {plan.settings.penalty_slope_deg}°</span>
-          <span style={{ color: colors.danger }}>⛔ slope ≥ {plan.settings.max_slope_deg}°</span>
+          <span style={{ color: textColors.caution }}>▲ slope ≥ {plan.settings.penalty_slope_deg}°</span>
+          <span style={{ color: textColors.danger }}>⛔ slope ≥ {plan.settings.max_slope_deg}°</span>
         </span>
       </header>
       <div className="flex min-h-0 flex-1 gap-3">

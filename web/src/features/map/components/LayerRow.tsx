@@ -105,7 +105,7 @@ export function LayerRow({
             </div>
           )}
           {layer.status_note && (
-            <div className="text-[var(--color-caution)] font-medium">
+            <div className="text-[var(--text-caution)] font-medium">
               Note: {layer.status_note}
             </div>
           )}

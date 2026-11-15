@@ -188,6 +188,25 @@ def _get_habitat_px(
     return row, col
 
 
+def _rover_px(
+    cfg: dict[str, Any],
+    dem_transform: rasterio.transform.Affine,
+    resolution_m: float,
+    shape: tuple[int, ...],
+) -> tuple[int, int] | None:
+    """Case du rover (``rover`` de site.yaml : ``{lon, lat}`` ou ``[lon, lat]``), ou None
+    s'il n'est pas donné ou tombe hors de la grille (pas de repli au centre)."""
+    rover = cfg.get("rover")
+    if isinstance(rover, dict) and "lon" in rover and "lat" in rover:
+        rover = [rover["lon"], rover["lat"]]
+    if not (isinstance(rover, list) and len(rover) == 2):
+        return None
+    row, col = _get_habitat_px({**cfg, "habitat": rover}, dem_transform, resolution_m)
+    if 0 <= row < shape[0] and 0 <= col < shape[1]:
+        return row, col
+    return None
+
+
 def _clamp_to_grid(row: int, col: int, dem: np.ndarray) -> tuple[int, int]:
     """Clamp la position habitat dans les limites de la grille.
 
@@ -358,6 +377,19 @@ def run_derive(
             resolution_m=resolution_m,
             nodata=NODATA,
         )
+        # Relais par le rover (taches-agents.md : « visibilité depuis l'habitat ou le
+        # rover ») : une case est couverte si l'un des deux la voit.
+        rover_px = _rover_px(cfg, dem_transform, resolution_m, dem.shape)
+        if rover_px is not None:
+            rover = compute_radio_coverage(
+                dem,
+                habitat_px=rover_px,
+                antenna_height_m=float(derive_cfg.get("rover_antenna_height_m", 2.0)),
+                resolution_m=resolution_m,
+                nodata=NODATA,
+            )
+            seen = (radio == 1.0) | (rover == 1.0)
+            radio = np.where(radio == NODATA, NODATA, seen.astype(np.float32)).astype(np.float32)
         _write_derived(radio, derived_dir / "radio_coverage.tif", dem_path)
         status["radio_coverage"] = "ok"
     except Exception as exc:

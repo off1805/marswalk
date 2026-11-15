@@ -189,11 +189,15 @@ export function buildReplayHandlers(): Map<
   handlers.set("addObservation", async (op) => {
     const { api } = await import("@/shared/api/client");
     const { useShared } = await import("@/shared/store");
-    const evaId = useShared.getState().evaId;
+    // The EVA id is recorded in the operation at enqueue time; fall back to the tracked EVA.
+    const { eva_id: queuedEvaId, ...body } = op.payload as {
+      eva_id?: string;
+    } & import("@/shared/api/client").Schemas["ObservationCreate"];
+    const evaId = queuedEvaId ?? useShared.getState().evaId;
     if (!evaId) throw new Error("No active EVA");
     const { error } = await api.POST("/api/eva/{eva_id}/observations", {
       params: { path: { eva_id: evaId } },
-      body: op.payload as import("@/shared/api/client").Schemas["ObservationCreate"],
+      body,
     });
     if (error) throw new Error("Failed to add observation");
   });

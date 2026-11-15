@@ -9,7 +9,8 @@
  * sont testés par intégration dans offline.test.tsx.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { OperationQueue, type ReplayHandler, type Storage } from "./operationQueue";
+import { OperationQueue, buildReplayHandlers, type ReplayHandler, type Storage } from "./operationQueue";
+import { pointAhead } from "./FieldReportPanel";
 import { buildPrefetchList } from "./prefetch";
 import type { QueuedOperation } from "./types";
 import type { SiteManifest } from "@/shared/api/client";
@@ -288,5 +289,45 @@ describe("buildPrefetchList", () => {
     list.forEach((r) => {
       expect(r.url).toMatch(/^\//);
     });
+  });
+});
+
+// ── Relevés de terrain (E3) ───────────────────────────────────────────────────
+
+describe("pointAhead", () => {
+  const profile = [0, 20, 40, 60, 80].map((d) => ({ distance_m: d, position: [d, 0] })) as unknown as Parameters<
+    typeof pointAhead
+  >[0];
+
+  it("prend le premier point du profil au moins à la distance demandée devant", () => {
+    expect(pointAhead(profile, 15, 30)).toEqual([60, 0]);
+  });
+
+  it("retombe sur la fin du tracé près de l'arrivée", () => {
+    expect(pointAhead(profile, 70, 50)).toEqual([80, 0]);
+  });
+
+  it("renvoie null sans profil", () => {
+    expect(pointAhead([], 0, 50)).toBeNull();
+  });
+});
+
+describe("rejeu d'une observation", () => {
+  it("poste sur la sortie notée dans l'opération, sans l'envoyer dans le corps", async () => {
+    const { api } = await import("@/shared/api/client");
+    const post = vi.spyOn(api, "POST").mockResolvedValue({ data: {}, error: undefined } as never);
+    const handler = buildReplayHandlers().get("addObservation")!;
+    await handler({
+      id: "op",
+      kind: "addObservation",
+      enqueuedAt: 0,
+      attempts: 0,
+      payload: { eva_id: "eva-7", position: [1, 2], note: "Litage" },
+    });
+    expect(post).toHaveBeenCalledWith("/api/eva/{eva_id}/observations", {
+      params: { path: { eva_id: "eva-7" } },
+      body: { position: [1, 2], note: "Litage" },
+    });
+    post.mockRestore();
   });
 });

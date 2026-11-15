@@ -38,8 +38,8 @@ function AlertRow({ alert, onAck, pending }: { alert: Alert; onAck: (id: string)
       style={{ borderColor: meta.color }}
     >
       <span
-        className="inline-flex items-center gap-1 rounded px-2 py-0.5 font-bold text-white"
-        style={{ background: meta.color }}
+        className="inline-flex items-center gap-1 rounded px-2 py-0.5 font-bold"
+        style={{ background: meta.color, color: meta.ink }}
       >
         <span aria-hidden="true">{meta.icon}</span>
         {meta.label}

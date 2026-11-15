@@ -1,0 +1,167 @@
+# Sources des données brutes de Jezero (D0). Lu par `python -m marswalk_pipeline.fetch jezero`.
+#
+# Chaque produit donne soit `files` (URL directes), soit `listing` (répertoire HTTP parcouru,
+# fichiers retenus par l'expression `pattern`). `clip: true` découpe à la source par lecture
+# fenêtrée GDAL (/vsicurl/) autour de `extent` agrandi de `margin_m`, puis écrit un GeoTIFF ;
+# en cas d'échec, le fichier complet est téléchargé. Tailles en octets, relevées le 2026-11-14
+# par requête HEAD (0 = inconnue avant parcours du répertoire).
+#
+# Point de départ : page des ressources du défi Space Apps 2026 « Interplanetary Survival
+# Guide: Martian Map » (Mars Trek, USGS). Les produits 5 à 9 ne sont pas couverts par ces
+# portails : leurs URL viennent de l'USGS Astropedia, de l'API ODE et des nœuds PDS (signalé
+# dans fetch_report.md).
+
+site_id: jezero
+extent:
+  # Site d'atterrissage Octavia E. Butler, 5 x 5 km, plus 1 km de marge par défaut.
+  center: { lon: 77.4509, lat: 18.4447 }
+  size_m: 5000
+  margin_m: 1000
+mars_radius_m: 3396190
+
+products:
+  - id: hirise_ortho
+    product: MRO HiRISE, Jezero Mosaic, Controlled (Mars 2020 TRN, 25 cm)
+    pds_id: JEZ_hirise_soc_007_orthoMosaic_25cm_Ortho_blend120
+    layer: hirise_vis
+    priority: indispensable
+    clip: true
+    files:
+      - url: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/JEZ_hirise_soc_007_orthoMosaic_25cm_Ortho_blend120.tif
+        size: 3408854746
+    license: Domaine public (NASA/JPL/Université d'Arizona/USGS)
+    citation: Fergason et al. (2020), Mars 2020 Terrain Relative Navigation Flight Product Generation, LPSC 51, #2020.
+
+  - id: hirise_dtm
+    product: MRO HiRISE, Jezero DEM, Controlled (Mars 2020 TRN, 1 m)
+    pds_id: JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40
+    layer: dem
+    priority: indispensable
+    clip: true
+    files:
+      - url: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/HiRISE/JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40.tif
+        size: 1839545409
+    license: Domaine public (NASA/JPL/Université d'Arizona/USGS)
+    citation: Fergason et al. (2020), LPSC 51, #2020.
+
+  - id: ctx_ortho
+    product: MRO CTX, Jezero Mosaic, Controlled (6 m)
+    pds_id: JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0
+    layer: ctx_vis
+    priority: indispensable
+    clip: false
+    files:
+      - url: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/CTX/JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif
+        size: 36269402
+    license: Domaine public (NASA/JPL/MSSS/USGS)
+    citation: Fergason et al. (2020), LPSC 51, #2020.
+
+  - id: ctx_dtm
+    product: MRO CTX, Jezero DEM, Controlled (20 m)
+    pds_id: JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0
+    layer: dem
+    priority: indispensable
+    clip: false
+    files:
+      - url: https://planetarymaps.usgs.gov/mosaic/mars2020_trn/CTX/JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0.tif
+        size: 9662387
+    license: Domaine public (NASA/JPL/MSSS/USGS)
+    citation: Fergason et al. (2020), LPSC 51, #2020.
+
+  - id: mola_dem
+    product: MGS MOLA, DEM global 463 m
+    pds_id: Mars_MGS_MOLA_DEM_mosaic_global_463m
+    layer: dem_mola
+    priority: indispensable
+    clip: true
+    margin_m: 60000   # horizon pour l'éclairage et la couverture radio
+    files:
+      - url: https://planetarymaps.usgs.gov/mosaic/Mars_MGS_MOLA_DEM_mosaic_global_463m.tif
+        size: 2125771142
+    license: Domaine public (NASA/GSFC/USGS)
+    citation: Smith et al. (2001), JGR 106(E10); mosaïque USGS Astrogeology (2014).
+
+  - id: themis_ti
+    product: Mars Odyssey THEMIS, mosaïque quantitative d'inertie thermique 100 m, tuile 00N060E
+    pds_id: THEMIS_TI_Mosaic_Quant_00N060E_100mpp
+    layer: thermal_inertia
+    priority: important
+    clip: true
+    margin_m: 10000
+    files:
+      - url: https://asc-astropedia.s3.us-west-2.amazonaws.com/Mars/Odyssey/THEMIS-Global-Thermal-Inertia-Mosaic/Quantitative-32-Bit/THEMIS_TI_Mosaic_Quant_00N060E_100mpp.cub
+        size: 2532510192
+    license: Domaine public (NASA/JPL/ASU/USGS)
+    citation: Christensen et al. (2013), THEMIS-derived thermal inertia mosaic of Mars, LPSC 44, #2822.
+
+  - id: crism_mtrdr
+    product: MRO CRISM MTRDR, paramètres de synthèse (SU) et réflectance (SR) sur le delta
+    pds_id: FRT000047A3, FRT00005C5E (MRO-M-CRISM-5-RDR-MPTARGETED-V1.0)
+    layer: crism_minerals
+    priority: important
+    clip: false
+    # Trouvés par l'API ODE : oderest.rsl.wustl.edu/live2/?query=product&iid=CRISM&pt=MTRDR
+    # sur 77.3-77.6 E, 18.3-18.6 N. Les cubes SU contiennent D2300, BD2290, BD2500, OLINDEX3.
+    files:
+      - url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_057/frt000047a3/frt000047a3_07_su166j_mtr3.img
+        size: 168193024
+      - url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_057/frt000047a3/frt000047a3_07_su166j_mtr3.lbl
+        size: 0
+      - url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_057/frt000047a3/frt000047a3_07_su166j_mtr3.hdr
+        size: 0
+      - url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_057/frt000047a3/frt000047a3_07_sr166j_mtr3.img
+        size: 168193024
+      - url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_057/frt000047a3/frt000047a3_07_sr166j_mtr3.lbl
+        size: 0
+      - url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_057/frt000047a3/frt000047a3_07_sr166j_mtr3.hdr
+        size: 0
+      - url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_139/frt00005c5e/frt00005c5e_07_su166j_mtr3.img
+        size: 194885632
+      - url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_139/frt00005c5e/frt00005c5e_07_su166j_mtr3.lbl
+        size: 0
+      - url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2007/2007_139/frt00005c5e/frt00005c5e_07_su166j_mtr3.hdr
+        size: 0
+    license: Domaine public (NASA/JPL/JHU-APL)
+    citation: Seelos et al. (2016), CRISM MTRDR, PDS Geosciences Node.
+
+  - id: m20_traverse
+    product: Trajet et points d'arrêt de Perseverance (JPL MMGIS)
+    pds_id: M20_traverse, M20_waypoints
+    layer: rover_traverse
+    priority: utile
+    clip: false
+    files:
+      - url: https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json
+        size: 1723218
+      - url: https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json
+        size: 603126
+    license: Domaine public (NASA/JPL-Caltech)
+    citation: NASA/JPL-Caltech, Mars 2020 Perseverance location map.
+
+  - id: meda
+    product: Mars 2020 MEDA, données calibrées environnementales, sols 0 à 39
+    pds_id: urn:nasa:pds:mars2020_meda:data_calibrated_env
+    layer: conditions (K1)
+    priority: utile
+    clip: false
+    listing:
+      url: https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/data_calibrated_env/sol_0000_0089/
+      recursive: true
+      dir_pattern: '^sol_00[0-3]\d$'
+      # Pression (PS), température de l'air (ATS), humidité (RHS), rayonnement (TIRS, RDS), vent (WS).
+      pattern: '^WE__00[0-3]\d_+CAL_(PS|ATS|RHS|TIRS|RDS|WS)_+P\d+\.(CSV|xml)$'
+    license: Domaine public (NASA/JPL-Caltech/CAB)
+    citation: Rodriguez-Manfredi et al. (2021), Space Sci. Rev. 217:48 ; PDS Atmospheres Node.
+
+  - id: rad_may2024
+    product: MSL RAD RDR, débit de dose autour de l'événement solaire du 20 mai 2024 (sols 4180 à 4205)
+    pds_id: MSL-M-RAD-3-RDR-V1.0
+    layer: scénario solar-event (K1)
+    priority: utile
+    clip: false
+    listing:
+      url: https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/DATA/SOL_04134_04257/
+      recursive: false
+      pattern: '^RAD_RDR_2024_\d{3}_\d\d_\d\d_(418\d|419\d|420[0-5])_V\d+\.(TXT|LBL)$'
+    license: Domaine public (NASA/JPL-Caltech/SwRI)
+    citation: Hassler et al. (2012), Space Sci. Rev. 170 ; PDS PPI Node.

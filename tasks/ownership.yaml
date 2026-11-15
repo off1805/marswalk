@@ -19,6 +19,7 @@ shared:
   - conditions/pyproject.toml
   - api/pyproject.toml
   - web/package.json
+  - tasks/ownership.yaml
 
 tasks:
   T00:
@@ -213,3 +214,8 @@ tasks:
       - planner/marswalk_planner/team.py
       - planner/tests/x3/**
       - web/src/features/team/**
+  V1:
+    title: Assistant vocal
+    paths:
+      - web/src/features/voice/**
+      - tasks/change-requests/V1-*.md

@@ -136,6 +136,7 @@ export function TerrainCanvas({
     <div
       ref={containerRef}
       className="absolute inset-0"
+      role="img"
       aria-label="Rendu 3D du terrain martien"
       data-testid="terrain-canvas"
     />

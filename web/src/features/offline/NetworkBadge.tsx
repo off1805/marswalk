@@ -21,8 +21,8 @@ export function NetworkBadge({ status, pendingCount }: Props) {
     <div
       className={`flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-semibold ${
         online
-          ? "border-[var(--color-ok)] text-[var(--color-ok)]"
-          : "border-[var(--color-caution)] text-[var(--color-caution)]"
+          ? "border-[var(--color-ok)] text-[var(--text-ok)]"
+          : "border-[var(--color-caution)] text-[var(--text-caution)]"
       }`}
       role="status"
       aria-live="polite"
@@ -36,7 +36,7 @@ export function NetworkBadge({ status, pendingCount }: Props) {
       {/* Badge de file d'attente */}
       {!online && pendingCount > 0 && (
         <span
-          className="ml-0.5 rounded-full bg-[var(--color-caution)] px-1 text-[10px] text-white"
+          className="ml-0.5 rounded-full bg-[var(--color-caution)] px-1 text-[10px] text-black"
           aria-label={`${pendingCount} opération${pendingCount > 1 ? "s" : ""} en attente`}
         >
           {pendingCount}

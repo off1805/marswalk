@@ -39,6 +39,12 @@ Gravité : **critique** = risque pour la sécurité présentée ; **haute** = un
 
 Le scénario demande un panneau qui justifie le site et les cibles par les données NASA (delta, argiles et carbonates, olivine). L'interface n'affiche que l'objectif de chaque cible dans sa fiche ; `docs/science/jezero.md` n'est repris nulle part.
 
+**Corrigé** (branche `fix/I2-ecarts-science-finitions`) : panneau « Science du site » dans la colonne gauche (F2, `SciencePanel.tsx`), résumé de `jezero.md` avec ses sources ; le test 5 bis n'est plus en `fixme`.
+
+### E3. Ni signalement d'obstacle ni observation dans l'interface (étape 11) · haute · F4, F7, X1
+
+L'API sait faire (`POST /api/eva/{id}/obstacles`, `POST /api/eva/{id}/observations`) et la file hors ligne de F7 sait rejouer `addObservation`, mais aucun bouton ne les appelle. L'étape 11 et la partie « même hors ligne » du scénario ne se montrent pas. À faire : deux actions dans le panneau de sortie, l'observation passant par `useOfflineQueue().enqueue("addObservation", …)`.
+
 ### E4. Sans chemin possible, le tracé coupe la falaise sans le dire (étapes 7 et 10) · critique · P2, T00 (site fictif)
 
 Sur le site fictif, la falaise du plateau occupe toute la largeur : le Front du delta est inaccessible, A* ne trouve rien et `_plan_segment` revient à la ligne droite « de secours ». Les trois variantes passent alors par une pente de 65°, sans avertissement (`warnings` vide, alors que le code annonce le contraire) et avec « ✓ Retour 90 % ». Pendant la sortie, l'astronaute virtuel franchit la falaise et lève l'alerte « Pente trop forte, 43° ». À faire : (1) P2 signale tout tronçon de secours dans `warnings` et dans `return_check`, ou refuse la cible ; (2) le site fictif ouvre un passage praticable vers le plateau, pour que la démo de CI montre un vrai détour. À vérifier aussi sur Jezero.
@@ -55,6 +61,8 @@ Le scénario attend « contourne une pente de 24° ». L'interface affiche les t
 
 `useTerrain3dData` reconstruit `activeProfile` à chaque rendu ; l'effet de `useFlyover` qui remet le survol à zéro « quand l'itinéraire change » se déclenche donc à chaque rendu et repasse `playing` à faux. Correctif d'une ligne : `useMemo` sur `activeProfile`.
 
+**Corrigé** : `activeProfile` et `terrainConfig` mémorisés dans `useTerrain3dData` ; le test 9 bis n'est plus en `fixme`.
+
 ### E8. Après l'éruption, toute nouvelle sortie s'arrête sur place (après l'étape 14) · haute · A3, A4
 
 Les alertes danger levées par le scénario `solar-event` restent actives (sans sortie rattachée) après l'arrêt du scénario, même acquittées, alors que le débit de dose est revenu à 16 µSv/h. Toute sortie lancée ensuite se termine en une dizaine de secondes sans avoir avancé (0 m). Seul un redémarrage de l'API rétablit la démo. À faire : lever les alertes quand la condition disparaît (`alert_cleared`) et ne forcer le retour que sur les alertes de la sortie en cours ; L1 en aura besoin pour sa commande de réinitialisation.
@@ -67,13 +75,17 @@ Les alertes danger levées par le scénario `solar-event` restent actives (sans 
 
 Le vert « Normal » #009e73, l'orange #e69f00 et le vermillon #d55e00 servent de couleur de texte. Rapport de contraste : 4,45:1 sur le thème sombre, 2,3 à 3,9:1 sur le thème « plein soleil », au lieu de 4,5:1. Le thème clair, prévu pour la lecture en plein soleil (ENF-06), est le plus touché : jauges du panneau sécurité, « Retour » des variantes, légende du profil, tableau météo. À faire : une variante foncée de chaque couleur d'état pour le texte, la couleur vive restant pour les pastilles et les tracés.
 
+**Corrigé** : jetons `--text-ok`, `--text-caution`, `--text-danger`, `--text-info` par thème (au moins 4,8:1 sur toutes les surfaces), `textColors` côté JS, texte noir sur les pastilles orange et vermillon ; ligne retirée de `KNOWN`.
+
 ### E11. `aria-label` sur un `div` sans rôle dans la vue 3D · basse · F6
 
 L'élément `.inset-0` du rendu 3D porte un `aria-label` interdit sans rôle. Ajouter `role="img"` (ou retirer l'étiquette, le canevas en porte déjà une).
 
+**Corrigé** : `role="img"` ajouté ; ligne retirée de `KNOWN`.
+
 ## Observations sans test dédié
 
-- **O1. Accents manquants dans les étiquettes de la carte.** « Unité à olivine » s'affiche « Unit    olivine » : la police des étiquettes deck.gl n'a pas les caractères accentués (F2).
+- **O1. Accents manquants dans les étiquettes de la carte.** « Unité à olivine » s'affiche « Unit    olivine » : la police des étiquettes deck.gl n'a pas les caractères accentués (F2). **Corrigé** : `characterSet: "auto"` sur les `TextLayer` de F2.
 - **O2. Recalcul local après obstacle à la limite.** `api/tests/a4/test_demo.py` mesure 2,0 s dans le conteneur de cloud (échec à 2 004 ms pour une limite de 2 000 ms, sans lien avec le correctif C1) ; I1 a mesuré 2,9 s sur Jezero pour un objectif de 2 s. Vert dans la CI GitHub.
 - **O3. Zones interdites en vermillon, pas en rouge.** Le scénario dit « rouge » ; la palette pour daltoniens utilise le vermillon #d55e00 avec l'icône ⛔. Choix défendable, à aligner dans le texte du scénario.
 - **O4. Cause des zones toujours « pente ».** `GET /hazards` ne renvoie que des zones de cause `slope` sur le fictif ; les ruptures de pente et les obstacles ne sont pas cités comme cause.

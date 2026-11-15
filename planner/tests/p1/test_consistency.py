@@ -98,6 +98,9 @@ def test_polygons_present_for_active_causes(standard_settings: SafetySettings) -
         for cause, arr in masks.by_cause.items()
         if arr.sum() >= 25  # au moins 25 cases pour générer un polygone visible
     }
+    if not standard_settings.require_radio:
+        # Radio non exigée : la pénalité reste dans le coût mais n'est pas dessinée.
+        active_causes.discard("no_radio")
 
     for cause in active_causes:
         assert cause in poly_causes, (
@@ -214,3 +217,18 @@ def test_forbidden_is_union_of_forbidden_causes(standard_settings: SafetySetting
             union |= masks.by_cause[k]
 
     np.testing.assert_array_equal(masks.forbidden, union)
+
+
+def test_no_radio_zones_drawn_only_when_radio_is_required() -> None:
+    from marswalk_core.config import load_safety_settings
+    from marswalk_core.site_package import load_site
+
+    site = load_site("fictif")
+    standard = load_safety_settings("standard")
+    prudent = load_safety_settings("prudent")
+    assert not standard.require_radio and prudent.require_radio
+    causes = {f.properties["cause"] for f in hazard_polygons(site, standard).features}
+    assert "no_radio" not in causes
+    if hazard_masks(site, prudent).by_cause["no_radio"].sum() >= 25:
+        causes = {f.properties["cause"] for f in hazard_polygons(site, prudent).features}
+        assert "no_radio" in causes

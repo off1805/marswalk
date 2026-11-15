@@ -41,10 +41,10 @@ function ReturnBadge({ route }: ReturnBadgeProps) {
   const rc = route.return_check;
   const color =
     rc.status === "ok"
-      ? "text-[var(--color-ok)]"
+      ? "text-[var(--text-ok)]"
       : rc.status === "marginal"
-        ? "text-[var(--color-caution)]"
-        : "text-[var(--color-danger)]";
+        ? "text-[var(--text-caution)]"
+        : "text-[var(--text-danger)]";
   const icon =
     rc.status === "ok" ? "✓" : rc.status === "marginal" ? "▲" : "⛔";
   return (
@@ -144,7 +144,7 @@ function RouteCard({ route, plan, isActive, onSelect }: RouteCardProps) {
       {route.warnings && route.warnings.length > 0 && (
         <ul className="mt-1 space-y-0.5">
           {route.warnings.map((w, i) => (
-            <li key={i} className="flex items-start gap-1 text-xs text-[var(--color-caution)]">
+            <li key={i} className="flex items-start gap-1 text-xs text-[var(--text-caution)]">
               <span aria-hidden="true">▲</span>
               <span>{w}</span>
             </li>
@@ -169,7 +169,7 @@ function RouteCard({ route, plan, isActive, onSelect }: RouteCardProps) {
       {route.return_check.status !== "ok" &&
         route.return_check.targets_to_cut &&
         route.return_check.targets_to_cut.length > 0 && (
-          <p className="mt-1 text-xs font-semibold text-[var(--color-danger)]">
+          <p className="mt-1 text-xs font-semibold text-[var(--text-danger)]">
             ⛔ Pour tenir la réserve, couper :{" "}
             {route.return_check.targets_to_cut.join(", ")}
           </p>

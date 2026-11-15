@@ -135,7 +135,6 @@ test("5. Lire l'objectif scientifique", async () => {
 });
 
 test("5 bis. Panneau science du site", async () => {
-  test.fixme(true, "Écart E2 : aucun panneau ne justifie le site par les données NASA (ECARTS.md)");
   const science = page.getByRole("region", { name: /science/i });
   await expect(science).toContainText(/delta/i);
   await expect(science).toContainText(/argiles|carbonates/i);
@@ -247,7 +246,6 @@ test("9. Voir le site en 3D", async () => {
 });
 
 test("9 bis. Survol du terrain le long du tracé", async () => {
-  test.fixme(true, "Écart E7 : le survol 3D s'arrête aussitôt lancé (ECARTS.md)");
   await page.getByRole("button", { name: "Lancer le survol" }).click();
   await expect(page.getByRole("button", { name: "Mettre en pause" })).toBeVisible();
   await expect

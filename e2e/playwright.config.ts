@@ -36,7 +36,7 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     viewport: { width: 1600, height: 1000 },
-    locale: "fr-FR",
+    locale: "en-US",
     timezoneId: "UTC",
     acceptDownloads: true,
     trace: "retain-on-failure",

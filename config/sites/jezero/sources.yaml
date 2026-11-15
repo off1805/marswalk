@@ -165,3 +165,32 @@ products:
       pattern: '^RAD_RDR_2024_\d{3}_\d\d_\d\d_(418\d|419\d|420[0-5])_V\d+\.(TXT|LBL)$'
     license: Domaine public (NASA/JPL-Caltech/SwRI)
     citation: Hassler et al. (2012), Space Sci. Rev. 170 ; PDS PPI Node.
+
+# Index lu par D1 (`marswalk_pipeline.ingest._load_sources`) : clé de couche D1 vers le
+# fichier écrit par D0, relatif à data/raw/jezero/. D1 essaie aussi les extensions
+# .img, .tif, .tiff, .fits et .jp2 si le nom exact est absent. Les clés suivent l'ordre de
+# repli du MNT (hirise_dem, ctx_dem, dem_mola).
+layers:
+  hirise_vis:
+    file: hirise_ortho/JEZ_hirise_soc_007_orthoMosaic_25cm_Ortho_blend120_clip.tif
+    res_m: 0.25
+  hirise_dem:
+    file: hirise_dtm/JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40_clip.tif
+    res_m: 1.0
+  ctx_vis:
+    file: ctx_ortho/JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0.tif
+    res_m: 6.0
+  ctx_dem:
+    file: ctx_dtm/JEZ_ctx_B_soc_008_DTM_MOLAtopography_DeltaGeoid_20m_Eqc_latTs0_lon0.tif
+    res_m: 20.0
+  dem_mola:
+    file: mola_dem/Mars_MGS_MOLA_DEM_mosaic_global_463m_clip.tif
+    res_m: 463.0
+  thermal_inertia:
+    file: themis_ti/THEMIS_TI_Mosaic_Quant_00N060E_100mpp_clip.tif
+    res_m: 100.0
+  crism_minerals:
+    # Cube de paramètres de synthèse (D2300, BD2290, BD2500, OLINDEX3), pas encore une carte
+    # classée : D2 en tire les classes « argiles et carbonates » et « olivine ».
+    file: crism_mtrdr/frt000047a3_07_su166j_mtr3.img
+    res_m: 18.0

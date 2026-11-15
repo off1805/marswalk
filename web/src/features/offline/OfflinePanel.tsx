@@ -39,7 +39,7 @@ export function OfflinePanel() {
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}
-        className="focus:outline-none"
+        className="rounded-full"
         aria-expanded={expanded}
         aria-label="Open offline panel"
       >

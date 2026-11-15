@@ -45,9 +45,11 @@ export function tooltipText(sample: ProfileSample, span: SegmentSpan | undefined
 
 export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
   const { profile, spans, bands, targets } = input;
-  const text = input.dark ? "#e6e6e6" : "#1a1a1a";
-  const muted = input.dark ? "#a0a0a0" : "#555555";
-  const grid = input.dark ? "#3a3a3a" : "#dddddd";
+  // Warm neutrals matching the console (tokens.css).
+  const text = input.dark ? "#f4ede5" : "#120c08";
+  const muted = input.dark ? "#b9ab9d" : "#3d3128";
+  const faint = input.dark ? "#8f8274" : "#5a4a3e";
+  const grid = input.dark ? "rgba(255,228,205,0.10)" : "rgba(40,24,14,0.12)";
   const elevation = profile.map((p) => [p.distance_m, p.elevation_m]);
   const slope = profile.map((p) => [p.distance_m, p.slope_deg == null ? null : Math.abs(p.slope_deg)]);
   const maxX = profile.length ? profile[profile.length - 1]!.distance_m : 0;
@@ -59,7 +61,7 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
         name: `${lvl.icon} ${Math.round(b.maxSlopeDeg)}°`,
         xAxis: b.fromM,
         itemStyle: { color: `${lvl.color}${BAND_ALPHA}` },
-        label: { position: "insideBottom", color: lvl.color, fontWeight: "bold" },
+        label: { position: "insideBottom", color: lvl.color, fontSize: 10, fontWeight: 600 },
       },
       { xAxis: b.toM },
     ];
@@ -70,7 +72,7 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
       name: `${s.index + 1} · ${formatDuration(s.walkS)}`,
       xAxis: s.fromM,
       itemStyle: { color: "transparent" },
-      label: { position: "insideTop", color: muted, fontSize: 11 },
+      label: { position: "insideTop", color: faint, fontSize: 10 },
     },
     { xAxis: s.toM },
   ]);
@@ -85,17 +87,17 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
     ...targets.map((t) => ({
       name: `◆ ${t.label}`,
       xAxis: t.distanceM,
-      lineStyle: { color: colors.accent, type: "solid", width: 2 },
+      lineStyle: { color: muted, type: "solid", width: 1, opacity: 0.6 },
       // Texte vertical le long du repère : deux cibles proches ne se chevauchent pas.
-      label: { formatter: "{b}", position: "insideEndTop", color: text, fontSize: 11 },
+      label: { formatter: "{b}", position: "insideEndTop", color: muted, fontSize: 10 },
     })),
   ];
   if (input.pointOfNoReturnM != null) {
     lines.push({
       name: "⚑ Point of no return",
       xAxis: input.pointOfNoReturnM,
-      lineStyle: { color: colors.danger, type: "dotted", width: 2 },
-      label: { formatter: "{b}", position: "insideEndTop", color: colors.danger, fontSize: 11 },
+      lineStyle: { color: colors.danger, type: "dotted", width: 1.5 },
+      label: { formatter: "{b}", position: "insideEndTop", color: colors.danger, fontSize: 10 },
     });
   }
   if (input.hoverDistanceM != null) {
@@ -109,8 +111,8 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
 
   return {
     animation: false,
-    textStyle: { color: text },
-    grid: { left: 56, right: 48, top: 24, bottom: 32 },
+    textStyle: { color: text, fontFamily: "Geist Variable, system-ui, sans-serif" },
+    grid: { left: 44, right: 34, top: 18, bottom: 20 },
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "line", snap: true },
@@ -120,27 +122,28 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
       type: "value",
       min: 0,
       max: maxX,
-      name: "Distance",
-      nameLocation: "middle",
-      nameGap: 22,
-      axisLabel: { color: muted, formatter: (v: number) => formatDistance(v) },
+      axisLabel: { color: faint, fontSize: 10, formatter: (v: number) => formatDistance(v) },
+      axisLine: { lineStyle: { color: grid } },
+      axisTick: { show: false },
       splitLine: { show: false },
     },
     yAxis: [
       {
         type: "value",
-        name: "Elevation (m)",
+        name: "m",
         scale: true,
-        axisLabel: { color: muted },
-        nameTextStyle: { color: muted },
+        splitNumber: 3,
+        axisLabel: { color: faint, fontSize: 10 },
+        nameTextStyle: { color: faint, fontSize: 10 },
         splitLine: { lineStyle: { color: grid } },
       },
       {
         type: "value",
-        name: "Slope (°)",
+        name: "slope °",
         min: 0,
-        axisLabel: { color: muted },
-        nameTextStyle: { color: muted },
+        splitNumber: 3,
+        axisLabel: { color: faint, fontSize: 10 },
+        nameTextStyle: { color: faint, fontSize: 10 },
         splitLine: { show: false },
       },
     ],
@@ -165,8 +168,8 @@ export function buildChartOption(input: ProfileChartInput): EChartsCoreOption {
         data: slope,
         showSymbol: false,
         connectNulls: false,
-        lineStyle: { color: muted, width: 1, type: "dashed" },
-        itemStyle: { color: muted },
+        lineStyle: { color: faint, width: 1, type: "dashed", opacity: 0.7 },
+        itemStyle: { color: faint },
         markArea: { silent: true, data: segmentAreas },
       },
     ],

@@ -45,19 +45,25 @@ test.beforeAll(async ({ request }) => {
   await resetTargets(request);
 });
 
-for (const theme of ["Thème basse lumière", "Thème plein soleil"] as const) {
-  test(`Carte, ${theme.toLowerCase()} : WCAG 2.1 AA`, async ({ page }) => {
+// Le thème basse lumière est celui d'ouverture ; le bouton de l'en-tête bascule en plein soleil.
+const THEMES = [
+  { name: "basse lumière", toggle: null },
+  { name: "plein soleil", toggle: "Switch to day theme (full sun)" },
+] as const;
+
+for (const theme of THEMES) {
+  test(`Carte, thème ${theme.name} : WCAG 2.1 AA`, async ({ page }) => {
     await openApp(page);
-    await page.getByRole("button", { name: theme }).click();
-    await expect(page.getByRole("article", { name: /^Variante / })).toHaveCount(3, { timeout: 30_000 });
-    expect(await audit(page, `carte-${theme}`)).toEqual([]);
+    if (theme.toggle) await page.getByRole("button", { name: theme.toggle }).click();
+    await expect(page.getByRole("article", { name: /^Variant / })).toHaveCount(3, { timeout: 30_000 });
+    expect(await audit(page, `carte-${theme.name}`)).toEqual([]);
   });
 
-  test(`Vue 3D, ${theme.toLowerCase()} : WCAG 2.1 AA`, async ({ page }) => {
+  test(`Vue 3D, thème ${theme.name} : WCAG 2.1 AA`, async ({ page }) => {
     await openApp(page);
-    await page.getByRole("button", { name: theme }).click();
+    if (theme.toggle) await page.getByRole("button", { name: theme.toggle }).click();
     await page.getByRole("link", { name: "3D" }).click();
-    await expect(page.getByLabel("Rendu 3D du terrain martien")).toBeVisible({ timeout: 30_000 });
-    expect(await audit(page, `3d-${theme}`)).toEqual([]);
+    await expect(page.getByLabel("3D rendering of the Martian terrain")).toBeVisible({ timeout: 30_000 });
+    expect(await audit(page, `3d-${theme.name}`)).toEqual([]);
   });
 }

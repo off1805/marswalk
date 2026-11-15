@@ -45,6 +45,8 @@ export const mockPresets = [
       scarps: { visible: true, opacity: 0.8 },
       obstacles: { visible: true, opacity: 0.8 },
       radio_coverage: { visible: false, opacity: 0.5 },
+      rover_traverse: { visible: true, opacity: 0.8 },
+      ground_images: { visible: true, opacity: 1 },
     },
   },
   {
@@ -54,6 +56,7 @@ export const mockPresets = [
       hirise_vis: { visible: true, opacity: 1 },
       crism_minerals: { visible: true, opacity: 0.6 },
       thermal_inertia: { visible: false, opacity: 0.6 },
+      rover_traverse: { visible: true, opacity: 1 },
       ground_images: { visible: true, opacity: 1 },
     },
   },
@@ -65,6 +68,7 @@ export const mockPresets = [
       hillshade: { visible: false, opacity: 0.5 },
       rover_traverse: { visible: true, opacity: 1 },
       radio_coverage: { visible: false, opacity: 0.4 },
+      ground_images: { visible: true, opacity: 1 },
     },
   },
 ];

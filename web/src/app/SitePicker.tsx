@@ -71,7 +71,7 @@ export function SitePicker() {
   const setSiteId = useShared((s) => s.setSiteId);
   if (!sites.data || sites.data.length < 2) return null;
   return (
-    <label className="flex items-center gap-1 text-sm">
+    <label className="flex min-w-0 items-center gap-1 text-sm">
       <span className="sr-only">Site</span>
       <select
         aria-label="Site"
@@ -84,7 +84,7 @@ export function SitePicker() {
           window.history.replaceState(null, "", url);
           setSiteId(id);
         }}
-        className="rounded border border-[var(--border)] bg-[var(--surface)] px-1"
+        className="h-8 min-w-[8rem] max-w-full truncate rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 text-[13px] text-[var(--text)] backdrop-blur-md"
       >
         {sites.data.map((s) => (
           <option key={s.site_id} value={s.site_id}>

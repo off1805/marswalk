@@ -31,6 +31,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type React from "react";
 
 import { useShared } from "@/shared/store";
+import { queryKeys } from "@/shared/queryKeys";
 import type { Target, Plan, Route } from "@/shared/api/client";
 import { RouteComparator } from "./RouteComparator";
 import { injectQueryClient } from "./index";
@@ -249,6 +250,39 @@ describe("Ajout d'une cible", () => {
       expect.objectContaining({ params: { path: { site_id: "fictif" } } }),
     );
     expect(created.id).toBe("T-new");
+  });
+});
+
+describe("Ajout d'une cible par clic sur la carte", () => {
+  it("en mode addTarget, un clic de carte crée la cible (priorité valide) et quitte le mode", async () => {
+    const { api } = await import("@/shared/api/client");
+    const { emitMapClick } = await import("@/shared/mapClick");
+    const { feature } = await import("./index");
+    const postSpy = vi.spyOn(api, "POST").mockResolvedValue({
+      data: { ...BASE_TARGET, id: "T-click" },
+      error: undefined,
+      response: new Response(),
+    } as Awaited<ReturnType<typeof api.POST>>);
+
+    const qc = makeQC();
+    qc.setQueryData(queryKeys.targets("fictif"), [BASE_TARGET, TARGET_2, BASE_TARGET, TARGET_2]);
+    injectQueryClient(qc);
+    await feature.setup?.();
+
+    // Hors mode ajout : le clic est ignoré.
+    emitMapClick({ lon: 77.58, lat: 18.38 });
+    expect(postSpy).not.toHaveBeenCalled();
+
+    useShared.setState({ pickMode: "addTarget" });
+    emitMapClick({ lon: 77.58, lat: 18.38 });
+
+    await waitFor(() => expect(postSpy).toHaveBeenCalledTimes(1));
+    const body = (postSpy.mock.calls[0]![1] as { body: { name: string; priority: number; position: number[] } }).body;
+    expect(body.name).toBe("Target 5");
+    expect(body.priority).toBeGreaterThanOrEqual(1);
+    expect(body.priority).toBeLessThanOrEqual(3);
+    expect(body.position).toEqual([77.58, 18.38]);
+    expect(useShared.getState().pickMode).toBe("none");
   });
 });
 

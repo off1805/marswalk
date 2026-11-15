@@ -1,13 +1,23 @@
 /*
- * Jetons de design de Marswalk (T00). Palette sûre pour les daltoniens (Okabe-Ito) ;
- * le rouge est réservé au danger (ENF-06) et toujours doublé d'une icône et d'un texte.
- * Deux thèmes : « day » clair à fort contraste pour le plein soleil, « night » sombre
- * pour la basse lumière. Le thème se choisit avec l'attribut data-theme sur <html>.
+ * Marswalk design tokens. Color-blind safe status palette (Okabe-Ito); red is reserved
+ * for danger (ENF-06) and always paired with an icon and text.
+ *
+ * Visual world: "mission console over the surface". The map is the backdrop, edge to
+ * edge; tools sit on thin, smoked-glass panes with warm hairlines, quiet uppercase
+ * labels and measurement numerals set in a mono face. Warm neutrals (iron-oxide dust)
+ * replace cool greys. The accent is pale regolith ivory, so the status colors keep
+ * their meaning and are never confused with decoration.
+ *
+ * Two themes: "night" (default, low ambient light, the habitat at dusk) and "day"
+ * (high-contrast for full sun). Chosen by the data-theme attribute on <html>.
  */
 @import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
 
 @theme {
-  --font-sans: "Inter", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-sans: "Geist Variable", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
   --color-info: #0072b2;
   --color-caution: #e69f00;
   --color-danger: #d55e00;
@@ -16,20 +26,30 @@
   --color-route-safest: #009e73;
   --color-route-fastest: #0072b2;
   --color-route-science: #cc79a7;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root,
 [data-theme="night"] {
-  --bg: #0b0d10;
-  --surface: #161a20;
-  --surface-2: #20262e;
-  --text: #f2f4f7;
-  --text-muted: #a9b1bc;
-  --border: #2f3742;
-  --focus: #56b4e9;
-  /* Couleurs d'état pour le TEXTE (écart E10) : variantes éclaircies sur fond sombre,
-     au moins 6,5:1 sur --bg, --surface et --surface-2. Les couleurs vives --color-*
-     restent pour les pastilles, jauges et tracés. */
+  --bg: #120d0a;
+  /* Panes: smoked glass over the map. Opaque enough for 4.5:1 text on any terrain. */
+  --surface: rgb(22 17 14 / 0.82);
+  --surface-solid: #18120f;
+  --surface-2: rgb(255 238 222 / 0.07);
+  --surface-3: rgb(255 238 222 / 0.12);
+  --text: #f4ede5;
+  --text-muted: #b9ab9d;
+  --text-faint: #8f8274;
+  --border: rgb(255 228 205 / 0.14);
+  --border-strong: rgb(255 228 205 / 0.28);
+  --accent: #efe4d6;
+  --accent-ink: #1a1310;
+  --focus: #f3c48b;
+  --scrim: rgb(10 7 5 / 0.62);
+  --shadow: 0 18px 40px -12px rgb(0 0 0 / 0.55), 0 2px 6px rgb(0 0 0 / 0.25);
+  --mars-tint: #a4552b;
+  --mars-tint-opacity: 0.32;
+  /* Status colors for TEXT (gap E10): lightened variants, at least 6.5:1 on the panes. */
   --text-ok: #2fd5a0;
   --text-caution: #f5b83d;
   --text-danger: #ff8a4c;
@@ -38,14 +58,24 @@
 }
 
 [data-theme="day"] {
-  --bg: #ffffff;
-  --surface: #f4f5f7;
-  --surface-2: #e6e8eb;
-  --text: #000000;
-  --text-muted: #2e3440;
-  --border: #000000;
+  --bg: #efe8e0;
+  --surface: rgb(252 249 245 / 0.94);
+  --surface-solid: #fcf9f5;
+  --surface-2: rgb(40 24 14 / 0.06);
+  --surface-3: rgb(40 24 14 / 0.11);
+  --text: #120c08;
+  --text-muted: #3d3128;
+  --text-faint: #5a4a3e;
+  --border: rgb(40 24 14 / 0.22);
+  --border-strong: rgb(40 24 14 / 0.5);
+  --accent: #1d1410;
+  --accent-ink: #fcf9f5;
   --focus: #0072b2;
-  /* Variantes foncées pour le plein soleil : au moins 4,8:1 sur --surface-2. */
+  --scrim: rgb(30 20 14 / 0.45);
+  --shadow: 0 16px 36px -14px rgb(40 24 14 / 0.35), 0 2px 6px rgb(40 24 14 / 0.12);
+  --mars-tint: #b4683c;
+  --mars-tint-opacity: 0.22;
+  /* Dark variants for full sun: at least 4.8:1 on --surface-2. */
   --text-ok: #00664a;
   --text-caution: #8a5a00;
   --text-danger: #a33f00;
@@ -53,6 +83,7 @@
   color-scheme: light;
 }
 
+@layer base {
 html,
 body,
 #root {
@@ -61,14 +92,141 @@ body,
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--focus);
+  color: var(--accent-ink);
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
+input,
+select,
+textarea {
+  caret-color: var(--focus);
+  accent-color: var(--accent);
+}
+
+select,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+textarea {
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+}
+
+option {
+  background: var(--surface-solid);
+  color: var(--text);
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--border-strong);
+}
+
+/* Measurements read as instruments: tabular, mono. */
+.tabular-nums,
+time {
+  font-variant-numeric: tabular-nums;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+}
+
+@layer components {
+/* A pane of the console: smoked glass that lets the terrain glow through. */
+.pane {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}
+
+/* Small tracked caps used for every label on the console. */
+.label-caps {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+}
 
 .maplibregl-map {
   font-family: var(--font-sans);
+}
+
+/* MapLibre's own controls follow the console and stay inside the free stage. */
+.maplibregl-ctrl-top-right {
+  top: var(--stage-t, 0px);
+  right: var(--stage-r, 0px);
+  transition: right 380ms var(--ease-out-expo), top 380ms var(--ease-out-expo);
+}
+.maplibregl-ctrl-bottom-right {
+  right: var(--stage-r, 0px);
+  bottom: var(--stage-b, 0px);
+  transition: right 380ms var(--ease-out-expo), bottom 380ms var(--ease-out-expo);
+}
+.maplibregl-ctrl-group {
+  background: var(--surface) !important;
+  border: 1px solid var(--border);
+  border-radius: 10px !important;
+  box-shadow: var(--shadow) !important;
+  backdrop-filter: blur(18px);
+}
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--border) !important;
+}
+[data-theme="night"] .maplibregl-ctrl-group button .maplibregl-ctrl-icon,
+:root:not([data-theme]) .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(0.92) sepia(0.15);
+}
+.maplibregl-ctrl-attrib {
+  background: var(--surface) !important;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--text-muted) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}
+
+/* Popups on the 3D terrain (rover images). */
+.maplibregl-popup.mw-photo .maplibregl-popup-content {
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 10px;
+}
+.maplibregl-popup.mw-photo .maplibregl-popup-tip {
+  border-top-color: var(--surface-solid);
+  border-bottom-color: var(--surface-solid);
+}
+.maplibregl-popup.mw-photo .maplibregl-popup-close-button {
+  color: var(--text-muted);
+  font-size: 18px;
+  padding: 0 6px;
 }

@@ -7,7 +7,18 @@
  * rapport. Quand l'écart est corrigé, retirer le `fixme` suffit à le vérifier.
  */
 import { expect, test, type Download, type Page } from "@playwright/test";
-import { API, SITE, manifest, openApp, resetTargets, screenPoint, targetByName } from "./helpers";
+import {
+  API,
+  SITE,
+  closeTools,
+  manifest,
+  openApp,
+  openProfile,
+  openTool,
+  resetTargets,
+  screenPoint,
+  targetByName,
+} from "./helpers";
 
 const PLANNED = ["Front du delta", "Unité à olivine", "Bord des dunes"] as const;
 const DROPPED = "Chaos de blocs";
@@ -50,8 +61,8 @@ test.afterAll(async ({ request }) => {
 /** Première alerte danger non acquittée due à l'éruption (et non à la pente, par exemple). */
 const solarAlert = () =>
   page.locator('[data-level="danger"][data-acknowledged="false"]').filter({ hasText: /solaire/i }).first();
-const right = () => page.getByLabel("Panneau cibles et itinéraire");
-const safety = () => page.getByRole("region", { name: "Sécurité", exact: true });
+const right = () => page.getByLabel("Targets and route panel");
+const safety = () => page.getByRole("region", { name: "Safety", exact: true });
 
 test("1. Ouvrir Marswalk sur le site", async () => {
   const tile = page.waitForResponse((r) => r.url().includes(`/tiles/${SITE}/`) && r.status() === 200, {
@@ -61,25 +72,26 @@ test("1. Ouvrir Marswalk sur le site", async () => {
   const header = page.locator("header").first();
   // Nom du site, sol de mission et heure solaire locale
   await expect(header).toContainText(SITE === "fictif" ? "Site fictif" : /Jezero/i);
-  await expect(header).toContainText(/Sol \d+ · \d{2}:\d{2}:\d{2} LMST/);
+  await expect(header).toContainText(/Sol\s*\d+\s*\d{2}:\d{2}:\d{2}\s*LMST/);
   // Imagerie : la couche de base du paquet est servie en tuiles
   expect((await tile).ok()).toBeTruthy();
-  await expect(page.getByLabel("État de l'API")).toContainText("●");
+  await expect(page.getByLabel("API status")).toContainText("Link nominal");
 });
 
 test("2. Choisir le préréglage « Sécurité »", async () => {
-  const presets = page.getByRole("radiogroup", { name: "Préréglages" });
+  await openTool(page, "Layers");
+  const presets = page.getByRole("radiogroup", { name: "Presets" });
   await presets.getByRole("radio", { name: "Navigation" }).click();
   await expect(presets.getByRole("radio", { name: "Navigation" })).toBeChecked();
-  await presets.getByRole("radio", { name: "Sécurité" }).click();
-  await expect(presets.getByRole("radio", { name: "Sécurité" })).toBeChecked();
+  await presets.getByRole("radio", { name: "Safety" }).click();
+  await expect(presets.getByRole("radio", { name: "Safety" })).toBeChecked();
   for (const layer of ["Pente", "Ruptures de pente", "Obstacles (avec tampon)"]) {
-    await expect(page.getByRole("button", { name: `Détails de la couche ${layer}` })).toBeVisible();
-    await expect(page.getByLabel(`Opacité de la couche ${layer}`)).toBeVisible();
+    await expect(page.getByRole("button", { name: `Details for layer ${layer}` })).toBeVisible();
+    await expect(page.getByLabel(`Opacity for layer ${layer}`)).toBeVisible();
   }
   // Chaque couche indique sa source, sa résolution et sa date
-  await page.getByRole("button", { name: "Détails de la couche Pente" }).click();
-  const details = page.getByRole("button", { name: "Détails de la couche Pente" }).locator("xpath=ancestor::div[1]/..");
+  await page.getByRole("button", { name: "Details for layer Pente" }).click();
+  const details = page.getByRole("button", { name: "Details for layer Pente" }).locator("xpath=ancestor::div[1]/..");
   await expect(details).toContainText(/SYNTHETIC|HiRISE|CTX|MOLA/);
   await expect(details).toContainText(/\d+(,\d+)?\s*m/); // résolution
   await expect(details).toContainText(/\d{4}-\d{2}-\d{2}|\d{1,2} \w+ \d{4}/); // date
@@ -96,8 +108,12 @@ test("3. Cliquer sur le bord des dunes", async ({ request }) => {
       Math.abs(Number(new URL(r.url()).searchParams.get("lon")) - habitat[0]) < 1e-6 &&
       Math.abs(Number(new URL(r.url()).searchParams.get("lat")) - habitat[1]) < 1e-6,
   );
-  await page.getByRole("button", { name: "Activer l'interrogation" }).click();
+  await openTool(page, "Inspect");
+  await page.getByRole("button", { name: "Enable query mode" }).click();
   await atHabitat;
+  // Une seule section d'outils à la fois : on la referme pour cliquer sur la carte, puis on la
+  // rouvre pour lire le résultat (le panneau reste monté entre-temps).
+  await closeTools(page);
   const at = await screenPoint(page, bbox, dunes.position);
   const query = page.waitForResponse(
     (r) =>
@@ -106,18 +122,19 @@ test("3. Cliquer sur le bord des dunes", async ({ request }) => {
   );
   await page.mouse.click(at.x, at.y);
   await query;
-  const panel = page.getByRole("region", { name: "Interrogation au sol (EF-07)" });
+  await openTool(page, "Inspect");
+  const panel = page.getByRole("region", { name: "Ground query (EF-07)" });
   for (const label of ["Altitude", "Pente", "Classe de sol", "Inertie thermique", "Minéralogie"]) {
     await expect(panel).toContainText(label);
   }
   await expect(panel).toContainText("±");
-  await expect(panel).toContainText("Temps de retour estimé");
+  await expect(panel).toContainText("Estimated return time");
 });
 
 test("4. Afficher les zones dangereuses", async () => {
-  const legend = page.getByLabel("Légende des zones de risque");
-  await expect(legend).toContainText("⛔ Interdite");
-  await expect(legend).toContainText("▲ Pénalisée");
+  const legend = page.getByLabel("Hazard zone legend");
+  await expect(legend).toContainText("⛔ Forbidden");
+  await expect(legend).toContainText("▲ Penalized");
   const hazards = await page.request.get(`${API}/api/sites/${SITE}/hazards`);
   const body = (await hazards.json()) as { features: { properties: { kind: string; cause: string } }[] };
   const kinds = new Set(body.features.map((f) => f.properties.kind));
@@ -129,21 +146,24 @@ test("4. Afficher les zones dangereuses", async () => {
 
 test("5. Lire l'objectif scientifique", async () => {
   // Chaque cible porte son objectif (S1)
-  await right().getByRole("button", { name: "Cible Front du delta" }).click();
-  await expect(page.getByLabel("Fiche cible : Front du delta")).toContainText(/Argiles|carbonates/i);
-  await page.getByRole("button", { name: "Fermer la fiche" }).click();
+  await openTool(page, "Targets & route");
+  await right().getByRole("button", { name: "Target Front du delta" }).click();
+  await expect(page.getByLabel("Target card: Front du delta")).toContainText(/Argiles|carbonates/i);
+  await page.getByRole("button", { name: "Close card" }).click();
 });
 
 test("5 bis. Panneau science du site", async () => {
-  const science = page.getByRole("region", { name: /science/i });
+  await openTool(page, "Science");
+  const science = page.getByRole("region", { name: "Site science" });
   await expect(science).toContainText(/delta/i);
-  await expect(science).toContainText(/argiles|carbonates/i);
+  await expect(science).toContainText(/clays|carbonates/i);
   await expect(science).toContainText(/olivine/i);
 });
 
 test("6. Planifier trois cibles", async () => {
-  await right().getByRole("button", { name: `Cible ${DROPPED}` }).click();
-  const card = page.getByLabel(`Fiche cible : ${DROPPED}`);
+  await openTool(page, "Targets & route");
+  await right().getByRole("button", { name: `Target ${DROPPED}` }).click();
+  const card = page.getByLabel(`Target card: ${DROPPED}`);
   const planned = page.waitForResponse(
     (r) =>
       r.url().endsWith(`/api/sites/${SITE}/plans`) &&
@@ -152,34 +172,34 @@ test("6. Planifier trois cibles", async () => {
     { timeout: 30_000 },
   );
   page.once("dialog", (d) => void d.accept());
-  await card.getByRole("button", { name: "Supprimer la cible" }).click();
+  await card.getByRole("button", { name: "Delete target" }).click();
   const t0 = Date.now();
   const res = await planned;
   expect(res.ok()).toBeTruthy();
   plan = (await res.json()) as PlanBody;
-  await expect(page.getByRole("article", { name: /^Variante / })).toHaveCount(3);
+  await expect(page.getByRole("article", { name: /^Variant / })).toHaveCount(3);
   // Moins de 5 s entre la modification des cibles et l'affichage des variantes (EF-05)
   const elapsed = Date.now() - t0;
   test.info().annotations.push({ type: "durée du plan", description: `${elapsed} ms` });
   expect(elapsed).toBeLessThan(5_000);
   expect(plan.target_ids).toHaveLength(3);
-  for (const name of PLANNED) await expect(right().getByRole("button", { name: `Cible ${name}` })).toBeVisible();
-  await expect(right().getByRole("button", { name: `Cible ${DROPPED}` })).toHaveCount(0);
+  for (const name of PLANNED) await expect(right().getByRole("button", { name: `Target ${name}` })).toBeVisible();
+  await expect(right().getByRole("button", { name: `Target ${DROPPED}` })).toHaveCount(0);
 });
 
 test("7. Comparer les variantes", async () => {
-  const cards = page.getByRole("article", { name: /^Variante / });
+  const cards = page.getByRole("article", { name: /^Variant / });
   await expect(cards).toHaveCount(3);
-  for (const name of ["Plus sûre", "Plus rapide", "Science"]) {
-    const c = page.getByRole("article", { name: `Variante ${name}` });
+  for (const name of ["Safest", "Fastest", "Science"]) {
+    const c = page.getByRole("article", { name: `Variant ${name}` });
     await expect(c).toContainText("Distance");
-    await expect(c).toContainText("Durée totale");
+    await expect(c).toContainText("Total duration");
     // Aucune variante n'est imposée
-    await expect(c.getByRole("button", { name: `Choisir la variante ${name}` })).toBeVisible();
+    await expect(c.getByRole("button", { name: `Select variant ${name}` })).toBeVisible();
   }
-  await expect(page.getByText("Choisie", { exact: true })).toHaveCount(0);
+  await expect(cards.getByText("Selected", { exact: true })).toHaveCount(0);
   // La raison des détours : au moins une variante explique ses tronçons
-  const explanations = page.getByText(/Explication par tronçon/);
+  const explanations = page.getByText(/Segment explanation/);
   expect(await explanations.count()).toBeGreaterThan(0);
   await explanations.first().click();
   await expect(cards.locator("details[open] li").first()).not.toBeEmpty();
@@ -194,51 +214,59 @@ test("7 bis. La raison des détours se lit en clair", async () => {
 
 test("7 ter. Trois tracés différents", async () => {
   const totals = await Promise.all(
-    ["Plus sûre", "Plus rapide", "Science"].map((n) =>
-      page.getByRole("article", { name: `Variante ${n}` }).locator("dl").textContent(),
+    ["Safest", "Fastest", "Science"].map((n) =>
+      page.getByRole("article", { name: `Variant ${n}` }).locator("dl").textContent(),
     ),
   );
   expect(new Set(totals).size).toBe(3);
 });
 
 test("7 quater. Aucune variante ne franchit une zone interdite en silence", async () => {
-  const labels: Record<string, string> = { safest: "Plus sûre", fastest: "Plus rapide", science: "Science" };
+  const labels: Record<string, string> = { safest: "Safest", fastest: "Fastest", science: "Science" };
   for (const r of plan.routes) {
     if (r.totals.max_slope_deg <= plan.settings.max_slope_deg) continue;
     // Une pente au-delà du seuil interdit n'est admissible que si la variante le dit.
     expect(r.warnings.length, `${r.variant} : pente max ${r.totals.max_slope_deg}° sans avertissement`).toBeGreaterThan(0);
-    await expect(page.getByRole("article", { name: `Variante ${labels[r.variant]}` })).toContainText("▲");
+    await expect(page.getByRole("article", { name: `Variant ${labels[r.variant]}` })).toContainText("▲");
   }
 });
 
 test("8. Examiner le profil de la variante choisie", async () => {
-  await page.getByRole("button", { name: "Choisir la variante Plus sûre" }).click();
-  await expect(page.getByRole("article", { name: "Variante Plus sûre" })).toContainText("Choisie");
-  const profile = page.getByRole("region", { name: "Profil d'itinéraire" });
-  await expect(profile).toContainText("Profil · Plus sûre");
-  await expect(profile.getByTestId("profile-totals")).toContainText(/Durée/);
-  await expect(profile.getByTestId("profile-totals")).toContainText(/Pente max/);
-  await expect(profile.getByTestId("totals-check")).toContainText("conformes");
-  await expect(profile.getByRole("table", { name: "Tronçons" }).locator("tbody tr")).toHaveCount(4); // 3 cibles + retour
+  await page.getByRole("button", { name: "Select variant Safest" }).click();
+  await expect(page.getByRole("article", { name: "Variant Safest" })).toContainText("Selected");
+  await openProfile(page);
+  const profile = page.getByRole("region", { name: "Route profile" });
+  await expect(profile).toContainText("Safest");
+  await expect(profile.getByTestId("profile-totals")).toContainText(/Duration/);
+  await expect(profile.getByTestId("profile-totals")).toContainText(/Max slope/);
+  await expect(profile.getByTestId("totals-check")).toContainText("consistent");
+  await expect(profile.getByRole("table", { name: "Segments" }).locator("tbody tr")).toHaveCount(4); // 3 cibles + retour
   // Survoler le profil déplace le repère : la ligne du tronçon survolé s'allume
-  const chart = profile.getByLabel("Profil d'altitude et de pente le long de l'itinéraire");
-  const box = (await chart.boundingBox())!;
-  await page.mouse.move(box.x + box.width * 0.3, box.y + box.height / 2);
-  await expect(profile.locator("tbody tr[aria-current]")).toHaveCount(1);
+  const chart = profile.getByLabel("Elevation and slope profile along the route");
+  // Mesure et survol repris jusqu'à ce que le repère suive : le graphique se redimensionne
+  // après l'ouverture de la feuille, et ECharts ne réagit qu'aux mouvements du pointeur.
+  let step = 0;
+  await expect(async () => {
+    const box = (await chart.boundingBox())!;
+    const x = box.x + box.width * (0.3 + 0.02 * (step++ % 5));
+    await page.mouse.move(x - 8, box.y + box.height / 2);
+    await page.mouse.move(x, box.y + box.height / 2, { steps: 4 });
+    await expect(profile.locator("tbody tr[aria-current]")).toHaveCount(1, { timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
   // Et inversement : survoler un tronçon met le profil au même endroit
   await profile.getByTestId("segment-2").hover();
   await expect(profile.getByTestId("segment-2")).toHaveAttribute("aria-current", "true");
   // Réserve au retour et point de non-retour affichés
-  await expect(safety()).toContainText(/Réserve au retour\s*\d/);
-  await expect(safety()).toContainText(/Point de non-retour\s*à /);
+  await expect(safety()).toContainText(/Reserve on return\s*\d/);
+  await expect(safety()).toContainText(/Point of no return\s*in /);
 });
 
 test("9. Voir le site en 3D", async () => {
   await page.getByRole("link", { name: "3D" }).click();
   await expect(page).toHaveURL(/\/3d/);
-  const canvas = page.getByLabel("Rendu 3D du terrain martien");
+  const canvas = page.getByLabel("3D rendering of the Martian terrain");
   await expect(canvas).toBeVisible({ timeout: 30_000 });
-  const group = page.getByRole("radiogroup", { name: "Exagération verticale" });
+  const group = page.getByRole("radiogroup", { name: "Vertical exaggeration" });
   const options = group.getByRole("radio");
   expect(await options.count()).toBeGreaterThan(1);
   await options.last().click();
@@ -246,33 +274,34 @@ test("9. Voir le site en 3D", async () => {
 });
 
 test("9 bis. Survol du terrain le long du tracé", async () => {
-  await page.getByRole("button", { name: "Lancer le survol" }).click();
-  await expect(page.getByRole("button", { name: "Mettre en pause" })).toBeVisible();
+  await page.getByRole("button", { name: "Start flyover" }).click();
+  await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
   await expect
-    .poll(async () => Number(await page.getByRole("progressbar", { name: "Progression du survol" }).getAttribute("aria-valuenow")))
+    .poll(async () => Number(await page.getByRole("slider", { name: "Flyover progress" }).inputValue()))
     .toBeGreaterThan(0);
-  await page.getByRole("button", { name: "Mettre en pause" }).click();
+  await page.getByRole("button", { name: "Pause" }).click();
 });
 
 test("9 ter. Retour à la carte", async () => {
-  await page.getByRole("link", { name: "Carte" }).click();
+  await page.getByRole("link", { name: "Map" }).click();
   await expect(page).toHaveURL(/\/(\?|$)/);
-  await expect(page.getByRole("article", { name: "Variante Plus sûre" })).toContainText("Choisie");
+  await openTool(page, "Targets & route");
+  await expect(page.getByRole("article", { name: "Variant Safest" })).toContainText("Selected");
 });
 
 test("10. Lancer la sortie et l'astronaute virtuel en accéléré", async () => {
   const s = safety();
-  await s.getByRole("combobox", { name: "Scénario" }).selectOption({ label: "Éruption solaire pendant la sortie" });
-  await s.getByRole("combobox", { name: "Accélération" }).selectOption("60");
+  await s.getByRole("combobox", { name: "Scenario" }).selectOption({ label: "Éruption solaire pendant la sortie" });
+  await s.getByRole("combobox", { name: "Speed" }).selectOption("60");
   const started = page.waitForResponse((r) => r.url().endsWith("/api/eva") && r.request().method() === "POST");
-  await s.getByRole("button", { name: "Démarrer la sortie simulée" }).click();
+  await s.getByRole("button", { name: "Start simulated EVA" }).click();
   const res = await started;
   expect(res.ok(), await res.text()).toBeTruthy();
   evaId = ((await res.json()) as { id: string }).id;
-  await expect(s).toContainText(`Sortie ${evaId} · ● Temps réel`, { timeout: 15_000 });
+  await expect(s).toContainText(`EVA ${evaId} · ● Live`, { timeout: 15_000 });
   // Les consommables, la dose et la position arrivent par WebSocket et se mettent à jour
-  await expect(s.locator('[data-gauge="Oxygène"]')).toContainText(/\d+(,\d+)? %/, { timeout: 15_000 });
-  await expect(s.locator('[data-gauge="Dose reçue"]')).toContainText(/\d+(,\d+)? µSv/);
+  await expect(s.locator('[data-gauge="Oxygen"]')).toContainText(/\d+([.,]\d+)? %/, { timeout: 15_000 });
+  await expect(s.locator('[data-gauge="Radiation dose received"]')).toContainText(/\d+([.,]\d+)? µSv/);
   const telemetry = () => frames.filter((f) => f.type === "telemetry").map((f) => f.payload);
   await expect.poll(() => telemetry().length, { timeout: 30_000 }).toBeGreaterThan(2);
   const t = telemetry();
@@ -284,25 +313,26 @@ test("10. Lancer la sortie et l'astronaute virtuel en accéléré", async () => 
 });
 
 test("11. Signaler un obstacle et noter une observation", async () => {
-  const field = page.getByRole("region", { name: "Relevés de terrain" });
+  await openTool(page, "Field log");
+  const field = page.getByRole("region", { name: "Field reports" });
   await expect(field).toBeVisible();
   // Obstacle : signalé devant l'astronaute, l'API recalcule le contournement local
   const obstacle = page.waitForResponse(
     (r) => r.url().endsWith(`/api/eva/${evaId}/obstacles`) && r.request().method() === "POST",
   );
-  await field.getByRole("button", { name: /Signaler un obstacle/ }).click();
+  await field.getByRole("button", { name: /Report an obstacle/ }).click();
   const obstacleRes = await obstacle;
   expect(obstacleRes.ok(), await obstacleRes.text()).toBeTruthy();
-  await expect(field.getByRole("status")).toContainText("Obstacle signalé");
+  await expect(field.getByRole("status")).toContainText("Obstacle reported");
   // Observation : une note à la position courante, ajoutée au carnet
   await field.getByLabel("Note").fill(OBSERVATION);
   const observation = page.waitForResponse(
     (r) => r.url().endsWith(`/api/eva/${evaId}/observations`) && r.request().method() === "POST",
   );
-  await field.getByRole("button", { name: /Noter l'observation/ }).click();
+  await field.getByRole("button", { name: /Log observation/ }).click();
   const observationRes = await observation;
   expect(observationRes.ok(), await observationRes.text()).toBeTruthy();
-  await expect(field.getByRole("status")).toContainText("Observation ajoutée au carnet");
+  await expect(field.getByRole("status")).toContainText("Observation added to the logbook");
 });
 
 test("12. Éruption solaire simulée", async () => {
@@ -312,8 +342,8 @@ test("12. Éruption solaire simulée", async () => {
   const shownAt = Date.now();
   await expect(alert).toHaveAttribute("role", "alert");
   await expect(alert).toContainText(/abri|retour/i);
-  await expect(alert).toContainText("➜"); // action conseillée
-  await expect(alert.getByRole("button", { name: /^Acquitter : / })).toBeVisible();
+  await expect(alert).toContainText("→"); // action conseillée
+  await expect(alert.getByRole("button", { name: /^Acknowledge: / })).toBeVisible();
   // Moins de 1 s entre la réception du message et l'affichage dans le bandeau
   const id = await alert.getAttribute("data-alert-id");
   const received = frames.find((f) => f.type === "alert" && f.payload.id === id);
@@ -334,9 +364,9 @@ test("12. Éruption solaire simulée", async () => {
 test("13. Acquitter l'alerte dans le bandeau", async () => {
   const alert = solarAlert();
   const id = await alert.getAttribute("data-alert-id");
-  await alert.getByRole("button", { name: /^Acquitter : / }).click();
+  await alert.getByRole("button", { name: /^Acknowledge: / }).click();
   await expect(page.locator(`[data-alert-id="${id}"]`)).toHaveAttribute("data-acknowledged", "true");
-  await expect(page.locator(`[data-alert-id="${id}"]`)).toContainText("✓ Acquittée");
+  await expect(page.locator(`[data-alert-id="${id}"]`)).toContainText("✓ Acknowledged");
 });
 
 test("14. Retour forcé et export du carnet", async () => {
@@ -365,8 +395,9 @@ test("14. Retour forcé et export du carnet", async () => {
   expect(reasons.length, "message route_updated reçu").toBeGreaterThan(0);
   expect(reasons.some((r) => /retour|habitat/i.test(r)), reasons.join(" | ")).toBeTruthy();
   // Le carnet de terrain s'exporte en GeoJSON
-  await page.getByRole("link", { name: "🖶 Carnet complet" }).click();
-  await expect(page.getByRole("heading", { name: `Carnet de terrain · ${evaId}` })).toBeVisible();
+  await openTool(page, "Export");
+  await page.getByRole("link", { name: "🖶 Full logbook" }).click();
+  await expect(page.getByRole("heading", { name: `Field logbook · ${evaId}` })).toBeVisible();
   const download: Promise<Download> = page.waitForEvent("download");
   await page.getByRole("button", { name: "⤓ GeoJSON" }).click();
   const file = await (await download).path();

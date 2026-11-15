@@ -1,11 +1,12 @@
 /**
  * Tests de la feature F6 — vue 3D.
  *
- * On teste les fonctions pures (aucune dépendance React ou deck.gl) :
+ * On teste les fonctions pures (aucune dépendance React ou MapLibre) :
  *
  *   flyover.ts         sampleProfile, computeCamera, advanceFlyover
  *   terrain.config.ts  buildTerrainConfig, MARSWALK_ELEVATION_DECODER
- *   routeLayer.ts      buildRouteLayer (structure seulement)
+ *   demProtocol.ts     encodage terrain-RGB, altitudes relatives, emprise des tuiles
+ *   camera.ts          cap le long du tracé, décalage en mètres martiens
  *
  * Critères d'acceptation couverts :
  *   - Le survol se lance d'un clic (démontré par l'intégration)
@@ -14,6 +15,8 @@
  *   - `advanceFlyover` retourne null en fin de parcours
  */
 import { describe, it, expect } from "vitest";
+import { decodeMapbox, encodeMapbox, relativize, tileBounds } from "./demProtocol";
+import { bearingAt, MARS_TO_RENDER, offset } from "./camera";
 import {
   sampleProfile,
   computeCamera,
@@ -196,5 +199,56 @@ describe("EXAGGERATION_STEPS", () => {
     for (let i = 1; i < EXAGGERATION_STEPS.length; i++) {
       expect(EXAGGERATION_STEPS[i]!).toBeGreaterThan(EXAGGERATION_STEPS[i - 1]!);
     }
+  });
+});
+
+// ── demProtocol ───────────────────────────────────────────────────────────────
+
+describe("demProtocol", () => {
+  it("encode puis décode une altitude au décimètre près", () => {
+    for (const e of [-2599.3, 0, 41.2, -10_000]) {
+      const [r, g, b] = encodeMapbox(e);
+      expect(decodeMapbox(r, g, b)).toBeCloseTo(e, 1);
+    }
+  });
+
+  it("exprime les pixels par rapport à la référence et met les trous à la référence", () => {
+    const [r, g, b] = encodeMapbox(-2590);
+    const px = new Uint8ClampedArray([r, g, b, 255, 0, 0, 0, 0]);
+    relativize(px, -2600);
+    expect(decodeMapbox(px[0]!, px[1]!, px[2]!)).toBeCloseTo(10, 1);
+    expect(decodeMapbox(px[4]!, px[5]!, px[6]!)).toBeCloseTo(0, 1);
+    expect(px[7]).toBe(255);
+  });
+
+  it("calcule l'emprise d'une tuile", () => {
+    const [w, s, e, n] = tileBounds(0, 0, 0);
+    expect(w).toBeCloseTo(-180);
+    expect(e).toBeCloseTo(180);
+    expect(n).toBeGreaterThan(85);
+    expect(s).toBeLessThan(-85);
+  });
+});
+
+// ── camera ────────────────────────────────────────────────────────────────────
+
+describe("camera", () => {
+  it("donne le cap d'un tracé vers l'est", () => {
+    const east: RouteProfile[] = [
+      { distanceM: 0, position: [77.57, 18.38], elevationM: 0 },
+      { distanceM: 1000, position: [77.59, 18.38], elevationM: 0 },
+    ];
+    expect(bearingAt(east, 500)).toBeCloseTo(90, 0);
+  });
+
+  it("décale un point en mètres martiens", () => {
+    const p = offset([77.57, 18.38], 0, 1000);
+    // 1 km vers le nord sur Mars ≈ 0,0169°
+    expect(p[1] - 18.38).toBeCloseTo(1000 / (3_389_500 * (Math.PI / 180)), 6);
+    expect(p[0]).toBeCloseTo(77.57, 9);
+  });
+
+  it("corrige l'échelle Terre / Mars de MapLibre", () => {
+    expect(MARS_TO_RENDER).toBeCloseTo(1.88, 2);
   });
 });

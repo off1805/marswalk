@@ -39,6 +39,8 @@ export interface FlyoverControls {
   pause: () => void;
   /** Rembobiner au début. */
   rewind: () => void;
+  /** Aller à une distance le long du tracé (curseur). */
+  seek: (m: number) => void;
   /** Changer l'exagération verticale. */
   setExaggeration: (v: ExaggerationFactor) => void;
   /** Changer la vitesse. */
@@ -127,6 +129,11 @@ export function useFlyover(
     setProgressM(0);
   }, []);
 
+  const seek = useCallback(
+    (m: number) => setProgressM(Math.max(0, Math.min(totalDistanceM, m))),
+    [totalDistanceM],
+  );
+
   // Calculer la position de caméra courante (pur, pas d'effet de bord)
   const camera: CameraTarget | null =
     profile.length > 0
@@ -142,6 +149,7 @@ export function useFlyover(
     play,
     pause,
     rewind,
+    seek,
     setExaggeration,
     setSpeed,
   };

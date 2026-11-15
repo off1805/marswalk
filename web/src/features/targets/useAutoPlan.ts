@@ -10,6 +10,12 @@ import { api, type Target, type Plan } from "@/shared/api/client";
 import { queryKeys } from "@/shared/queryKeys";
 import { useShared } from "@/shared/store";
 
+function sameTargets(planIds: string[], targets: Target[]): boolean {
+  if (planIds.length !== targets.length) return false;
+  const ids = new Set(targets.map((t) => t.id));
+  return planIds.every((id) => ids.has(id));
+}
+
 export function useAutoPlan(targets: Target[] | undefined) {
   const siteId = useShared((s) => s.siteId);
   const setActivePlan = useShared((s) => s.setActivePlan);
@@ -28,6 +34,24 @@ export function useAutoPlan(targets: Target[] | undefined) {
         setActivePlan(null);
         setActiveRoute(null);
         return;
+      }
+
+      // Le plan actif (restauré après un rechargement, ou déjà calculé) couvre-t-il
+      // exactement ces cibles ? Alors on le garde : le recalculer créerait un nouveau plan
+      // et effacerait la variante choisie.
+      const { activePlanId } = useShared.getState();
+      if (activePlanId) {
+        let current = qc.getQueryData<Plan>(queryKeys.plan(activePlanId));
+        if (!current) {
+          const { data } = await api.GET("/api/plans/{plan_id}", {
+            params: { path: { plan_id: activePlanId } },
+          });
+          current = data as Plan | undefined;
+          if (current) qc.setQueryData(queryKeys.plan(current.id), current);
+        }
+        // L'API présélectionne une variante à la création : ce n'est pas un choix de
+        // l'astronaute, on ne l'applique donc pas ici (PlanSync restaure son vrai choix).
+        if (current && sameTargets(current.target_ids, tgts)) return;
       }
 
       // Cancel previous in-flight request

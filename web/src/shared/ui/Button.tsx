@@ -3,12 +3,13 @@ import type { ButtonHTMLAttributes } from "react";
 type Variant = "primary" | "secondary" | "danger";
 
 const styles: Record<Variant, string> = {
-  primary: "bg-[var(--color-info)] text-white",
-  secondary: "bg-[var(--surface-2)] text-[var(--text)] border border-[var(--border)]",
-  danger: "bg-[var(--color-danger)] text-white",
+  primary: "bg-[var(--accent)] text-[var(--accent-ink)] hover:brightness-110",
+  secondary:
+    "bg-[var(--surface-2)] text-[var(--text)] border border-[var(--border)] hover:bg-[var(--surface-3)] hover:border-[var(--border-strong)]",
+  danger: "bg-[var(--color-danger)] text-black hover:brightness-110",
 };
 
-/** Bouton de base. */
+/** Base button. */
 export function Button({
   variant = "secondary",
   className = "",
@@ -17,7 +18,7 @@ export function Button({
   return (
     <button
       type="button"
-      className={`rounded-md px-3 py-2 font-semibold disabled:opacity-50 ${styles[variant]} ${className}`}
+      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-[background-color,border-color,filter] duration-150 disabled:cursor-not-allowed disabled:opacity-45 ${styles[variant]} ${className}`}
       {...props}
     />
   );

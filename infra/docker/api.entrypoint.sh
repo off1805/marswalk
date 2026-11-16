@@ -12,7 +12,8 @@ if [ -n "$MARSWALK_DATABASE_URL" ]; then
 import os, sys
 try:
     import psycopg
-    psycopg.connect(os.environ["MARSWALK_DATABASE_URL"]).close()
+    # psycopg refuse le préfixe SQLAlchemy "postgresql+psycopg://"
+    psycopg.connect(os.environ["MARSWALK_DATABASE_URL"].replace("+psycopg", "")).close()
     sys.exit(0)
 except Exception:
     sys.exit(1)

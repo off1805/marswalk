@@ -20,5 +20,7 @@ data/*
 
 # Divers
 .env
+.env.local.sh
+.env.prod
 .DS_Store
 .claude/settings.local.json

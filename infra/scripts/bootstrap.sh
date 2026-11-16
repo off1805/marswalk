@@ -8,7 +8,7 @@
 # Ce script :
 #   1. Met à jour le système
 #   2. Installe Docker + Docker Compose plugin + awscli
-#   3. Clone le dépôt dans /home/ubuntu/marswalk
+#   3. Clone le dépôt dans $MARSWALK_DIR (par défaut /opt/marswalk)
 #   4. Crée le répertoire pour le fichier de secrets
 #   5. Configure le pare-feu UFW (80/443 ouverts, 22 maintenu)
 #   6. Installe Certbot pour Let's Encrypt
@@ -17,7 +17,7 @@
 set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/CHANGE_ME/marswalk.git}"
-DEPLOY_DIR="/home/ubuntu/marswalk"
+DEPLOY_DIR="${MARSWALK_DIR:-/opt/marswalk}"
 
 echo "=== [1/7] Mise à jour du système ==="
 sudo apt-get update -y
@@ -35,11 +35,12 @@ fi
 
 echo "=== [3/7] Clone du dépôt ==="
 if [ ! -d "$DEPLOY_DIR" ]; then
-  git clone "$REPO_URL" "$DEPLOY_DIR"
+  sudo mkdir -p "$(dirname "$DEPLOY_DIR")"
+  sudo git clone "$REPO_URL" "$DEPLOY_DIR"
 else
   echo "Dépôt déjà présent dans $DEPLOY_DIR"
 fi
-chown -R ubuntu:ubuntu "$DEPLOY_DIR"
+sudo chown -R ubuntu:ubuntu "$DEPLOY_DIR"
 
 echo "=== [4/7] Répertoire des secrets ==="
 touch /home/ubuntu/.env.prod
@@ -59,8 +60,8 @@ sudo apt-get install -y certbot
 # La première émission est effectuée manuellement après le premier démarrage de Nginx.
 
 echo "=== [7/7] Crons (sauvegarde + renouvellement TLS) ==="
-CRON_BACKUP="0 2 * * * /home/ubuntu/marswalk/infra/scripts/backup.sh >> /var/log/marswalk-backup.log 2>&1"
-CRON_CERTBOT="0 4 * * * certbot renew --webroot -w /var/lib/docker/volumes/marswalk-prod_certbot_www/_data --quiet && docker compose --env-file /home/ubuntu/.env.prod -f /home/ubuntu/marswalk/infra/compose.prod.yaml exec nginx nginx -s reload"
+CRON_BACKUP="0 2 * * * MARSWALK_DIR=$DEPLOY_DIR $DEPLOY_DIR/infra/scripts/backup.sh >> /var/log/marswalk-backup.log 2>&1"
+CRON_CERTBOT="0 4 * * * certbot renew --webroot -w /var/lib/docker/volumes/marswalk-prod_certbot_www/_data --quiet && docker compose --env-file /home/ubuntu/.env.prod -f $DEPLOY_DIR/infra/compose.prod.yaml exec nginx nginx -s reload"
 
 (crontab -l 2>/dev/null | grep -v "marswalk"; echo "$CRON_BACKUP"; echo "$CRON_CERTBOT") | crontab -
 echo "    Crons enregistrés."
@@ -71,9 +72,9 @@ echo ""
 echo "Étapes suivantes :"
 echo "  1. Renseigner /home/ubuntu/.env.prod (voir $DEPLOY_DIR/.env.prod.example)"
 echo "  2. Mettre à jour REPO_URL dans ce script si nécessaire, puis relancer"
-echo "  3. Remplacer MARSWALK_DOMAIN dans infra/nginx/nginx.conf"
+echo "  3. Vérifier MARSWALK_DOMAIN dans /home/ubuntu/.env.prod (substitué dans nginx.conf au démarrage)"
 echo "  4. Lancer : docker compose --env-file /home/ubuntu/.env.prod \\"
-echo "              -f /home/ubuntu/marswalk/infra/compose.prod.yaml up -d"
+echo "              -f $DEPLOY_DIR/infra/compose.prod.yaml up -d"
 echo "  5. Émettre le certificat TLS :"
 echo "     certbot certonly --webroot -w /var/lib/docker/volumes/marswalk-prod_certbot_www/_data \\"
 echo "       -d \$MARSWALK_DOMAIN --agree-tos -m admin@example.com"

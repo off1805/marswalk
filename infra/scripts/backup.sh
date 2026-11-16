@@ -12,6 +12,7 @@
 set -euo pipefail
 
 ENV_FILE="/home/ubuntu/.env.prod"
+MARSWALK_DIR="${MARSWALK_DIR:-/opt/marswalk}"
 if [ ! -f "$ENV_FILE" ]; then
   echo "Fichier $ENV_FILE introuvable." >&2
   exit 1
@@ -34,7 +35,7 @@ DUMP_FILE="/tmp/marswalk_${DATE}.dump"
 echo "[backup] Dump PostgreSQL ($POSTGRES_DB) → $DUMP_FILE"
 docker compose \
   --env-file "$ENV_FILE" \
-  -f /home/ubuntu/marswalk/infra/compose.prod.yaml \
+  -f "$MARSWALK_DIR/infra/compose.prod.yaml" \
   exec -T db \
   pg_dump -U "$POSTGRES_USER" -Fc "$POSTGRES_DB" > "$DUMP_FILE"
 

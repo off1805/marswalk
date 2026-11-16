@@ -21,6 +21,8 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 LIGHTSAIL_USER="${LIGHTSAIL_USER:-ubuntu}"
+# Emplacement du dépôt sur l'instance
+MARSWALK_DIR="${MARSWALK_DIR:-/opt/marswalk}"
 SKIP_FRONTEND=false
 SKIP_SITE_DATA=false
 
@@ -69,9 +71,9 @@ fi
 
 # ── 2. Déploiement du backend sur Lightsail ──────────────────────────────────
 echo "--- [4/4] Déploiement du backend sur ${LIGHTSAIL_HOST} ---"
-ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" bash -s << 'REMOTE'
+ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' bash -s" << 'REMOTE'
 set -euo pipefail
-cd /home/ubuntu/marswalk
+cd "$MARSWALK_DIR"
 
 echo "[remote] git pull…"
 git pull --ff-only
@@ -117,7 +119,7 @@ if [ "$SKIP_SITE_DATA" = false ] && [ -d "$REPO_ROOT/data/packages/jezero" ]; th
       "$REPO_ROOT/data/packages/jezero/" \
       "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}:/tmp/jezero_transfer/"
 
-    ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" bash -s << 'REMOTE_DATA'
+    ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' bash -s" << 'REMOTE_DATA'
 set -euo pipefail
 DEST=$(docker volume inspect marswalk-prod_site_packages \
   --format '{{.Mountpoint}}' 2>/dev/null || echo "")
@@ -126,10 +128,15 @@ if [ -z "$DEST" ]; then
   echo "[remote] Lancez d'abord : docker compose ... up -d db api" >&2
   exit 1
 fi
-mkdir -p "$DEST/jezero"
-cp -r /tmp/jezero_transfer/. "$DEST/jezero/"
+# /var/lib/docker n'est accessible qu'à root : sudo est requis pour écrire dans le volume.
+sudo mkdir -p "$DEST/jezero"
+sudo cp -r /tmp/jezero_transfer/. "$DEST/jezero/"
 rm -rf /tmp/jezero_transfer
 echo "[remote] Paquet Jezero installé dans $DEST/jezero/"
+# L'API charge le catalogue des sites au démarrage : on la redémarre pour qu'elle voie Jezero.
+cd "$MARSWALK_DIR"
+docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml restart api
+echo "[remote] API redémarrée."
 REMOTE_DATA
     echo "    Paquet Jezero transféré."
   else

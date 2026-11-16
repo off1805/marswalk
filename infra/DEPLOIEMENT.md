@@ -145,7 +145,7 @@ ssh ubuntu@${LIGHTSAIL_HOST} "bash -s" < infra/scripts/bootstrap.sh
 
 Le script `bootstrap.sh` :
 - Installe Docker, git, awscli, Certbot
-- Clone le dépôt dans `/home/ubuntu/marswalk`
+- Clone le dépôt dans `/opt/marswalk` (modifiable avec la variable `MARSWALK_DIR`)
 - Configure UFW (80/443 ouverts)
 - Enregistre les crons de sauvegarde et de renouvellement TLS
 
@@ -162,7 +162,7 @@ ssh ubuntu@${LIGHTSAIL_HOST} "chmod 600 /home/ubuntu/.env.prod"
 
 ```bash
 ssh ubuntu@${LIGHTSAIL_HOST}
-cd /home/ubuntu/marswalk
+cd /opt/marswalk
 
 # Premier démarrage (db + api uniquement, sans nginx — TLS pas encore émis)
 docker compose \
@@ -197,6 +197,7 @@ sudo certbot certonly \
   --non-interactive
 
 # Les certificats sont dans /etc/letsencrypt/live/${MARSWALK_DOMAIN}/
+# Note : nginx.conf utilise le token $MARSWALK_DOMAIN, substitué par envsubst au démarrage du conteneur.
 # Les copier dans le volume Docker certbot_conf :
 CERT_VOL=$(docker volume inspect marswalk-prod_certbot_conf --format '{{.Mountpoint}}')
 sudo mkdir -p "${CERT_VOL}/live/${MARSWALK_DOMAIN}"
@@ -210,7 +211,7 @@ sudo cp /etc/letsencrypt/live/${MARSWALK_DOMAIN}/privkey.pem  "${CERT_VOL}/live/
 
 ```bash
 ssh ubuntu@${LIGHTSAIL_HOST}
-cd /home/ubuntu/marswalk
+cd /opt/marswalk
 
 docker compose \
   --env-file /home/ubuntu/.env.prod \
@@ -285,7 +286,7 @@ La migration Alembic (`alembic upgrade head`) s'exécute automatiquement au red�
 
 ```bash
 ssh ubuntu@${LIGHTSAIL_HOST}
-cd /home/ubuntu/marswalk
+cd /opt/marswalk
 
 # Logs en temps réel
 docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml logs -f api

@@ -15,7 +15,7 @@ Navigateur
 Lightsail Ubuntu 24.04 (2 GB RAM)
   └─ Docker Compose (infra/compose.prod.yaml)
        ├─ nginx:1.27-alpine  → ports 80/443, TLS Let's Encrypt
-       ├─ marswalk-api       → port 8000 (interne), 2 workers Uvicorn
+       ├─ marswalk-api       → port 8000 (interne), 1 worker Uvicorn
        └─ postgis/postgis:16-3.4  → port 5432 (interne)
 ```
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Entrypoint de production de l'API Marswalk.
 # Attend que PostgreSQL soit prêt avant de lancer la migration Alembic,
-# puis démarre Uvicorn avec 2 workers (adapté à une instance 2 GB).
+# puis démarre Uvicorn (MARSWALK_WORKERS, 1 par défaut).
 set -e
 
 if [ -n "$MARSWALK_DATABASE_URL" ]; then
@@ -32,10 +32,13 @@ EOF
     echo "[entrypoint] Migration terminée."
 fi
 
-echo "[entrypoint] Démarrage d'Uvicorn (2 workers)…"
+# 1 worker par défaut : le warmup de Jezero prend ~1,4 Go par processus (OOM à 2 workers
+# sur 2 Go), et le hub WebSocket des sorties vit en mémoire, propre à chaque processus.
+WORKERS="${MARSWALK_WORKERS:-1}"
+echo "[entrypoint] Démarrage d'Uvicorn ($WORKERS worker(s))…"
 exec uvicorn marswalk_api.main:app \
     --host 0.0.0.0 \
     --port 8000 \
-    --workers 2 \
+    --workers "$WORKERS" \
     --forwarded-allow-ips="*" \
     --proxy-headers

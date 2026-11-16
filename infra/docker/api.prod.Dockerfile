@@ -2,7 +2,7 @@
 #
 # Différences par rapport à api.Dockerfile (dev) :
 #   - Entrypoint dédié avec wait-for-postgres + retry avant migration Alembic
-#   - 2 workers Uvicorn (--proxy-headers pour CloudFront/Nginx)
+#   - Uvicorn, 1 worker par défaut (MARSWALK_WORKERS) (--proxy-headers pour CloudFront/Nginx)
 #   - L'image ne contient aucun paquet de site : ils arrivent via un volume Docker.
 FROM python:3.12-slim
 

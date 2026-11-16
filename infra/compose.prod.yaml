@@ -32,7 +32,7 @@ services:
       retries: 30
     # Pas d'exposition du port 5432 à l'extérieur : PostgreSQL est interne au réseau Docker.
 
-  # ── API FastAPI (Uvicorn, 2 workers) ──────────────────────────────────────
+  # ── API FastAPI (Uvicorn, 1 worker) ──────────────────────────────────────
   api:
     build:
       context: ..
@@ -45,6 +45,8 @@ services:
       # CLOUDFRONT_URL doit inclure le protocole, ex: https://dxxxxxx.cloudfront.net
       MARSWALK_CORS_ORIGINS: '["${CLOUDFRONT_URL}"]'
       MARSWALK_WARMUP: "true"
+      # Un seul worker : voir infra/docker/api.entrypoint.sh (mémoire, hub WebSocket).
+      MARSWALK_WORKERS: "1"
       # MARSWALK_PACKAGES indique où chercher les paquets de site (Jezero).
       # La variable est lue par marswalk_core.paths.package_search_path().
       MARSWALK_PACKAGES: "/app/data/packages"

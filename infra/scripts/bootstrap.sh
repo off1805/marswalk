@@ -63,9 +63,10 @@ sudo apt-get install -y certbot
 # La première émission est effectuée manuellement après le premier démarrage de Nginx.
 
 echo "=== [7/7] Crons (sauvegarde + renouvellement TLS) ==="
-CRON_BACKUP="0 2 * * * MARSWALK_DIR=$DEPLOY_DIR $DEPLOY_DIR/infra/scripts/backup.sh >> /var/log/marswalk-backup.log 2>&1"
+CRON_BACKUP="0 2 * * * MARSWALK_DIR=$DEPLOY_DIR /bin/bash $DEPLOY_DIR/infra/scripts/backup.sh >> /var/log/marswalk-backup.log 2>&1"
 
-(crontab -l 2>/dev/null | grep -v "marswalk"; echo "$CRON_BACKUP") | crontab -
+# "|| true" : avec set -e/pipefail, un grep sans résultat installerait une crontab vide.
+{ crontab -l 2>/dev/null | grep -v "marswalk" || true; echo "$CRON_BACKUP"; } | crontab -
 # Renouvellement TLS : le certbot.timer du système suffit, en mode webroot (nginx garde le port 80).
 # Le hook recopie le certificat dans le volume de nginx et le recharge.
 sudo install -m 755 "$DEPLOY_DIR/infra/certbot/marswalk-nginx-deploy-hook.sh" \

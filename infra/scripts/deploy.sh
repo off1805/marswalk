@@ -20,6 +20,13 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# Variables locales (non versionnées) : exportées pour ce script.
+if [ -f "$REPO_ROOT/.env.local.sh" ]; then
+  set -a; . "$REPO_ROOT/.env.local.sh"; set +a
+fi
+# Clé SSH de l'instance (optionnelle), ex. ~/.ssh/lightsail-marswalk-eu-west-3.pem
+SSH_OPTS=(-o BatchMode=yes)
+[ -n "${LIGHTSAIL_SSH_KEY:-}" ] && SSH_OPTS+=(-i "$LIGHTSAIL_SSH_KEY")
 LIGHTSAIL_USER="${LIGHTSAIL_USER:-ubuntu}"
 # Emplacement du dépôt sur l'instance
 MARSWALK_DIR="${MARSWALK_DIR:-/opt/marswalk}"
@@ -75,7 +82,7 @@ fi
 
 # ── 2. Déploiement du backend sur Lightsail ──────────────────────────────────
 echo "--- [4/4] Déploiement du backend sur ${LIGHTSAIL_HOST} ---"
-ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' MARSWALK_ENV_FILE='${MARSWALK_ENV_FILE}' bash -s" << 'REMOTE'
+ssh "${SSH_OPTS[@]}" "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' MARSWALK_ENV_FILE='${MARSWALK_ENV_FILE}' bash -s" << 'REMOTE'
 set -euo pipefail
 cd "$MARSWALK_DIR"
 
@@ -119,11 +126,11 @@ if [ "$SKIP_SITE_DATA" = false ] && [ -d "$REPO_ROOT/data/packages/jezero" ]; th
   read -r -p "    Transférer maintenant ? [y/N] " confirm
   if [[ "$confirm" =~ ^[yY]$ ]]; then
     # Le volume Docker site_packages est dans /var/lib/docker/volumes/marswalk-prod_site_packages/_data/
-    rsync -avz --progress \
+    rsync -az --partial --info=progress2 -e "ssh ${SSH_OPTS[*]}" \
       "$REPO_ROOT/data/packages/jezero/" \
       "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}:/tmp/jezero_transfer/"
 
-    ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' MARSWALK_ENV_FILE='${MARSWALK_ENV_FILE}' bash -s" << 'REMOTE_DATA'
+    ssh "${SSH_OPTS[@]}" "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' MARSWALK_ENV_FILE='${MARSWALK_ENV_FILE}' bash -s" << 'REMOTE_DATA'
 set -euo pipefail
 DEST=$(sudo docker volume inspect marswalk-prod_site_packages \
   --format '{{.Mountpoint}}' 2>/dev/null || echo "")

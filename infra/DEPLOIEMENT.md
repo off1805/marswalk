@@ -152,8 +152,8 @@ Le script `bootstrap.sh` :
 Après le bootstrap, copie le fichier de secrets sur l'instance :
 
 ```bash
-scp .env.local.sh ubuntu@${LIGHTSAIL_HOST}:/home/ubuntu/.env.prod
-ssh ubuntu@${LIGHTSAIL_HOST} "chmod 600 /home/ubuntu/.env.prod"
+scp .env.local.sh ubuntu@${LIGHTSAIL_HOST}:/opt/marswalk/.env.local.sh
+ssh ubuntu@${LIGHTSAIL_HOST} "chmod 600 /opt/marswalk/.env.local.sh"
 ```
 
 ---
@@ -166,13 +166,13 @@ cd /opt/marswalk
 
 # Premier démarrage (db + api uniquement, sans nginx — TLS pas encore émis)
 docker compose \
-  --env-file /home/ubuntu/.env.prod \
+  --env-file /opt/marswalk/.env.local.sh \
   -f infra/compose.prod.yaml \
   up -d db api
 
 # Attendre que l'API soit healthy (~30 s)
 docker compose \
-  --env-file /home/ubuntu/.env.prod \
+  --env-file /opt/marswalk/.env.local.sh \
   -f infra/compose.prod.yaml \
   ps
 ```
@@ -214,7 +214,7 @@ ssh ubuntu@${LIGHTSAIL_HOST}
 cd /opt/marswalk
 
 docker compose \
-  --env-file /home/ubuntu/.env.prod \
+  --env-file /opt/marswalk/.env.local.sh \
   -f infra/compose.prod.yaml \
   up -d nginx
 ```
@@ -289,14 +289,14 @@ ssh ubuntu@${LIGHTSAIL_HOST}
 cd /opt/marswalk
 
 # Logs en temps réel
-docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml logs -f api
-docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml logs -f nginx
+docker compose --env-file /opt/marswalk/.env.local.sh -f infra/compose.prod.yaml logs -f api
+docker compose --env-file /opt/marswalk/.env.local.sh -f infra/compose.prod.yaml logs -f nginx
 
 # Utilisation mémoire (surveiller que l'API reste sous ~1,2 GB)
 docker stats
 
 # Statut des services
-docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml ps
+docker compose --env-file /opt/marswalk/.env.local.sh -f infra/compose.prod.yaml ps
 ```
 
 ---
@@ -310,13 +310,13 @@ ssh ubuntu@${LIGHTSAIL_HOST}
 aws s3 cp "s3://${BACKUP_BUCKET}/postgres/20260115_020000.dump" /tmp/restore.dump
 
 # Restaurer (arrêt de l'API pour éviter les conflits)
-docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml stop api
+docker compose --env-file /opt/marswalk/.env.local.sh -f infra/compose.prod.yaml stop api
 
-docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml \
+docker compose --env-file /opt/marswalk/.env.local.sh -f infra/compose.prod.yaml \
   exec -T db \
   pg_restore -U ${POSTGRES_USER} -d ${POSTGRES_DB} --clean /tmp/restore.dump
 
-docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml start api
+docker compose --env-file /opt/marswalk/.env.local.sh -f infra/compose.prod.yaml start api
 rm /tmp/restore.dump
 ```
 

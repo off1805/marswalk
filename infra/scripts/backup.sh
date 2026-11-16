@@ -6,13 +6,14 @@
 # Conserve les 30 derniers dumps, supprime les plus anciens.
 #
 # Prérequis :
-#   - awscli configuré sur l'instance (rôle IAM ou aws configure)
-#   - Variable BACKUP_BUCKET dans /home/ubuntu/.env.prod
+#   - awscli configuré sur l'instance (aws configure, utilisateur IAM limité au bucket)
+#   - Variable BACKUP_BUCKET dans $MARSWALK_DIR/.env.local.sh
 # =============================================================================
 set -euo pipefail
 
-ENV_FILE="/home/ubuntu/.env.prod"
 MARSWALK_DIR="${MARSWALK_DIR:-/opt/marswalk}"
+ENV_FILE="${MARSWALK_ENV_FILE:-${MARSWALK_DIR}/.env.local.sh}"
+export PATH="$PATH:/snap/bin"   # aws-cli installé par snap, absent du PATH de cron
 if [ ! -f "$ENV_FILE" ]; then
   echo "Fichier $ENV_FILE introuvable." >&2
   exit 1
@@ -33,7 +34,7 @@ DATE=$(date +%Y%m%d_%H%M%S)
 DUMP_FILE="/tmp/marswalk_${DATE}.dump"
 
 echo "[backup] Dump PostgreSQL ($POSTGRES_DB) → $DUMP_FILE"
-docker compose \
+sudo docker compose \
   --env-file "$ENV_FILE" \
   -f "$MARSWALK_DIR/infra/compose.prod.yaml" \
   exec -T db \

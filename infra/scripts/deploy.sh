@@ -9,7 +9,7 @@
 #   - awscli configuré (aws configure)
 #   - pnpm installé
 #   - ssh configuré vers l'instance Lightsail (~/.ssh/config ou LIGHTSAIL_HOST)
-#   - Variables d'environnement chargées depuis .env.prod.example (localement)
+#   - Variables chargées localement : source .env.local.sh (modèle : .env.prod.example)
 #
 # Variables d'environnement requises en local :
 #   LIGHTSAIL_HOST   IP ou nom DNS de l'instance Lightsail
@@ -23,6 +23,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 LIGHTSAIL_USER="${LIGHTSAIL_USER:-ubuntu}"
 # Emplacement du dépôt sur l'instance
 MARSWALK_DIR="${MARSWALK_DIR:-/opt/marswalk}"
+# Fichier d'environnement sur l'instance (secrets, chmod 600)
+MARSWALK_ENV_FILE="${MARSWALK_ENV_FILE:-${MARSWALK_DIR}/.env.local.sh}"
 SKIP_FRONTEND=false
 SKIP_SITE_DATA=false
 
@@ -43,27 +45,29 @@ echo ""
 if [ "$SKIP_FRONTEND" = false ]; then
   echo "--- [1/4] Build du frontend React (pnpm build) ---"
   cd "$REPO_ROOT/web"
-  pnpm install --frozen-lockfile
-  pnpm build
+  PNPM="pnpm"; command -v pnpm >/dev/null || PNPM="npx -y pnpm@10.28.0"
+  $PNPM install --frozen-lockfile
+  $PNPM build
   cd "$REPO_ROOT"
 
   echo "--- [2/4] Synchronisation vers S3 ---"
-  # index.html : no-cache (toujours refraîchi)
-  aws s3 cp web/dist/index.html \
-    "s3://${FRONTEND_BUCKET}/index.html" \
-    --cache-control "no-cache, no-store, must-revalidate" \
-    --content-type "text/html; charset=utf-8"
-
-  # Assets statiques (hash dans le nom) : cache longue durée
+  # Fichiers à nom fixe (index.html, service worker, manifeste) : no-cache, toujours refraîchis.
+  NO_CACHE_FILES="index.html sw.js manifest.webmanifest mockServiceWorker.js"
+  # Assets statiques (hash dans le nom) : cache longue durée.
+  # Pas de --delete : les anciens assets restent servis aux onglets encore ouverts.
   aws s3 sync web/dist/ "s3://${FRONTEND_BUCKET}/" \
-    --delete \
-    --exclude "index.html" \
+    $(for f in $NO_CACHE_FILES; do printf -- '--exclude %s ' "$f"; done) \
     --cache-control "public, max-age=31536000, immutable"
+  for f in $NO_CACHE_FILES; do
+    [ -f "web/dist/$f" ] || continue
+    aws s3 cp "web/dist/$f" "s3://${FRONTEND_BUCKET}/$f" \
+      --cache-control "no-cache, no-store, must-revalidate"
+  done
 
   echo "--- [3/4] Invalidation CloudFront (index.html et sw.js) ---"
   aws cloudfront create-invalidation \
     --distribution-id "${CF_DIST_ID}" \
-    --paths "/index.html" "/sw.js" "/manifest.webmanifest"
+    --paths "/" "/index.html" "/sw.js" "/manifest.webmanifest"
   echo "    Invalidation envoyée (propagation ~60 s)."
 else
   echo "--- [1-3/4] Frontend ignoré (--skip-frontend) ---"
@@ -71,7 +75,7 @@ fi
 
 # ── 2. Déploiement du backend sur Lightsail ──────────────────────────────────
 echo "--- [4/4] Déploiement du backend sur ${LIGHTSAIL_HOST} ---"
-ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' bash -s" << 'REMOTE'
+ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' MARSWALK_ENV_FILE='${MARSWALK_ENV_FILE}' bash -s" << 'REMOTE'
 set -euo pipefail
 cd "$MARSWALK_DIR"
 
@@ -79,21 +83,21 @@ echo "[remote] git pull…"
 git pull --ff-only
 
 echo "[remote] Build de l'image API…"
-docker compose \
-  --env-file /home/ubuntu/.env.prod \
+sudo docker compose \
+  --env-file "$MARSWALK_ENV_FILE" \
   -f infra/compose.prod.yaml \
   build api
 
 echo "[remote] Redémarrage de l'API (zero-downtime : db et nginx restent actifs)…"
-docker compose \
-  --env-file /home/ubuntu/.env.prod \
+sudo docker compose \
+  --env-file "$MARSWALK_ENV_FILE" \
   -f infra/compose.prod.yaml \
   up -d --no-deps api
 
 echo "[remote] Attente du healthcheck API…"
 attempt=0
-until docker compose \
-  --env-file /home/ubuntu/.env.prod \
+until sudo docker compose \
+  --env-file "$MARSWALK_ENV_FILE" \
   -f infra/compose.prod.yaml \
   exec -T api \
   python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')" \
@@ -119,9 +123,9 @@ if [ "$SKIP_SITE_DATA" = false ] && [ -d "$REPO_ROOT/data/packages/jezero" ]; th
       "$REPO_ROOT/data/packages/jezero/" \
       "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}:/tmp/jezero_transfer/"
 
-    ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' bash -s" << 'REMOTE_DATA'
+    ssh "${LIGHTSAIL_USER}@${LIGHTSAIL_HOST}" "MARSWALK_DIR='${MARSWALK_DIR}' MARSWALK_ENV_FILE='${MARSWALK_ENV_FILE}' bash -s" << 'REMOTE_DATA'
 set -euo pipefail
-DEST=$(docker volume inspect marswalk-prod_site_packages \
+DEST=$(sudo docker volume inspect marswalk-prod_site_packages \
   --format '{{.Mountpoint}}' 2>/dev/null || echo "")
 if [ -z "$DEST" ]; then
   echo "[remote] Volume marswalk-prod_site_packages introuvable." >&2
@@ -135,7 +139,7 @@ rm -rf /tmp/jezero_transfer
 echo "[remote] Paquet Jezero installé dans $DEST/jezero/"
 # L'API charge le catalogue des sites au démarrage : on la redémarre pour qu'elle voie Jezero.
 cd "$MARSWALK_DIR"
-docker compose --env-file /home/ubuntu/.env.prod -f infra/compose.prod.yaml restart api
+sudo docker compose --env-file "$MARSWALK_ENV_FILE" -f infra/compose.prod.yaml restart api
 echo "[remote] API redémarrée."
 REMOTE_DATA
     echo "    Paquet Jezero transféré."
